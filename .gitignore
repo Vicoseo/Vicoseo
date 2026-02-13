@@ -1,0 +1,38 @@
+# Dependencies
+vendor/
+node_modules/
+
+# Build outputs
+.next/
+admin/dist/
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+bootstrap/cache/*.php
+
+# SQLite
+*.sqlite
+*.sqlite-journal
+
+# Claude Code internal
+.claude/projects/
