@@ -4,6 +4,13 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Api;
 use Illuminate\Support\Facades\Route;
 
+// Sitemap data endpoints - tenant-scoped
+Route::middleware('tenant')->prefix('v1')->group(function () {
+    Route::get('/sitemap/index', [Api\SitemapController::class, 'index']);
+    Route::get('/sitemap/pages', [Api\SitemapController::class, 'pages']);
+    Route::get('/sitemap/posts', [Api\SitemapController::class, 'posts']);
+});
+
 // Public API routes (for Next.js frontend) - tenant-scoped via middleware
 Route::middleware('tenant')->prefix('v1')->group(function () {
     Route::get('/site/config', [Api\SiteController::class, 'config']);

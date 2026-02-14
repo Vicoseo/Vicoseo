@@ -29,6 +29,8 @@ export interface Page {
   meta_description: string | null;
   meta_keywords: string | null;
   sort_order: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Post {

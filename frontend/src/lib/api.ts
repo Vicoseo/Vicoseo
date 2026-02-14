@@ -31,16 +31,16 @@ export function getSiteConfig(domain: string): Promise<ApiResponse<SiteConfig>> 
   return fetchApi<ApiResponse<SiteConfig>>('/site/config', domain);
 }
 
-export function getPages(domain: string, page = 1): Promise<PaginatedResponse<Page>> {
-  return fetchApi<PaginatedResponse<Page>>(`/pages?page=${page}`, domain);
+export function getPages(domain: string, page = 1, perPage = 15): Promise<PaginatedResponse<Page>> {
+  return fetchApi<PaginatedResponse<Page>>(`/pages?page=${page}&per_page=${perPage}`, domain);
 }
 
 export function getPage(domain: string, slug: string): Promise<ApiResponse<Page>> {
   return fetchApi<ApiResponse<Page>>(`/pages/${slug}`, domain);
 }
 
-export function getPosts(domain: string, page = 1): Promise<PaginatedResponse<Post>> {
-  return fetchApi<PaginatedResponse<Post>>(`/posts?page=${page}`, domain);
+export function getPosts(domain: string, page = 1, perPage = 15): Promise<PaginatedResponse<Post>> {
+  return fetchApi<PaginatedResponse<Post>>(`/posts?page=${page}&per_page=${perPage}`, domain);
 }
 
 export function getPost(domain: string, slug: string): Promise<ApiResponse<Post>> {
