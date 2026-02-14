@@ -63,7 +63,7 @@ class SiteProvisionController extends Controller
         $confName = str_replace('.', '-', $domain);
 
         $hasNginx = file_exists("/etc/nginx/sites-enabled/{$confName}");
-        $hasSsl = file_exists("/etc/letsencrypt/live/{$domain}/fullchain.pem");
+        $hasSsl = is_dir("/etc/letsencrypt/live/{$domain}");
 
         return response()->json([
             'domain' => $domain,
