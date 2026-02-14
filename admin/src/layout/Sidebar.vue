@@ -20,6 +20,10 @@
       <i class="el-icon-monitor"></i>
       <span slot="title">Siteler</span>
     </el-menu-item>
+    <el-menu-item index="/domains">
+      <i class="el-icon-discover"></i>
+      <span slot="title">Domain Y&#246;netimi</span>
+    </el-menu-item>
     <el-menu-item index="/global-offers">
       <i class="el-icon-star-off"></i>
       <span slot="title">Sponsorlar</span>
@@ -37,6 +41,7 @@ export default {
     activeMenu() {
       const path = this.$route.path
       if (path.startsWith('/sites')) return '/sites'
+      if (path.startsWith('/domains')) return '/domains'
       if (path.startsWith('/global-offers')) return '/global-offers'
       return '/'
     },

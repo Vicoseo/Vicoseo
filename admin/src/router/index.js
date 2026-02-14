@@ -10,6 +10,7 @@ import SiteDetail from '../views/sites/SiteDetail.vue'
 import PageForm from '../views/pages/PageForm.vue'
 import PostForm from '../views/posts/PostForm.vue'
 import GlobalOfferList from '../views/top-offers/GlobalOfferList.vue'
+import DomainManager from '../views/domains/DomainManager.vue'
 
 Vue.use(VueRouter)
 
@@ -34,6 +35,7 @@ const routes = [
       { path: 'sites/:siteId/pages/:pageId', name: 'PageEdit', component: PageForm, props: true },
       { path: 'sites/:siteId/posts/create', name: 'PostCreate', component: PostForm, props: true },
       { path: 'sites/:siteId/posts/:postId', name: 'PostEdit', component: PostForm, props: true },
+      { path: 'domains', name: 'DomainManager', component: DomainManager },
       { path: 'global-offers', name: 'GlobalOffers', component: GlobalOfferList },
     ],
   },

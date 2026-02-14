@@ -54,6 +54,18 @@ Route::prefix('admin')->group(function () {
         // Deploy actions
         Route::post('deploy/restart-frontend', [Admin\DeployController::class, 'restartFrontend']);
 
+        // Domain management (Namesilo + Cloudflare)
+        Route::prefix('domains')->group(function () {
+            Route::get('balance', [Admin\DomainController::class, 'balance']);
+            Route::get('search', [Admin\DomainController::class, 'search']);
+            Route::post('purchase', [Admin\DomainController::class, 'purchase']);
+            Route::post('setup', [Admin\DomainController::class, 'setup']);
+            Route::get('cloudflare/zones', [Admin\DomainController::class, 'cfZones']);
+            Route::get('cloudflare/zones/{zoneId}', [Admin\DomainController::class, 'cfZoneDetail']);
+            Route::post('cloudflare/zones/{zoneId}/dns', [Admin\DomainController::class, 'cfAddDns']);
+            Route::get('status/{domain}', [Admin\DomainController::class, 'domainStatus']);
+        });
+
         // Site provisioning (SSL + Nginx)
         Route::post('sites/{siteId}/provision', [Admin\SiteProvisionController::class, 'provision']);
         Route::get('sites/{siteId}/provision-status', [Admin\SiteProvisionController::class, 'status']);
