@@ -24,21 +24,40 @@ export async function generateMetadata({
     const post = res.data;
     const siteUrl = `https://${siteRes.data.domain}`;
 
+    const title = post.meta_title || post.title;
+    const description = post.meta_description || post.excerpt || undefined;
+
     return {
-      title: post.meta_title || post.title,
-      description: post.meta_description || post.excerpt || undefined,
+      title,
+      description,
       alternates: {
         canonical: `${siteUrl}/blog/${slug}`,
       },
       openGraph: {
-        title: post.meta_title || post.title,
-        description: post.meta_description || post.excerpt || undefined,
+        title,
+        description,
         url: `${siteUrl}/blog/${slug}`,
         images: post.featured_image ? [{ url: post.featured_image }] : undefined,
         type: 'article',
         publishedTime: post.published_at,
         locale: 'tr_TR',
         siteName: siteRes.data.name,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
       },
     };
   } catch {
@@ -81,6 +100,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     }
   );
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Ana Sayfa', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${siteUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: `${siteUrl}/blog/${slug}` },
+    ],
+  };
+
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -103,6 +132,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <article className="page-content">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
