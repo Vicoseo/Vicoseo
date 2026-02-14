@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Site;
+use App\Services\TenantManager;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePageRequest extends FormRequest
@@ -11,6 +13,15 @@ class StorePageRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $siteId = $this->route('siteId');
+        if ($siteId) {
+            $site = Site::findOrFail($siteId);
+            app(TenantManager::class)->setTenant($site);
+        }
     }
 
     /**
