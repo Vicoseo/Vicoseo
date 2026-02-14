@@ -8,6 +8,19 @@
       <div style="display: flex; gap: 8px; align-items: center">
         <el-button
           size="small"
+          type="warning"
+          :loading="provisioning"
+          :disabled="provisioning"
+          @click="handleProvision"
+        >
+          <span v-if="!provisioning">
+            <i class="el-icon-connection"></i>
+            {{ provisionStatus && provisionStatus.provisioned ? 'SSL Aktif ✓' : 'SSL + Nginx Kur' }}
+          </span>
+          <span v-else>Kuruluyor...</span>
+        </el-button>
+        <el-button
+          size="small"
           :loading="generating === 'openai'"
           :disabled="!!generating"
           style="background: #10a37f; color: #fff; border-color: #10a37f"
@@ -89,7 +102,7 @@
 </template>
 
 <script>
-import { getSite, aiGenerateContent } from '../../api/sites'
+import { getSite, aiGenerateContent, provisionSite, getProvisionStatus } from '../../api/sites'
 import PageList from '../pages/PageList.vue'
 import PostList from '../posts/PostList.vue'
 import OfferList from './OfferList.vue'
@@ -105,6 +118,8 @@ export default {
       activeTab: 'pages',
       loading: false,
       generating: null, // null | 'openai' | 'anthropic'
+      provisioning: false,
+      provisionStatus: null,
       aiDialogVisible: false,
       selectedProvider: null,
       aiContentType: 'all',
@@ -122,6 +137,7 @@ export default {
   },
   created() {
     this.fetchSite()
+    this.fetchProvisionStatus()
   },
   methods: {
     async fetchSite() {
@@ -133,6 +149,44 @@ export default {
         this.$message.error('Site yüklenemedi')
       } finally {
         this.loading = false
+      }
+    },
+
+    async fetchProvisionStatus() {
+      try {
+        const { data } = await getProvisionStatus(this.siteId)
+        this.provisionStatus = data
+      } catch {
+        // ignore
+      }
+    },
+
+    async handleProvision() {
+      if (this.provisionStatus && this.provisionStatus.provisioned) {
+        this.$message.info('Bu site zaten yapılandırılmış.')
+        return
+      }
+
+      try {
+        await this.$confirm(
+          'Bu domain için SSL sertifikası alınacak ve Nginx yapılandırması oluşturulacak. DNS ayarlarının sunucuya yönlendirilmiş olması gerekir.',
+          'Site Yapılandırması',
+          { confirmButtonText: 'Kur', cancelButtonText: 'İptal', type: 'info' }
+        )
+      } catch {
+        return
+      }
+
+      this.provisioning = true
+      try {
+        const { data } = await provisionSite(this.siteId)
+        this.$message.success(data.message || 'Site başarıyla yapılandırıldı')
+        this.fetchProvisionStatus()
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Yapılandırma başarısız oldu'
+        this.$message.error(msg)
+      } finally {
+        this.provisioning = false
       }
     },
 

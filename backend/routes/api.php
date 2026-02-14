@@ -54,6 +54,10 @@ Route::prefix('admin')->group(function () {
         // Deploy actions
         Route::post('deploy/restart-frontend', [Admin\DeployController::class, 'restartFrontend']);
 
+        // Site provisioning (SSL + Nginx)
+        Route::post('sites/{siteId}/provision', [Admin\SiteProvisionController::class, 'provision']);
+        Route::get('sites/{siteId}/provision-status', [Admin\SiteProvisionController::class, 'status']);
+
         // Per-site resources
         Route::prefix('sites/{siteId}')->group(function () {
             Route::post('ai-generate', [Admin\AiGenerateController::class, 'generate']);

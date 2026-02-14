@@ -23,3 +23,11 @@ export function deleteSite(id) {
 export function aiGenerateContent(siteId, data) {
   return client.post(`/admin/sites/${siteId}/ai-generate`, data, { timeout: 600000 })
 }
+
+export function provisionSite(siteId) {
+  return client.post(`/admin/sites/${siteId}/provision`, {}, { timeout: 120000 })
+}
+
+export function getProvisionStatus(siteId) {
+  return client.get(`/admin/sites/${siteId}/provision-status`)
+}
