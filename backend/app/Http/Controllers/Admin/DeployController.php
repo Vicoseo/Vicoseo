@@ -23,7 +23,7 @@ class DeployController extends Controller
         // Restart PM2 frontend process
         $output = '';
         $exitCode = 0;
-        exec('pm2 restart cms-frontend 2>&1', $outputLines, $exitCode);
+        exec('sudo /usr/bin/pm2 restart cms-frontend 2>&1', $outputLines, $exitCode);
         $output = implode("\n", $outputLines);
 
         if ($exitCode !== 0) {
