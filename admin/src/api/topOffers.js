@@ -17,6 +17,11 @@ export function deleteGlobalOffer(id) {
   return client.delete(`/admin/global-top-offers/${id}`)
 }
 
+// Deploy - restart frontend
+export function restartFrontend() {
+  return client.post('/admin/deploy/restart-frontend')
+}
+
 // Site-specific top offers
 export function getSiteOffers(siteId, params = {}) {
   return client.get(`/admin/sites/${siteId}/top-offers`, { params })

@@ -44,6 +44,9 @@ Route::prefix('admin')->group(function () {
                 'destroy' => 'admin.global-top-offers.destroy',
             ]);
 
+        // Deploy actions
+        Route::post('deploy/restart-frontend', [Admin\DeployController::class, 'restartFrontend']);
+
         // Per-site resources
         Route::prefix('sites/{siteId}')->group(function () {
             Route::post('ai-generate', [Admin\AiGenerateController::class, 'generate']);

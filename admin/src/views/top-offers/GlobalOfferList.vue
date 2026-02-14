@@ -2,7 +2,10 @@
   <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
       <h2 style="margin: 0">Sponsorlar</h2>
-      <el-button type="primary" icon="el-icon-plus" @click="openForm()">Sponsor Ekle</el-button>
+      <div style="display: flex; gap: 10px">
+        <el-button type="primary" icon="el-icon-plus" @click="openForm()">Sponsor Ekle</el-button>
+        <el-button type="success" icon="el-icon-refresh" :loading="deploying" @click="handleDeploy">Güncellemeleri Yayınla</el-button>
+      </div>
     </div>
 
     <!-- Kart Önizleme — test sitesindeki sıralama -->
@@ -83,7 +86,7 @@
 </template>
 
 <script>
-import { getGlobalOffers, createGlobalOffer, updateGlobalOffer, deleteGlobalOffer } from '../../api/topOffers'
+import { getGlobalOffers, createGlobalOffer, updateGlobalOffer, deleteGlobalOffer, restartFrontend } from '../../api/topOffers'
 
 export default {
   name: 'GlobalOfferList',
@@ -92,6 +95,7 @@ export default {
       offers: [],
       loading: false,
       saving: false,
+      deploying: false,
       currentPage: 1,
       perPage: 30,
       total: 0,
@@ -163,6 +167,17 @@ export default {
           this.saving = false
         }
       })
+    },
+    async handleDeploy() {
+      this.deploying = true
+      try {
+        const { data } = await restartFrontend()
+        this.$message.success(data.message || 'Güncellemeler yayınlandı')
+      } catch {
+        this.$message.error('Yayınlama başarısız')
+      } finally {
+        this.deploying = false
+      }
     },
     async handleDelete(offer) {
       try {
