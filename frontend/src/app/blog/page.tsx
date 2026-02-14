@@ -2,17 +2,42 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getCurrentDomain } from '@/lib/domain';
-import { getPosts } from '@/lib/api';
+import { getPosts, getSiteConfig } from '@/lib/api';
 import { Post } from '@/types';
 
 interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: 'Blog',
-  description: 'Read our latest blog posts and articles.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const domain = await getCurrentDomain();
+
+  try {
+    const siteRes = await getSiteConfig(domain);
+    const siteUrl = `https://${siteRes.data.domain}`;
+
+    return {
+      title: 'Blog',
+      description: `${siteRes.data.name} blog yazıları ve güncel makaleler.`,
+      alternates: {
+        canonical: `${siteUrl}/blog`,
+      },
+      openGraph: {
+        title: `Blog | ${siteRes.data.name}`,
+        description: `${siteRes.data.name} blog yazıları ve güncel makaleler.`,
+        url: `${siteUrl}/blog`,
+        type: 'website',
+        locale: 'tr_TR',
+        siteName: siteRes.data.name,
+      },
+    };
+  } catch {
+    return {
+      title: 'Blog',
+      description: 'Blog yazıları ve güncel makaleler.',
+    };
+  }
+}
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const resolvedSearchParams = await searchParams;
@@ -34,7 +59,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     return (
       <div className="page-content">
         <h1>Blog</h1>
-        <p>No blog posts have been published yet. Check back soon!</p>
+        <p>Henüz yayınlanmış blog yazısı bulunmamaktadır.</p>
       </div>
     );
   }
@@ -65,7 +90,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 <p className="blog-card__excerpt">{post.excerpt}</p>
               )}
               <time className="blog-card__date" dateTime={post.published_at}>
-                {new Date(post.published_at).toLocaleDateString('en-US', {
+                {new Date(post.published_at).toLocaleDateString('tr-TR', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -77,9 +102,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       </div>
 
       {lastPage > 1 && (
-        <nav className="pagination">
+        <nav className="pagination" aria-label="Sayfalama">
           {currentPage > 1 && (
-            <Link href={`/blog?page=${currentPage - 1}`}>Previous</Link>
+            <Link href={`/blog?page=${currentPage - 1}`}>Önceki</Link>
           )}
           {Array.from({ length: lastPage }, (_, i) => i + 1).map(
             (pageNum) => (
@@ -87,13 +112,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 key={pageNum}
                 href={`/blog?page=${pageNum}`}
                 className={pageNum === currentPage ? 'active' : ''}
+                aria-current={pageNum === currentPage ? 'page' : undefined}
               >
                 {pageNum}
               </Link>
             )
           )}
           {currentPage < lastPage && (
-            <Link href={`/blog?page=${currentPage + 1}`}>Next</Link>
+            <Link href={`/blog?page=${currentPage + 1}`}>Sonraki</Link>
           )}
         </nav>
       )}

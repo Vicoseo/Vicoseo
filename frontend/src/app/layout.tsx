@@ -38,13 +38,38 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 
+  const siteUrl = `https://${site.domain}`;
+
   return {
     title: {
       default: site.meta_title || site.name,
       template: `%s | ${site.name}`,
     },
-    description: site.meta_description || `Welcome to ${site.name}`,
+    description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
     icons: site.favicon_url ? { icon: site.favicon_url } : undefined,
+    metadataBase: new URL(siteUrl),
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      siteName: site.name,
+      locale: 'tr_TR',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
   };
 }
 
@@ -59,8 +84,27 @@ export default async function RootLayout({
   const secondaryColor = site?.secondary_color || '#6c757d';
   const loginUrl = site?.login_url || site?.entry_url || '/go/login';
 
+  const jsonLd = site
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: site.name,
+        url: `https://${site.domain}`,
+        description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
+        inLanguage: 'tr',
+      }
+    : null;
+
   return (
-    <html lang="en">
+    <html lang="tr">
+      <head>
+        {jsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        )}
+      </head>
       <body
         suppressHydrationWarning
         style={

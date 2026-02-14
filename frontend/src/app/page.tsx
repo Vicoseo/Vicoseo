@@ -12,13 +12,29 @@ export async function generateMetadata(): Promise<Metadata> {
     ]);
 
     const firstPage = pagesRes.data?.[0];
+    const siteUrl = `https://${siteRes.data.domain}`;
 
     return {
       title: firstPage?.meta_title || siteRes.data.meta_title || siteRes.data.name,
       description:
         firstPage?.meta_description ||
         siteRes.data.meta_description ||
-        `Welcome to ${siteRes.data.name}`,
+        `${siteRes.data.name} - Online bahis ve casino platformu`,
+      keywords: firstPage?.meta_keywords || undefined,
+      alternates: {
+        canonical: siteUrl,
+      },
+      openGraph: {
+        title: firstPage?.meta_title || siteRes.data.meta_title || siteRes.data.name,
+        description:
+          firstPage?.meta_description ||
+          siteRes.data.meta_description ||
+          `${siteRes.data.name} - Online bahis ve casino platformu`,
+        url: siteUrl,
+        type: 'website',
+        locale: 'tr_TR',
+        siteName: siteRes.data.name,
+      },
     };
   } catch {
     return {
@@ -40,7 +56,6 @@ export default async function HomePage() {
     ]);
     siteName = siteRes.data.name;
 
-    // Pages list doesn't include content, fetch full page by slug
     const firstSlug = pagesRes.data?.[0]?.slug;
     if (firstSlug) {
       const pageRes = await getPage(domain, firstSlug);

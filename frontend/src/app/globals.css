@@ -314,6 +314,48 @@ p {
   letter-spacing: 0.5px;
 }
 
+/* Footer */
+.site-footer {
+  background: #1a1a2e;
+  color: #ccc;
+  padding: 32px 16px;
+  margin-top: auto;
+}
+
+.site-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.site-footer__copy {
+  font-size: 14px;
+  margin: 0;
+}
+
+.site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.site-footer__link {
+  color: #aaa;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-footer__link:hover {
+  color: #fff;
+  opacity: 1;
+}
+
 /* 404 */
 .not-found {
   text-align: center;
