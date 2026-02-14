@@ -99,10 +99,16 @@ export default {
       editingOffer: null,
       form: this.emptyForm(),
       rules: {
-        logo_url: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],
+        logo_url: [
+          { required: true, message: 'Zorunlu', trigger: 'blur' },
+          { type: 'url', message: 'Geçerli bir URL girin (https://...)', trigger: 'blur' },
+        ],
         bonus_text: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],
         cta_text: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],
-        target_url: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],
+        target_url: [
+          { required: true, message: 'Zorunlu', trigger: 'blur' },
+          { type: 'url', message: 'Geçerli bir URL girin (https://...)', trigger: 'blur' },
+        ],
       },
     }
   },
@@ -145,8 +151,14 @@ export default {
           }
           this.dialogVisible = false
           this.fetchOffers()
-        } catch {
-          this.$message.error('Kaydetme başarısız')
+        } catch (err) {
+          const errors = err?.response?.data?.errors
+          if (errors) {
+            const msg = Object.values(errors).flat().join('\n')
+            this.$message.error(msg)
+          } else {
+            this.$message.error('Kaydetme başarısız')
+          }
         } finally {
           this.saving = false
         }
