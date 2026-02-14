@@ -23,6 +23,10 @@ class TopOfferController extends Controller
         /** @var Site $site */
         $site = $request->attributes->get('site');
 
+        if (!$site->show_sponsors) {
+            return response()->json(['data' => []]);
+        }
+
         $cacheKey = "top_offers:site:{$site->id}";
 
         $offers = Cache::remember($cacheKey, now()->addMinutes(5), function () {

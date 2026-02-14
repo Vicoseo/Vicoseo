@@ -118,7 +118,7 @@ export default async function RootLayout({
         }
       >
         <LoginCtaBar loginUrl={loginUrl} />
-        <SponsorsBlock offers={offers} />
+        {site?.show_sponsors !== false && <SponsorsBlock offers={offers} />}
         {site && <Header site={site} />}
         <main style={{ flex: 1 }}>{children}</main>
         {site && <Footer site={site} />}
