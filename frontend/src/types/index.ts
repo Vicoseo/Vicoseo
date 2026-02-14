@@ -43,6 +43,8 @@ export interface Post {
   meta_title: string | null;
   meta_description: string | null;
   published_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TopOffer {
