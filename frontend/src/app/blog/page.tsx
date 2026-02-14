@@ -29,6 +29,13 @@ export async function generateMetadata(): Promise<Metadata> {
         type: 'website',
         locale: 'tr_TR',
         siteName: siteRes.data.name,
+        images: [{ url: `${siteUrl}/storage/og-image.png`, width: 1200, height: 630, alt: siteRes.data.name }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `Blog | ${siteRes.data.name}`,
+        description: `${siteRes.data.name} blog yazıları ve güncel makaleler.`,
+        images: [`${siteUrl}/storage/og-image.png`],
       },
     };
   } catch {

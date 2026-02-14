@@ -37,7 +37,9 @@ export async function generateMetadata({
         title,
         description,
         url: `${siteUrl}/blog/${slug}`,
-        images: post.featured_image ? [{ url: post.featured_image }] : undefined,
+        images: post.featured_image
+          ? [{ url: post.featured_image, width: 1200, height: 630, alt: post.title }]
+          : [{ url: `${siteUrl}/storage/og-image.png`, width: 1200, height: 630, alt: siteRes.data.name }],
         type: 'article',
         publishedTime: post.published_at,
         locale: 'tr_TR',
@@ -47,6 +49,7 @@ export async function generateMetadata({
         card: 'summary_large_image',
         title,
         description,
+        images: post.featured_image ? [post.featured_image] : [`${siteUrl}/storage/og-image.png`],
       },
       robots: {
         index: true,

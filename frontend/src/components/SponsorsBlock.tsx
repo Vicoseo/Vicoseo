@@ -29,7 +29,7 @@ export default function SponsorsBlock({ offers }: SponsorsBlockProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={resolveLogoUrl(offer.logo_url)}
-              alt=""
+              alt={`${offer.bonus_text} - ${offer.cta_text || 'Üye Ol'}`}
               width={44}
               height={44}
             />

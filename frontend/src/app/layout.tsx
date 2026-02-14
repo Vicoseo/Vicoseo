@@ -46,7 +46,16 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${site.name}`,
     },
     description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
-    icons: site.favicon_url ? { icon: site.favicon_url } : undefined,
+    icons: {
+      icon: [
+        { url: site.favicon_url || '/storage/favicon.ico', type: 'image/x-icon' },
+        { url: '/storage/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/storage/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+      apple: [
+        { url: '/storage/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      ],
+    },
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: '/',
@@ -55,9 +64,18 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: site.name,
       locale: 'tr_TR',
       type: 'website',
+      images: [
+        {
+          url: '/storage/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: site.name,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
+      images: ['/storage/og-image.png'],
     },
     robots: {
       index: true,
