@@ -20,7 +20,7 @@ class BulkContentJob implements ShouldQueue
     use HandlesTenantContext, Queueable;
 
     public int $tries = 1;
-    public int $timeout = 600;
+    public int $timeout = 1800;
 
     public function __construct(
         public int $siteId,
