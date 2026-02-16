@@ -35,6 +35,11 @@ class SiteController extends Controller
                 'show_sponsors' => $site->show_sponsors,
                 'social_links' => $site->social_links,
                 'ga_measurement_id' => $site->ga_measurement_id,
+                'noindex_mode' => (bool) $site->noindex_mode,
+                'custom_css' => $site->custom_css,
+                'sponsor_page_visible' => (bool) $site->sponsor_page_visible,
+                'sponsor_contact_url' => $site->sponsor_contact_url,
+                'sponsor_contact_text' => $site->sponsor_contact_text,
                 'footer_links' => FooterLink::active()->ordered()->get(['id', 'link_text', 'link_url']),
             ],
         ]);
