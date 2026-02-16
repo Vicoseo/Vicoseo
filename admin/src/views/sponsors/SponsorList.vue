@@ -46,6 +46,16 @@
             <span v-else class="no-logo">—</span>
           </template>
         </el-table-column>
+        <el-table-column label="Durum" width="90" align="center">
+          <template slot-scope="{ row }">
+            <el-switch
+              v-model="row.is_active"
+              active-color="#13ce66"
+              inactive-color="#ff4949"
+              @change="toggleActive(row)"
+            />
+          </template>
+        </el-table-column>
         <el-table-column label="Promosyon" width="100" align="center">
           <template slot-scope="{ row }">
             <el-tag size="small" type="info">
@@ -434,6 +444,17 @@ export default {
           this.submitLoading = false
         }
       })
+    },
+
+    // ─── Toggle Active ─────────────────────────────
+    async toggleActive(row) {
+      try {
+        await updateSponsor(row.id, { is_active: row.is_active })
+        this.$message.success(row.is_active ? 'Sponsor aktif edildi' : 'Sponsor pasif edildi')
+      } catch {
+        row.is_active = !row.is_active
+        this.$message.error('Durum güncellenemedi')
+      }
     },
 
     // ─── Delete ────────────────────────────────────
