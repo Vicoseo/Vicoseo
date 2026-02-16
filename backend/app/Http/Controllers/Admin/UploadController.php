@@ -27,36 +27,57 @@ class UploadController extends Controller
         $extension = strtolower($file->getClientOriginalExtension());
         $filename = Str::uuid()->toString();
 
-        // GIF stays as-is, others convert to WebP
+        // Ensure directory exists
+        Storage::makeDirectory($storagePath);
+
         if ($extension === 'gif') {
+            // GIF stays as-is (animated)
             $finalName = $filename . '.gif';
             $file->storeAs($storagePath, $finalName);
         } elseif ($extension === 'svg') {
+            // SVG stays as-is (vector)
             $finalName = $filename . '.svg';
             $file->storeAs($storagePath, $finalName);
         } else {
-            $finalName = $filename . '.webp';
-            $fullPath = storage_path("app/{$storagePath}/{$finalName}");
-
-            // Ensure directory exists
-            Storage::makeDirectory($storagePath);
-
-            // Resize if over 1200x800 and convert to WebP
+            // For JPG/PNG/WebP: save optimized original format + WebP version
             $image = Image::read($file->getRealPath());
-            $width = $image->width();
-            $height = $image->height();
 
-            if ($width > 1200 || $height > 800) {
+            if ($image->width() > 1200 || $image->height() > 800) {
                 $image->scaleDown(1200, 800);
             }
 
-            $image->toWebp(85)->save($fullPath);
+            // Determine original output format
+            $origExt = in_array($extension, ['jpg', 'jpeg']) ? 'jpg' : $extension;
+            $finalName = $filename . '.' . $origExt;
+            $origPath = storage_path("app/{$storagePath}/{$finalName}");
+
+            // Save in original format (for broad compatibility)
+            if (in_array($origExt, ['jpg', 'jpeg'])) {
+                $image->toJpeg(85)->save($origPath);
+            } elseif ($origExt === 'png') {
+                $image->toPng()->save($origPath);
+            } else {
+                $image->toWebp(85)->save($origPath);
+            }
+
+            // Also save WebP version for modern browsers
+            if ($origExt !== 'webp') {
+                $webpPath = storage_path("app/{$storagePath}/{$filename}.webp");
+                $image->toWebp(85)->save($webpPath);
+            }
         }
 
         $url = "/storage/uploads/{$directory}/{$finalName}";
 
+        // Include WebP URL for <picture> fallback
+        $webpUrl = null;
+        if (!in_array($extension, ['gif', 'svg', 'webp'])) {
+            $webpUrl = "/storage/uploads/{$directory}/{$filename}.webp";
+        }
+
         return response()->json([
             'url' => $url,
+            'webp_url' => $webpUrl,
             'filename' => $finalName,
         ]);
     }
