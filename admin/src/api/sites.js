@@ -24,6 +24,14 @@ export function aiGenerateContent(siteId, data) {
   return client.post(`/admin/sites/${siteId}/ai-generate`, data, { timeout: 600000 })
 }
 
+export function startBulkContent(data) {
+  return client.post('/admin/bulk-content/start', data, { timeout: 30000 })
+}
+
+export function getBulkContentProgress(batchId) {
+  return client.get(`/admin/bulk-content/progress/${batchId}`)
+}
+
 export function provisionSite(siteId) {
   return client.post(`/admin/sites/${siteId}/provision`, {}, { timeout: 120000 })
 }

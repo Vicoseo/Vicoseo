@@ -11,7 +11,8 @@ export async function GET(
 
   try {
     const response = await getRedirect(domain, slug);
-    return NextResponse.redirect(response.data.target_url, 302);
+    const statusCode = response.data.status || 302;
+    return NextResponse.redirect(response.data.target_url, statusCode);
   } catch {
     return NextResponse.json({ error: 'Redirect not found' }, { status: 404 });
   }

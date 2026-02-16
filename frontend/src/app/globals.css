@@ -326,10 +326,9 @@ p {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .site-footer__copy {
@@ -354,6 +353,31 @@ p {
 .site-footer__link:hover {
   color: #fff;
   opacity: 1;
+}
+
+.site-footer__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.site-footer__social-link {
+  color: #ccc;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.site-footer__social-link:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* 404 */

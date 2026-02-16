@@ -33,6 +33,8 @@ class SiteController extends Controller
                 'entry_url' => $site->entry_url,
                 'login_url' => $site->login_url,
                 'show_sponsors' => $site->show_sponsors,
+                'social_links' => $site->social_links,
+                'ga_measurement_id' => $site->ga_measurement_id,
                 'footer_links' => FooterLink::active()->ordered()->get(['id', 'link_text', 'link_url']),
             ],
         ]);

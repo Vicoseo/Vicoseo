@@ -116,6 +116,19 @@ export default async function RootLayout({
   return (
     <html lang="tr">
       <head>
+        {site?.ga_measurement_id && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${site.ga_measurement_id}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${site.ga_measurement_id}');`,
+              }}
+            />
+          </>
+        )}
         {jsonLd && (
           <script
             type="application/ld+json"

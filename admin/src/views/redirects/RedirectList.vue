@@ -8,7 +8,19 @@
     <el-table :data="redirects" v-loading="loading" stripe>
       <el-table-column prop="slug" label="Slug" />
       <el-table-column prop="target_url" label="Hedef URL" show-overflow-tooltip />
+      <el-table-column label="Kod" width="70">
+        <template slot-scope="{ row }">
+          <el-tag size="mini" :type="row.status_code === 301 ? 'warning' : 'info'">{{ row.status_code || 302 }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="description" label="Açıklama" show-overflow-tooltip />
       <el-table-column prop="click_count" label="Tıklama" width="80" />
+      <el-table-column label="Son Tıklama" width="140">
+        <template slot-scope="{ row }">
+          <span v-if="row.last_clicked_at">{{ formatDate(row.last_clicked_at) }}</span>
+          <span v-else style="color: #c0c4cc">—</span>
+        </template>
+      </el-table-column>
       <el-table-column label="Aktif" width="80">
         <template slot-scope="{ row }">
           <el-tag :type="row.is_active ? 'success' : 'info'" size="mini">{{ row.is_active ? 'Evet' : 'Hayır' }}</el-tag>
@@ -39,6 +51,17 @@
         </el-form-item>
         <el-form-item label="Hedef URL" prop="target_url">
           <el-input v-model="form.target_url" placeholder="https://..." />
+        </el-form-item>
+        <el-form-item label="Durum Kodu">
+          <el-select v-model="form.status_code" style="width: 100%">
+            <el-option :value="301" label="301 - Kalıcı Yönlendirme" />
+            <el-option :value="302" label="302 - Geçici Yönlendirme" />
+            <el-option :value="307" label="307 - Geçici (Metod Koruma)" />
+            <el-option :value="308" label="308 - Kalıcı (Metod Koruma)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Açıklama">
+          <el-input v-model="form.description" placeholder="Opsiyonel not..." />
         </el-form-item>
         <el-form-item label="Aktif">
           <el-switch v-model="form.is_active" />
@@ -80,7 +103,7 @@ export default {
   },
   methods: {
     emptyForm() {
-      return { slug: '', target_url: '', is_active: true }
+      return { slug: '', target_url: '', status_code: 302, description: '', is_active: true }
     },
     async fetchRedirects(page) {
       this.loading = true
@@ -96,7 +119,7 @@ export default {
     },
     openForm(redirect) {
       this.editingRedirect = redirect || null
-      this.form = redirect ? { slug: redirect.slug, target_url: redirect.target_url, is_active: redirect.is_active } : this.emptyForm()
+      this.form = redirect ? { slug: redirect.slug, target_url: redirect.target_url, status_code: redirect.status_code || 302, description: redirect.description || '', is_active: redirect.is_active } : this.emptyForm()
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form?.clearValidate())
     },
@@ -120,6 +143,10 @@ export default {
           this.saving = false
         }
       })
+    },
+    formatDate(d) {
+      if (!d) return ''
+      return new Date(d).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     },
     async handleDelete(redirect) {
       try {

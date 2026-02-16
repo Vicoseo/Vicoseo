@@ -27,16 +27,19 @@ class RedirectController extends Controller
             ], 404);
         }
 
-        // Increment click count using DB table increment for atomicity
+        // Increment click count and update last_clicked_at atomically
         DB::connection('tenant')
             ->table('redirects')
             ->where('id', $redirect->id)
-            ->increment('click_count');
+            ->update([
+                'click_count' => DB::raw('click_count + 1'),
+                'last_clicked_at' => now(),
+            ]);
 
         return response()->json([
             'data' => [
                 'target_url' => $redirect->target_url,
-                'status' => 302,
+                'status' => $redirect->status_code ?? 302,
             ],
         ]);
     }

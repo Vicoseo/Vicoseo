@@ -67,6 +67,41 @@
           </span>
         </el-form-item>
 
+        <el-divider content-position="left">Google Analytics</el-divider>
+
+        <el-form-item label="GA Measurement ID">
+          <el-input v-model="form.ga_measurement_id" placeholder="G-XXXXXXXXXX">
+            <template slot="prepend">📊</template>
+          </el-input>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Google Analytics 4 Measurement ID. Frontend'de otomatik olarak &lt;script&gt; eklenir.
+          </div>
+        </el-form-item>
+
+        <el-divider content-position="left">Sosyal Medya Linkleri</el-divider>
+
+        <el-form-item label="Telegram">
+          <el-input v-model="form.social_links.telegram" placeholder="https://t.me/kanal" />
+        </el-form-item>
+        <el-form-item label="Instagram">
+          <el-input v-model="form.social_links.instagram" placeholder="https://instagram.com/hesap" />
+        </el-form-item>
+        <el-form-item label="X (Twitter)">
+          <el-input v-model="form.social_links.x" placeholder="https://x.com/hesap" />
+        </el-form-item>
+        <el-form-item label="YouTube">
+          <el-input v-model="form.social_links.youtube" placeholder="https://youtube.com/@kanal" />
+        </el-form-item>
+        <el-form-item label="TikTok">
+          <el-input v-model="form.social_links.tiktok" placeholder="https://tiktok.com/@hesap" />
+        </el-form-item>
+        <el-form-item label="WhatsApp">
+          <el-input v-model="form.social_links.whatsapp" placeholder="https://wa.me/905xxxxxxxxx" />
+        </el-form-item>
+        <el-form-item label="Destek E-posta">
+          <el-input v-model="form.social_links.support_email" placeholder="destek@site.com" />
+        </el-form-item>
+
         <el-divider />
 
         <el-form-item label="Aktif">
@@ -102,6 +137,16 @@ export default {
         entry_url: '',
         login_url: '',
         show_sponsors: true,
+        ga_measurement_id: '',
+        social_links: {
+          telegram: '',
+          instagram: '',
+          x: '',
+          youtube: '',
+          tiktok: '',
+          whatsapp: '',
+          support_email: '',
+        },
         is_active: true,
       },
       rules: {
@@ -130,7 +175,15 @@ export default {
         const { data } = await getSite(this.siteId)
         const site = data.data
         Object.keys(this.form).forEach((key) => {
-          if (site[key] !== undefined) this.form[key] = site[key]
+          if (key === 'social_links') {
+            if (site.social_links && typeof site.social_links === 'object') {
+              Object.keys(this.form.social_links).forEach((sk) => {
+                this.form.social_links[sk] = site.social_links[sk] || ''
+              })
+            }
+          } else if (site[key] !== undefined) {
+            this.form[key] = site[key]
+          }
         })
       } catch {
         this.$message.error('Site yüklenemedi')

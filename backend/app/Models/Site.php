@@ -23,6 +23,8 @@ class Site extends Model
         'is_active',
         'meta_title',
         'meta_description',
+        'social_links',
+        'ga_measurement_id',
         'entry_url',
         'login_url',
         'show_sponsors',
@@ -33,6 +35,7 @@ class Site extends Model
         return [
             'is_active' => 'boolean',
             'show_sponsors' => 'boolean',
+            'social_links' => 'array',
         ];
     }
 }

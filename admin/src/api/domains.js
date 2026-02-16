@@ -31,3 +31,11 @@ export function addDnsRecord(zoneId, data) {
 export function getDomainStatus(domain) {
   return client.get(`/admin/domains/status/${domain}`)
 }
+
+export function retryActivation(zoneId) {
+  return client.post('/admin/domains/retry-activation', { zone_id: zoneId })
+}
+
+export function fixPendingZone(zoneId, domain) {
+  return client.post('/admin/domains/fix-pending', { zone_id: zoneId, domain }, { timeout: 60000 })
+}

@@ -4,6 +4,16 @@ export interface FooterLink {
   link_url: string;
 }
 
+export interface SocialLinks {
+  telegram?: string;
+  instagram?: string;
+  x?: string;
+  youtube?: string;
+  tiktok?: string;
+  whatsapp?: string;
+  support_email?: string;
+}
+
 export interface SiteConfig {
   id: number;
   domain: string;
@@ -17,6 +27,8 @@ export interface SiteConfig {
   entry_url: string | null;
   login_url: string | null;
   show_sponsors: boolean;
+  social_links: SocialLinks | null;
+  ga_measurement_id: string | null;
   footer_links: FooterLink[];
 }
 
@@ -74,7 +86,7 @@ export interface Sponsor {
 
 export interface RedirectResponse {
   target_url: string;
-  slug: string;
+  status: number;
 }
 
 export interface PaginatedResponse<T> {

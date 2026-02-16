@@ -81,6 +81,15 @@ class SiteController extends Controller
             'entry_url' => ['nullable', 'string', 'max:500'],
             'login_url' => ['nullable', 'string', 'max:500'],
             'show_sponsors' => ['sometimes', 'boolean'],
+            'social_links' => ['nullable', 'array'],
+            'social_links.telegram' => ['nullable', 'string', 'max:500'],
+            'social_links.instagram' => ['nullable', 'string', 'max:500'],
+            'social_links.x' => ['nullable', 'string', 'max:500'],
+            'social_links.youtube' => ['nullable', 'string', 'max:500'],
+            'social_links.tiktok' => ['nullable', 'string', 'max:500'],
+            'social_links.whatsapp' => ['nullable', 'string', 'max:500'],
+            'social_links.support_email' => ['nullable', 'string', 'max:500'],
+            'ga_measurement_id' => ['nullable', 'string', 'max:50'],
         ]);
 
         // Clear tenant cache on any update

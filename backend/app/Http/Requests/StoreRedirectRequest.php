@@ -21,6 +21,8 @@ class StoreRedirectRequest extends FormRequest
         return [
             'slug' => ['required', 'string', 'max:255', 'unique:tenant.redirects,slug'],
             'target_url' => ['required', 'url', 'max:500'],
+            'status_code' => ['sometimes', 'integer', 'in:301,302,307,308'],
+            'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

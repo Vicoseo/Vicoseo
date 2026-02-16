@@ -296,6 +296,161 @@ class DomainController extends Controller
     }
 
     /**
+     * Trigger Cloudflare activation check for a pending zone.
+     */
+    public function retryActivation(Request $request): JsonResponse
+    {
+        $request->validate([
+            'zone_id' => 'required|string',
+        ]);
+
+        $zoneId = $request->input('zone_id');
+
+        try {
+            // First get the zone details
+            $zone = $this->cloudflare->getZone($zoneId);
+            if (!$zone['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Zone bulunamadı: ' . ($zone['message'] ?? 'Bilinmeyen hata'),
+                ], 404);
+            }
+
+            $status = $zone['status'] ?? 'unknown';
+
+            if ($status === 'active') {
+                return response()->json([
+                    'success' => true,
+                    'status' => 'active',
+                    'message' => 'Zone zaten aktif!',
+                ]);
+            }
+
+            // Trigger activation check at Cloudflare
+            $triggered = $this->cloudflare->triggerActivationCheck($zoneId);
+
+            return response()->json([
+                'success' => $triggered,
+                'status' => $status,
+                'message' => $triggered
+                    ? 'Aktivasyon kontrolü tetiklendi. Cloudflare nameserver\'ları kontrol edecek. Birkaç dakika içinde tekrar kontrol edin.'
+                    : 'Aktivasyon kontrolü tetiklenemedi. Nameserver ayarlarını kontrol edin.',
+                'name_servers' => $zone['name_servers'] ?? [],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aktivasyon hatası: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Fix a pending zone: update NS at Namesilo + trigger CF activation.
+     */
+    public function fixPendingZone(Request $request): JsonResponse
+    {
+        $request->validate([
+            'zone_id' => 'required|string',
+            'domain' => 'required|string',
+        ]);
+
+        $zoneId = $request->input('zone_id');
+        $domain = $request->input('domain');
+        $results = [];
+
+        try {
+            // Step 1: Get zone details from Cloudflare
+            $zone = $this->cloudflare->getZone($zoneId);
+            if (!$zone['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Zone bulunamadı.',
+                ], 404);
+            }
+
+            $nameservers = $zone['name_servers'] ?? [];
+            $currentStatus = $zone['status'] ?? 'unknown';
+
+            if ($currentStatus === 'active') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Zone zaten aktif! İşlem gerekmez.',
+                    'status' => 'active',
+                    'results' => [],
+                ]);
+            }
+
+            // Step 2: Try to update nameservers at Namesilo
+            $nsUpdated = false;
+            $nsMessage = '';
+            if (!empty($nameservers)) {
+                try {
+                    $nsUpdated = $this->namesilo->setNameservers($domain, $nameservers);
+                    $nsMessage = $nsUpdated
+                        ? 'Nameserver\'lar Namesilo\'da güncellendi.'
+                        : 'Namesilo NS güncellemesi başarısız (domain farklı registrar\'da olabilir).';
+                } catch (\Exception $e) {
+                    $nsMessage = 'Namesilo NS hatası: ' . $e->getMessage() . ' — Manuel NS güncelleme gerekebilir.';
+                }
+            }
+            $results[] = [
+                'step' => 'nameservers',
+                'success' => $nsUpdated,
+                'message' => $nsMessage,
+                'nameservers' => $nameservers,
+            ];
+
+            // Step 3: Trigger Cloudflare activation check
+            $cfTriggered = $this->cloudflare->triggerActivationCheck($zoneId);
+            $results[] = [
+                'step' => 'activation_check',
+                'success' => $cfTriggered,
+                'message' => $cfTriggered
+                    ? 'Cloudflare aktivasyon kontrolü tetiklendi.'
+                    : 'Aktivasyon kontrolü tetiklenemedi.',
+            ];
+
+            // Step 4: Verify DNS records exist
+            $serverIp = config('domains.server_ip');
+            if ($serverIp) {
+                $aResult = $this->cloudflare->addDnsRecord($zoneId, 'A', $domain, $serverIp, true);
+                $wwwResult = $this->cloudflare->addDnsRecord($zoneId, 'A', "www.{$domain}", $serverIp, true);
+                $results[] = [
+                    'step' => 'dns_records',
+                    'success' => $aResult['success'] || $wwwResult['success'],
+                    'message' => 'DNS A kayıtları: ' . ($aResult['success'] ? 'eklendi/mevcut' : ($aResult['message'] ?? 'hata'))
+                        . ', www: ' . ($wwwResult['success'] ? 'eklendi/mevcut' : ($wwwResult['message'] ?? 'hata')),
+                ];
+            }
+
+            $overallSuccess = $nsUpdated || $cfTriggered;
+            $message = $nsUpdated
+                ? 'NS güncellendi ve aktivasyon kontrolü tetiklendi. Birkaç dakika sonra zone aktif olmalı.'
+                : 'NS güncellenemedi — nameserver\'ları manuel olarak güncelleyin: ' . implode(', ', $nameservers);
+
+            return response()->json([
+                'success' => $overallSuccess,
+                'message' => $message,
+                'status' => $currentStatus,
+                'nameservers' => $nameservers,
+                'results' => $results,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Fix pending zone failed', [
+                'domain' => $domain,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Hata: ' . $e->getMessage(),
+                'results' => $results,
+            ], 500);
+        }
+    }
+
+    /**
      * Check overall domain status (NS, CF, DNS, SSL, Nginx).
      */
     public function domainStatus(string $domain): JsonResponse

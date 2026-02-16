@@ -129,9 +129,21 @@
     <el-card shadow="hover" style="margin-top: 20px">
       <div slot="header" class="card-header">
         <span>Cloudflare Zone'lar&#305;</span>
-        <el-button size="small" icon="el-icon-refresh" @click="fetchZones" :loading="zonesLoading">
-          Yenile
-        </el-button>
+        <div>
+          <el-button
+            v-if="pendingZones.length > 0"
+            size="small"
+            type="warning"
+            icon="el-icon-refresh-right"
+            @click="fixAllPending"
+            :loading="fixAllLoading"
+          >
+            T&#252;m Pending'leri D&#252;zelt ({{ pendingZones.length }})
+          </el-button>
+          <el-button size="small" icon="el-icon-refresh" @click="fetchZones" :loading="zonesLoading">
+            Yenile
+          </el-button>
+        </div>
       </div>
 
       <el-table :data="zones" v-loading="zonesLoading">
@@ -150,10 +162,19 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="İşlemler" width="200">
+        <el-table-column label="İşlemler" width="320">
           <template slot-scope="{ row }">
             <el-button size="mini" @click="openDnsDialog(row)">DNS Ekle</el-button>
             <el-button size="mini" type="info" @click="checkZoneStatus(row)">Durum</el-button>
+            <el-button
+              v-if="row.status !== 'active'"
+              size="mini"
+              type="warning"
+              @click="fixPending(row)"
+              :loading="row._fixing"
+            >
+              Aktifle&#351;tir
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -201,6 +222,7 @@ import {
   getCfZones,
   getCfZoneDetail,
   addDnsRecord,
+  fixPendingZone,
 } from '../../api/domains'
 
 const SETUP_STEP_LABELS = [
@@ -241,6 +263,9 @@ export default {
       zones: [],
       zonesLoading: false,
 
+      // Fix pending
+      fixAllLoading: false,
+
       // DNS dialog
       dnsDialogVisible: false,
       dnsLoading: false,
@@ -262,6 +287,9 @@ export default {
         if (this.setupSteps[i].status === 'done') return i + 1
       }
       return 0
+    },
+    pendingZones() {
+      return this.zones.filter((z) => z.status !== 'active')
     },
   },
 
@@ -396,12 +424,70 @@ export default {
       this.zonesLoading = true
       try {
         const { data } = await getCfZones()
-        this.zones = data.data || []
+        this.zones = (data.data || []).map((z) => ({ ...z, _fixing: false }))
       } catch (e) {
         this.$message.error('Zone listesi al\u0131namad\u0131.')
       } finally {
         this.zonesLoading = false
       }
+    },
+
+    async fixPending(zone) {
+      zone._fixing = true
+      try {
+        const { data } = await fixPendingZone(zone.zone_id, zone.name)
+        if (data.success) {
+          this.$message.success(data.message || 'Aktivasyon tetiklendi!')
+          if (data.nameservers && data.nameservers.length) {
+            this.$notify({
+              title: 'Nameserver Bilgisi',
+              message: `${zone.name} i\u00e7in NS: ${data.nameservers.join(', ')}`,
+              type: 'info',
+              duration: 10000,
+            })
+          }
+          // Re-fetch zones after a short delay
+          setTimeout(() => this.fetchZones(), 3000)
+        } else {
+          this.$message.warning(data.message || 'D\u00fczeltme k\u0131smen ba\u015far\u0131s\u0131z.')
+          if (data.nameservers && data.nameservers.length) {
+            this.$alert(
+              `Nameserver'lar\u0131 registrar panelinizden manuel olarak g\u00fcncelleyin:\n\n${data.nameservers.join('\n')}`,
+              'Manuel NS G\u00fcncelleme Gerekli',
+              { type: 'warning' },
+            )
+          }
+        }
+      } catch (e) {
+        const msg = e.response?.data?.message || 'Aktivasyon hatası.'
+        this.$message.error(msg)
+      } finally {
+        zone._fixing = false
+      }
+    },
+
+    async fixAllPending() {
+      if (!this.pendingZones.length) return
+      this.fixAllLoading = true
+      let successCount = 0
+      let failCount = 0
+
+      for (const zone of this.pendingZones) {
+        try {
+          const { data } = await fixPendingZone(zone.zone_id, zone.name)
+          if (data.success) {
+            successCount++
+          } else {
+            failCount++
+          }
+        } catch {
+          failCount++
+        }
+      }
+
+      this.fixAllLoading = false
+      this.$message.info(`${successCount} zone i\u00e7in aktivasyon tetiklendi, ${failCount} hata.`)
+      setTimeout(() => this.fetchZones(), 5000)
     },
 
     async checkZoneStatus(zone) {

@@ -70,6 +70,8 @@ class RedirectController extends Controller
         $validated = $request->validate([
             'slug' => ['sometimes', 'string', 'unique:tenant.redirects,slug,' . $redirect->id],
             'target_url' => ['sometimes', 'url', 'max:500'],
+            'status_code' => ['sometimes', 'integer', 'in:301,302,307,308'],
+            'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
