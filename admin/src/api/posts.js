@@ -19,3 +19,11 @@ export function updatePost(siteId, id, data) {
 export function deletePost(siteId, id) {
   return client.delete(`/admin/sites/${siteId}/posts/${id}`)
 }
+
+export function getPostRevisions(siteId, id) {
+  return client.get(`/admin/sites/${siteId}/posts/${id}/revisions`)
+}
+
+export function revertPostRevision(siteId, id, revisionId) {
+  return client.post(`/admin/sites/${siteId}/posts/${id}/revisions/${revisionId}/revert`)
+}

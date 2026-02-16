@@ -103,6 +103,39 @@ class PostController extends Controller
     }
 
     /**
+     * List revisions for a post.
+     */
+    public function revisions(int $siteId, int $id): JsonResponse
+    {
+        $this->resolveSiteTenant($siteId);
+
+        $post = Post::findOrFail($id);
+
+        $revisions = $post->revisions()
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->json(['data' => $revisions]);
+    }
+
+    /**
+     * Revert a post field to a previous revision.
+     */
+    public function revert(int $siteId, int $id, int $revisionId): JsonResponse
+    {
+        $this->resolveSiteTenant($siteId);
+
+        $post = Post::findOrFail($id);
+        $post->revertTo($revisionId);
+
+        return response()->json([
+            'data' => $post->fresh(),
+            'message' => 'Post reverted successfully.',
+        ]);
+    }
+
+    /**
      * Resolve the site and switch the tenant database connection.
      */
     private function resolveSiteTenant(int $siteId): Site

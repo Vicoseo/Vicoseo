@@ -23,6 +23,7 @@ class Sponsor extends Model
         'promotions',
         'sort_order',
         'is_active',
+        'category',
     ];
 
     protected function casts(): array

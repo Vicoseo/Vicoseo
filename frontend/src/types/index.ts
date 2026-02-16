@@ -27,6 +27,13 @@ export interface SiteConfig {
   entry_url: string | null;
   login_url: string | null;
   show_sponsors: boolean;
+  sponsor_page_visible: boolean;
+  sponsor_contact_url: string | null;
+  sponsor_contact_text: string | null;
+  fallback_domain: string | null;
+  robots_txt: string | null;
+  noindex_mode: boolean;
+  custom_css: string | null;
   social_links: SocialLinks | null;
   ga_measurement_id: string | null;
   footer_links: FooterLink[];
@@ -81,6 +88,7 @@ export interface Sponsor {
   logo: string | null;
   rating: number;
   sort_order: number;
+  category: 'vip' | 'popular' | 'kutu' | null;
   promotions: { highlight: string; text: string }[];
 }
 

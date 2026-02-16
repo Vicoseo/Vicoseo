@@ -67,6 +67,24 @@
           </span>
         </el-form-item>
 
+        <el-divider content-position="left">Sponsor Ayarları</el-divider>
+
+        <el-form-item label="Sponsor Sayfası">
+          <el-switch v-model="form.sponsor_page_visible" />
+          <span style="color: #909399; font-size: 12px; margin-left: 8px">
+            Kapatılırsa sponsor slider bölümü gizlenir
+          </span>
+        </el-form-item>
+        <el-form-item label="İletişim Metni">
+          <el-input v-model="form.sponsor_contact_text" placeholder="Reklam ve İş Birliği İçin" />
+        </el-form-item>
+        <el-form-item label="İletişim URL">
+          <el-input v-model="form.sponsor_contact_url" placeholder="https://t.me/kanal" />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Sponsor bölümünde gösterilecek iletişim linki (ör: Telegram kanalı)
+          </div>
+        </el-form-item>
+
         <el-divider content-position="left">Google Analytics</el-divider>
 
         <el-form-item label="GA Measurement ID">
@@ -75,6 +93,63 @@
           </el-input>
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
             Google Analytics 4 Measurement ID. Frontend'de otomatik olarak &lt;script&gt; eklenir.
+          </div>
+        </el-form-item>
+
+        <el-divider content-position="left">SEO Ayarlari</el-divider>
+
+        <el-form-item label="Fallback Domain">
+          <el-input v-model="form.fallback_domain" placeholder="fallback-site.com" />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Redirect bulunamazsa kullanicinin yonlendirilecegi domain
+          </div>
+        </el-form-item>
+        <el-form-item label="Noindex Modu">
+          <el-switch v-model="form.noindex_mode" />
+          <span style="color: #909399; font-size: 12px; margin-left: 8px">
+            Aktifse arama motorlari bu siteyi indekslemez
+          </span>
+        </el-form-item>
+        <el-form-item label="robots.txt">
+          <el-input
+            v-model="form.robots_txt"
+            type="textarea"
+            :rows="5"
+            placeholder="User-agent: *&#10;Allow: /&#10;Disallow: /admin/"
+            style="font-family: monospace"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Ozel robots.txt icerigi. Bos birakilirsa varsayilan kullanilir.
+          </div>
+        </el-form-item>
+
+        <el-divider content-position="left">Ozel CSS</el-divider>
+
+        <el-form-item label="Custom CSS">
+          <el-input
+            v-model="form.custom_css"
+            type="textarea"
+            :rows="6"
+            placeholder=".page-content h1 { color: #333; }&#10;.page-content .info-box { background: #f0f9ff; }"
+            style="font-family: monospace; font-size: 13px"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Siteye ozel CSS. Sadece .page-content icinde gecerli olur, sponsor bolumune etki etmez. Max 10KB.
+          </div>
+        </el-form-item>
+
+        <el-divider content-position="left">Icerik Sablonu</el-divider>
+
+        <el-form-item label="Prompt Sablonu">
+          <el-input
+            v-model="form.content_prompt_template"
+            type="textarea"
+            :rows="6"
+            placeholder="AI icerik uretiminde kullanilacak ek talimatlar. Placeholders: {{brand_name}}, {{domain}}, {{telegram}}, {{login_url}}, {{entry_url}}"
+            style="font-family: monospace"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Her AI icerik uretiminde bu talimatlar prompt'a eklenir. Bos birakilirsa varsayilan kullanilir.
           </div>
         </el-form-item>
 
@@ -137,6 +212,14 @@ export default {
         entry_url: '',
         login_url: '',
         show_sponsors: true,
+        sponsor_page_visible: true,
+        sponsor_contact_url: '',
+        sponsor_contact_text: '',
+        fallback_domain: '',
+        robots_txt: '',
+        noindex_mode: false,
+        content_prompt_template: '',
+        custom_css: '',
         ga_measurement_id: '',
         social_links: {
           telegram: '',

@@ -50,11 +50,36 @@
         </el-form-item>
       </el-form>
     </el-card>
+
+    <el-card v-if="isEdit && revisions.length" style="margin-top: 20px">
+      <div slot="header">Revizyon Gecmisi</div>
+      <el-table :data="revisions" size="small" border>
+        <el-table-column label="Alan" prop="field_name" width="140" />
+        <el-table-column label="Eski Deger" width="300">
+          <template slot-scope="{ row }">
+            <div style="max-height: 80px; overflow: auto; font-size: 12px">{{ truncate(row.old_value) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Yeni Deger" width="300">
+          <template slot-scope="{ row }">
+            <div style="max-height: 80px; overflow: auto; font-size: 12px">{{ truncate(row.new_value) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Tarih" width="150">
+          <template slot-scope="{ row }">{{ row.created_at }}</template>
+        </el-table-column>
+        <el-table-column label="Islem" width="100" align="center">
+          <template slot-scope="{ row }">
+            <el-button size="mini" type="warning" @click="handleRevert(row)">Geri Al</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
   </div>
 </template>
 
 <script>
-import { getPost, createPost, updatePost } from '../../api/posts'
+import { getPost, createPost, updatePost, getPostRevisions, revertPostRevision } from '../../api/posts'
 
 export default {
   name: 'PostForm',
@@ -78,6 +103,7 @@ export default {
       },
       loading: false,
       saving: false,
+      revisions: [],
     }
   },
   computed: {
@@ -92,9 +118,46 @@ export default {
     },
   },
   created() {
-    if (this.isEdit) this.fetchPost()
+    if (this.isEdit) {
+      this.fetchPost()
+      this.fetchRevisions()
+    }
   },
   methods: {
+    truncate(text) {
+      if (!text) return ''
+      return text.length > 200 ? text.substring(0, 200) + '...' : text
+    },
+    async fetchRevisions() {
+      try {
+        const { data } = await getPostRevisions(this.siteId, this.postId)
+        this.revisions = data.data
+      } catch {
+        // silent
+      }
+    },
+    async handleRevert(revision) {
+      try {
+        await this.$confirm('Bu alan eski degerine dondurulecek. Emin misiniz?', 'Geri Al', {
+          confirmButtonText: 'Geri Al',
+          cancelButtonText: 'Iptal',
+          type: 'warning',
+        })
+      } catch {
+        return
+      }
+      try {
+        const { data } = await revertPostRevision(this.siteId, this.postId, revision.id)
+        const post = data.data
+        Object.keys(this.form).forEach((key) => {
+          if (post[key] !== undefined && post[key] !== null) this.form[key] = post[key]
+        })
+        this.$message.success('Yazi geri alindi')
+        this.fetchRevisions()
+      } catch {
+        this.$message.error('Geri alma basarisiz')
+      }
+    },
     async fetchPost() {
       this.loading = true
       try {

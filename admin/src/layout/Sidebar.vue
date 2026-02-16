@@ -28,6 +28,22 @@
       <i class="el-icon-star-off"></i>
       <span slot="title">Sponsorlar</span>
     </el-menu-item>
+    <el-menu-item v-if="isMaster" index="/users">
+      <i class="el-icon-user"></i>
+      <span slot="title">Kullanicilar</span>
+    </el-menu-item>
+    <el-menu-item index="/logs">
+      <i class="el-icon-document"></i>
+      <span slot="title">Islem Loglari</span>
+    </el-menu-item>
+    <el-menu-item index="/logs/system">
+      <i class="el-icon-warning-outline"></i>
+      <span slot="title">Sistem Loglari</span>
+    </el-menu-item>
+    <el-menu-item index="/settings/2fa">
+      <i class="el-icon-lock"></i>
+      <span slot="title">2FA Ayarlari</span>
+    </el-menu-item>
   </el-menu>
 </template>
 
@@ -43,7 +59,15 @@ export default {
       if (path.startsWith('/sites')) return '/sites'
       if (path.startsWith('/domains')) return '/domains'
       if (path.startsWith('/global-offers')) return '/global-offers'
+      if (path.startsWith('/users')) return '/users'
+      if (path === '/logs/system') return '/logs/system'
+      if (path.startsWith('/logs')) return '/logs'
+      if (path.startsWith('/settings/2fa')) return '/settings/2fa'
       return '/'
+    },
+    isMaster() {
+      const user = this.$store.getters['auth/currentUser']
+      return user && user.role === 'master'
     },
   },
 }

@@ -57,8 +57,8 @@
           <el-input v-model="form.slug" placeholder="sponsor-adi" />
           <div style="color: #909399; font-size: 12px; margin-top: 2px">/go/slug üzerinden yönlendirme yapılır</div>
         </el-form-item>
-        <el-form-item label="Logo URL" prop="logo_url">
-          <el-input v-model="form.logo_url" placeholder="https://..." />
+        <el-form-item label="Logo" prop="logo_url">
+          <image-upload v-model="form.logo_url" directory="logos" />
         </el-form-item>
         <el-form-item label="Bonus Yazısı" prop="bonus_text">
           <el-input v-model="form.bonus_text" placeholder="200% Hoş Geldin Bonusu" />
@@ -87,9 +87,11 @@
 
 <script>
 import { getGlobalOffers, createGlobalOffer, updateGlobalOffer, deleteGlobalOffer, restartFrontend } from '../../api/topOffers'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 export default {
   name: 'GlobalOfferList',
+  components: { ImageUpload },
   data() {
     return {
       offers: [],
@@ -104,8 +106,7 @@ export default {
       form: this.emptyForm(),
       rules: {
         logo_url: [
-          { required: true, message: 'Zorunlu', trigger: 'blur' },
-          { type: 'url', message: 'Geçerli bir URL girin (https://...)', trigger: 'blur' },
+          { required: true, message: 'Logo zorunludur', trigger: 'change' },
         ],
         bonus_text: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],
         cta_text: [{ required: true, message: 'Zorunlu', trigger: 'blur' }],

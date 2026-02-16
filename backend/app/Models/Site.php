@@ -28,6 +28,14 @@ class Site extends Model
         'entry_url',
         'login_url',
         'show_sponsors',
+        'sponsor_page_visible',
+        'sponsor_contact_url',
+        'sponsor_contact_text',
+        'fallback_domain',
+        'robots_txt',
+        'noindex_mode',
+        'content_prompt_template',
+        'custom_css',
     ];
 
     protected function casts(): array
@@ -35,6 +43,8 @@ class Site extends Model
         return [
             'is_active' => 'boolean',
             'show_sponsors' => 'boolean',
+            'sponsor_page_visible' => 'boolean',
+            'noindex_mode' => 'boolean',
             'social_links' => 'array',
         ];
     }

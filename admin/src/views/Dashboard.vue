@@ -28,6 +28,33 @@
       </el-col>
     </el-row>
 
+    <el-row :gutter="20" style="margin-bottom: 20px" v-if="analyticsSummary">
+      <el-col :span="8">
+        <el-card shadow="hover">
+          <div class="stat-card">
+            <div class="stat-number" style="color: #e6a23c">{{ analyticsSummary.active_users }}</div>
+            <div class="stat-label">Toplam Ziyaretci (7 gun)</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card shadow="hover">
+          <div class="stat-card">
+            <div class="stat-number" style="color: #909399">{{ analyticsSummary.page_views }}</div>
+            <div class="stat-label">Sayfa Goruntulenme</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card shadow="hover">
+          <div class="stat-card">
+            <div class="stat-number" style="color: #67c23a">{{ analyticsSummary.sessions }}</div>
+            <div class="stat-label">Oturum</div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-card style="margin-bottom: 20px">
       <div slot="header">
         <span>Toplu İşlemler</span>
@@ -123,12 +150,14 @@
 
 <script>
 import { getSites, startBulkContent, getBulkContentProgress } from '../api/sites'
+import { getAnalyticsSummary } from '../api/analytics'
 
 export default {
   name: 'Dashboard',
   data() {
     return {
       sites: [],
+      analyticsSummary: null,
       loading: false,
       showBulkDialog: false,
       bulkLoading: false,
@@ -163,8 +192,17 @@ export default {
   },
   created() {
     this.fetchSites()
+    this.fetchAnalyticsSummary()
   },
   methods: {
+    async fetchAnalyticsSummary() {
+      try {
+        const { data } = await getAnalyticsSummary({ period: '7d' })
+        this.analyticsSummary = data.data?.totals || null
+      } catch {
+        // GA not configured, skip silently
+      }
+    },
     async fetchSites() {
       this.loading = true
       try {

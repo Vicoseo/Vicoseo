@@ -102,6 +102,39 @@ class PageController extends Controller
     }
 
     /**
+     * List revisions for a page.
+     */
+    public function revisions(int $siteId, int $id): JsonResponse
+    {
+        $this->resolveSiteTenant($siteId);
+
+        $page = Page::findOrFail($id);
+
+        $revisions = $page->revisions()
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->json(['data' => $revisions]);
+    }
+
+    /**
+     * Revert a page field to a previous revision.
+     */
+    public function revert(int $siteId, int $id, int $revisionId): JsonResponse
+    {
+        $this->resolveSiteTenant($siteId);
+
+        $page = Page::findOrFail($id);
+        $page->revertTo($revisionId);
+
+        return response()->json([
+            'data' => $page->fresh(),
+            'message' => 'Page reverted successfully.',
+        ]);
+    }
+
+    /**
      * Resolve the site and switch the tenant database connection.
      */
     private function resolveSiteTenant(int $siteId): Site

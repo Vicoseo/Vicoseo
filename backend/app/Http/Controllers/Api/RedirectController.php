@@ -7,20 +7,29 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Redirect;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RedirectController extends Controller
 {
-    /**
-     * Find redirect by slug, increment click_count, and return target_url with 302 status hint.
-     */
-    public function handle(string $slug): JsonResponse
+    public function handle(Request $request, string $slug): JsonResponse
     {
         $redirect = Redirect::where('slug', $slug)
             ->where('is_active', true)
             ->first();
 
         if (!$redirect) {
+            // Check for fallback domain
+            $site = $request->attributes->get('site');
+            if ($site && $site->fallback_domain) {
+                return response()->json([
+                    'data' => [
+                        'target_url' => 'https://' . ltrim($site->fallback_domain, 'https://'),
+                        'status' => 302,
+                    ],
+                ]);
+            }
+
             return response()->json([
                 'error' => 'Not Found',
                 'message' => "Redirect not found: {$slug}",

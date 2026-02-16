@@ -38,6 +38,14 @@
             <span>{{ row.rating }}/5</span>
           </template>
         </el-table-column>
+        <el-table-column label="Kategori" width="120" align="center">
+          <template slot-scope="{ row }">
+            <el-tag v-if="row.category === 'vip'" size="small" type="warning">VIP</el-tag>
+            <el-tag v-else-if="row.category === 'popular'" size="small" type="success">Popüler</el-tag>
+            <el-tag v-else-if="row.category === 'kutu'" size="small" type="primary">Kutu</el-tag>
+            <span v-else class="no-logo">—</span>
+          </template>
+        </el-table-column>
         <el-table-column label="Promosyon" width="100" align="center">
           <template slot-scope="{ row }">
             <el-tag size="small" type="info">
@@ -105,38 +113,29 @@
         <!-- İki Sütun: Web BG + Mobil BG -->
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="Web Background Görsel URL" prop="web_background">
-              <el-input
-                v-model="form.web_background"
-                placeholder="Banner URL veya dosya adı"
-                clearable
-              >
-                <i slot="prefix" class="el-icon-picture-outline"></i>
-              </el-input>
+            <el-form-item label="Web Background Görsel" prop="web_background">
+              <image-upload v-model="form.web_background" directory="backgrounds" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Mobil Background Görsel URL" prop="mobile_background">
-              <el-input
-                v-model="form.mobile_background"
-                placeholder="Mobil banner URL veya dosya adı"
-                clearable
-              >
-                <i slot="prefix" class="el-icon-mobile-phone"></i>
-              </el-input>
+            <el-form-item label="Mobil Background Görsel" prop="mobile_background">
+              <image-upload v-model="form.mobile_background" directory="backgrounds" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <!-- Logo -->
-        <el-form-item label="Logo Görsel URL" prop="logo">
-          <el-input
-            v-model="form.logo"
-            placeholder="Logo URL veya dosya adı"
-            clearable
-          >
-            <i slot="prefix" class="el-icon-picture"></i>
-          </el-input>
+        <el-form-item label="Logo Görsel" prop="logo">
+          <image-upload v-model="form.logo" directory="logos" />
+        </el-form-item>
+
+        <!-- Kategori -->
+        <el-form-item label="Kategori" prop="category">
+          <el-select v-model="form.category" placeholder="Kategori seçin" clearable style="width: 100%">
+            <el-option label="VIP Siteler" value="vip" />
+            <el-option label="En Çok Tercih Edilen" value="popular" />
+            <el-option label="Kutu Açılışı" value="kutu" />
+          </el-select>
         </el-form-item>
 
         <!-- İki Sütun: Yıldız + Sıra No -->
@@ -237,12 +236,14 @@
 
 <script>
 import { getSponsors, createSponsor, updateSponsor, deleteSponsor } from '../../api/sponsors'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 const NAME_REGEX = /^[a-z0-9]+$/
 const URL_REGEX = /^https?:\/\/.+\..+/
 
 export default {
   name: 'SponsorList',
+  components: { ImageUpload },
 
   data() {
     const validateName = (rule, value, callback) => {
@@ -287,6 +288,7 @@ export default {
         logo: '',
         rating: 5,
         sort_order: 0,
+        category: '',
         promotions: [{ highlight: '', text: '' }],
       },
 
@@ -344,6 +346,7 @@ export default {
         logo: row.logo || '',
         rating: row.rating ?? 5,
         sort_order: row.sort_order ?? 0,
+        category: row.category || '',
         promotions:
           row.promotions && row.promotions.length
             ? row.promotions.map((p) => ({ ...p }))
@@ -362,6 +365,7 @@ export default {
         logo: '',
         rating: 5,
         sort_order: 0,
+        category: '',
         promotions: [{ highlight: '', text: '' }],
       }
       this.isEditing = false
@@ -400,6 +404,7 @@ export default {
           logo: this.form.logo || null,
           rating: this.form.rating,
           sort_order: this.form.sort_order,
+          category: this.form.category || null,
           promotions: this.form.promotions.filter(
             (p) => p.highlight && p.text
           ),

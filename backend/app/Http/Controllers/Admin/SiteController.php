@@ -90,6 +90,14 @@ class SiteController extends Controller
             'social_links.whatsapp' => ['nullable', 'string', 'max:500'],
             'social_links.support_email' => ['nullable', 'string', 'max:500'],
             'ga_measurement_id' => ['nullable', 'string', 'max:50'],
+            'sponsor_page_visible' => ['sometimes', 'boolean'],
+            'sponsor_contact_url' => ['nullable', 'string', 'max:500'],
+            'sponsor_contact_text' => ['nullable', 'string', 'max:255'],
+            'fallback_domain' => ['nullable', 'string', 'max:255'],
+            'robots_txt' => ['nullable', 'string', 'max:5000'],
+            'noindex_mode' => ['sometimes', 'boolean'],
+            'content_prompt_template' => ['nullable', 'string', 'max:5000'],
+            'custom_css' => ['nullable', 'string', 'max:10000'],
         ]);
 
         // Clear tenant cache on any update

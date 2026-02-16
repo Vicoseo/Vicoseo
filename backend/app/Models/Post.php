@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\HasRevisions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    use HasRevisions;
+
     protected $connection = 'tenant';
 
     protected $table = 'posts';

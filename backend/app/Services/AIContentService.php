@@ -96,7 +96,18 @@ class AIContentService
     {
         $prompt = $this->buildGeneratePrompt($type, $topic, $instructions, $siteInfo);
 
+        // Append site custom prompt template if available
+        $prompt = $this->appendSiteTemplate($prompt, $siteInfo);
+
         return $this->callAI($prompt);
+    }
+
+    /**
+     * Check if a slug already exists to prevent duplicate content.
+     */
+    public function slugExists(string $slug, array $existingSlugs): bool
+    {
+        return in_array($slug, $existingSlugs, true);
     }
 
     /**
@@ -105,6 +116,7 @@ class AIContentService
     public function generateLandingPage(string $brandName, string $domain, array $siteInfo = [], array $existingSlugs = []): array
     {
         $prompt = $this->buildLandingPagePrompt($brandName, $domain, $siteInfo, $existingSlugs);
+        $prompt = $this->appendSiteTemplate($prompt, $siteInfo);
 
         return $this->callAI($prompt, 16384);
     }
@@ -115,6 +127,7 @@ class AIContentService
     public function generateClusterArticle(string $brandName, string $domain, string $articleTopic, string $articleInstructions, array $siteInfo = [], array $clusterSlugs = [], array $existingSlugs = []): array
     {
         $prompt = $this->buildClusterArticlePrompt($brandName, $domain, $articleTopic, $articleInstructions, $siteInfo, $clusterSlugs, $existingSlugs);
+        $prompt = $this->appendSiteTemplate($prompt, $siteInfo);
 
         return $this->callAI($prompt, 16384);
     }
@@ -145,6 +158,8 @@ class AIContentService
     public function generateDailyPost(string $brandName, string $domain, string $topic, string $instructions, array $existingSlugs = [], array $siteInfo = []): array
     {
         $prompt = $this->buildDailyPostPrompt($brandName, $domain, $topic, $instructions, $existingSlugs, $siteInfo);
+        $prompt = $this->appendSiteTemplate($prompt, $siteInfo);
+        $prompt = $this->appendDuplicatePrevention($prompt, $existingSlugs);
 
         return $this->callAI($prompt, 16384);
     }
@@ -204,6 +219,49 @@ class AIContentService
         }
 
         return $picked;
+    }
+
+    // ─── TEMPLATE & DUPLICATE HELPERS ───
+
+    /**
+     * Append site-specific custom prompt template with placeholder replacements.
+     */
+    private function appendSiteTemplate(string $prompt, array $siteInfo): string
+    {
+        $template = $siteInfo['content_prompt_template'] ?? null;
+        if (empty($template)) {
+            return $prompt;
+        }
+
+        $replacements = [
+            '{{domain}}' => $siteInfo['domain'] ?? '',
+            '{{brand_name}}' => $siteInfo['brand_name'] ?? $siteInfo['name'] ?? '',
+            '{{telegram}}' => $siteInfo['social_links']['telegram'] ?? '',
+            '{{login_url}}' => $siteInfo['login_url'] ?? '',
+            '{{entry_url}}' => $siteInfo['entry_url'] ?? '',
+        ];
+
+        $template = str_replace(array_keys($replacements), array_values($replacements), $template);
+
+        return $prompt . "\n\n## SITE ÖZEL TALİMATLAR:\n" . $template;
+    }
+
+    /**
+     * Append duplicate prevention instructions with existing titles.
+     */
+    private function appendDuplicatePrevention(string $prompt, array $existingSlugs): string
+    {
+        if (empty($existingSlugs)) {
+            return $prompt;
+        }
+
+        $titles = implode(', ', array_slice($existingSlugs, 0, 50));
+
+        return $prompt . "\n\n## TEKRAR ÖNLEME (ÇOK ÖNEMLİ):\n"
+            . "- Aşağıdaki slug'larla aynı veya benzer slug ÜRETME: {$titles}\n"
+            . "- Her bölüm farklı kelimelerle başlamalı\n"
+            . "- Başlık ve FAQ soruları daha öncekilerden farklı olmalı\n"
+            . "- Farklı açılar ve perspektifler kullan";
     }
 
     // ─── PROMPT BUILDERS ───

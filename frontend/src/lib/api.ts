@@ -51,8 +51,9 @@ export function getTopOffers(domain: string): Promise<ApiResponse<TopOffer[]>> {
   return fetchApi<ApiResponse<TopOffer[]>>('/top-offers', domain);
 }
 
-export function getSponsors(): Promise<ApiResponse<Sponsor[]>> {
-  const url = `${API_URL}/sponsors`;
+export function getSponsors(category?: string): Promise<ApiResponse<Sponsor[]>> {
+  const params = category ? `?category=${category}` : '';
+  const url = `${API_URL}/sponsors${params}`;
   return fetch(url, {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     next: { revalidate: 300 },

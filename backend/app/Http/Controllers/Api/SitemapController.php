@@ -117,7 +117,8 @@ class SitemapController extends Controller
             ->get();
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+        $xml .= ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">';
 
         // Blog index page
         $xml .= '<url>';
@@ -134,6 +135,17 @@ class SitemapController extends Controller
             $xml .= '<lastmod>' . $post->updated_at->toW3cString() . '</lastmod>';
             $xml .= '<changefreq>weekly</changefreq>';
             $xml .= '<priority>0.8</priority>';
+
+            // Image tag for featured image
+            if ($post->featured_image) {
+                $imageUrl = str_starts_with($post->featured_image, 'http')
+                    ? $post->featured_image
+                    : $baseUrl . $post->featured_image;
+                $xml .= '<image:image>';
+                $xml .= '<image:loc>' . htmlspecialchars($imageUrl) . '</image:loc>';
+                $xml .= '</image:image>';
+            }
+
             $xml .= '</url>';
         }
 

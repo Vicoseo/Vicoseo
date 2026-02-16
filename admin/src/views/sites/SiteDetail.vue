@@ -60,6 +60,77 @@
         <el-tab-pane label="Footer Linkleri" name="footerLinks">
           <FooterLinkList :site-id="siteId" />
         </el-tab-pane>
+        <el-tab-pane label="Icerik Plani" name="contentSchedules">
+          <ContentScheduleForm :site-id="siteId" />
+        </el-tab-pane>
+        <el-tab-pane label="Analytics" name="analytics">
+          <div v-if="activeTab === 'analytics'">
+            <div style="margin-bottom: 12px">
+              <el-radio-group v-model="analyticsPeriod" size="small" @change="fetchAnalytics">
+                <el-radio-button label="7d">7 Gun</el-radio-button>
+                <el-radio-button label="30d">30 Gun</el-radio-button>
+                <el-radio-button label="90d">90 Gun</el-radio-button>
+              </el-radio-group>
+            </div>
+            <div v-loading="analyticsLoading">
+              <el-row :gutter="16" style="margin-bottom: 16px" v-if="analyticsData">
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.active_users }}</div><div class="mini-label">Kullanicilar</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.page_views }}</div><div class="mini-label">Sayfa Goruntulenme</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.sessions }}</div><div class="mini-label">Oturum</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.avg_session_duration }}s</div><div class="mini-label">Ort. Sure</div></div></el-card>
+                </el-col>
+              </el-row>
+              <el-table :data="analyticsData ? analyticsData.top_pages : []" size="small" border v-if="analyticsData">
+                <el-table-column prop="path" label="Sayfa" />
+                <el-table-column prop="page_views" label="Goruntulenme" width="140" />
+                <el-table-column prop="users" label="Kullanicilar" width="130" />
+              </el-table>
+              <div v-if="analyticsError" style="color: #f56c6c; padding: 20px">{{ analyticsError }}</div>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="Search Console" name="gsc">
+          <div v-if="activeTab === 'gsc'">
+            <div style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center">
+              <el-radio-group v-model="gscPeriod" size="small" @change="fetchGsc">
+                <el-radio-button label="7d">7 Gun</el-radio-button>
+                <el-radio-button label="28d">28 Gun</el-radio-button>
+                <el-radio-button label="90d">90 Gun</el-radio-button>
+              </el-radio-group>
+              <el-button size="small" type="success" :loading="submittingSitemap" @click="handleSubmitSitemap">Sitemap Gonder</el-button>
+            </div>
+            <div v-loading="gscLoading">
+              <el-row :gutter="16" style="margin-bottom: 16px" v-if="gscData">
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ gscData.summary.clicks }}</div><div class="mini-label">Tiklanma</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ gscData.summary.impressions }}</div><div class="mini-label">Gosterim</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ gscData.summary.ctr }}%</div><div class="mini-label">CTR</div></div></el-card>
+                </el-col>
+                <el-col :span="6">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ gscData.summary.position }}</div><div class="mini-label">Ort. Pozisyon</div></div></el-card>
+                </el-col>
+              </el-row>
+              <el-table :data="gscData ? gscData.queries : []" size="small" border v-if="gscData">
+                <el-table-column prop="query" label="Sorgu" />
+                <el-table-column prop="clicks" label="Tiklanma" width="100" />
+                <el-table-column prop="impressions" label="Gosterim" width="100" />
+                <el-table-column prop="ctr" label="CTR %" width="80" />
+                <el-table-column prop="position" label="Pozisyon" width="90" />
+              </el-table>
+            </div>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
 
@@ -103,15 +174,18 @@
 
 <script>
 import { getSite, aiGenerateContent, provisionSite, getProvisionStatus } from '../../api/sites'
+import { getSiteAnalytics } from '../../api/analytics'
+import { getGscPerformance, submitGscSitemap } from '../../api/gsc'
 import PageList from '../pages/PageList.vue'
 import PostList from '../posts/PostList.vue'
 import OfferList from './OfferList.vue'
 import RedirectList from '../redirects/RedirectList.vue'
 import FooterLinkList from '../footerLinks/FooterLinkList.vue'
+import ContentScheduleForm from '../content/ContentScheduleForm.vue'
 
 export default {
   name: 'SiteDetail',
-  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList },
+  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList, ContentScheduleForm },
   data() {
     return {
       site: null,
@@ -123,6 +197,16 @@ export default {
       aiDialogVisible: false,
       selectedProvider: null,
       aiContentType: 'all',
+      // Analytics
+      analyticsPeriod: '7d',
+      analyticsData: null,
+      analyticsLoading: false,
+      analyticsError: null,
+      // GSC
+      gscPeriod: '28d',
+      gscData: null,
+      gscLoading: false,
+      submittingSitemap: false,
     }
   },
   computed: {
@@ -133,6 +217,12 @@ export default {
       return this.selectedProvider === 'openai'
         ? 'ChatGPT ile İçerik Oluştur'
         : 'Claude ile İçerik Oluştur'
+    },
+  },
+  watch: {
+    activeTab(tab) {
+      if (tab === 'analytics' && !this.analyticsData) this.fetchAnalytics()
+      if (tab === 'gsc' && !this.gscData) this.fetchGsc()
     },
   },
   created() {
@@ -190,6 +280,45 @@ export default {
       }
     },
 
+    async fetchAnalytics() {
+      this.analyticsLoading = true
+      this.analyticsError = null
+      try {
+        const { data } = await getSiteAnalytics(this.siteId, { period: this.analyticsPeriod })
+        this.analyticsData = data.data
+      } catch (err) {
+        this.analyticsError = err.response?.data?.error || 'Analytics verileri yuklenemedi'
+      } finally {
+        this.analyticsLoading = false
+      }
+    },
+    async fetchGsc() {
+      this.gscLoading = true
+      try {
+        const { data } = await getGscPerformance(this.siteId, { period: this.gscPeriod })
+        this.gscData = data.data
+      } catch {
+        this.$message.error('Search Console verileri yuklenemedi')
+      } finally {
+        this.gscLoading = false
+      }
+    },
+    async handleSubmitSitemap() {
+      this.submittingSitemap = true
+      try {
+        const { data } = await submitGscSitemap(this.siteId)
+        if (data.success) {
+          this.$message.success('Sitemap gonderildi')
+        } else {
+          this.$message.error(data.message || 'Sitemap gonderilemedi')
+        }
+      } catch {
+        this.$message.error('Sitemap gonderilemedi')
+      } finally {
+        this.submittingSitemap = false
+      }
+    },
+
     openAiDialog(provider) {
       this.selectedProvider = provider
       this.aiContentType = 'all'
@@ -234,3 +363,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.mini-stat { text-align: center; padding: 6px 0; }
+.mini-num { font-size: 22px; font-weight: 700; color: #409eff; }
+.mini-label { font-size: 12px; color: #909399; margin-top: 2px; }
+</style>

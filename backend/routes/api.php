@@ -12,7 +12,7 @@ Route::middleware('tenant')->prefix('v1')->group(function () {
 });
 
 // Public API routes (for Next.js frontend) - tenant-scoped via middleware
-Route::middleware('tenant')->prefix('v1')->group(function () {
+Route::middleware(['tenant', 'rate.limit:public'])->prefix('v1')->group(function () {
     Route::get('/site/config', [Api\SiteController::class, 'config']);
     Route::get('/pages', [Api\PageController::class, 'index']);
     Route::get('/pages/{slug}', [Api\PageController::class, 'show']);
@@ -30,10 +30,38 @@ Route::prefix('v1')->group(function () {
 // Admin API routes - authenticated via Sanctum
 Route::prefix('admin')->group(function () {
     Route::post('/login', [Admin\AuthController::class, 'login']);
+    Route::post('/verify-2fa', [Admin\AuthController::class, 'verifyTwoFactor']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'ip.restriction', 'log.admin', 'rate.limit:admin'])->group(function () {
         Route::post('/logout', [Admin\AuthController::class, 'logout']);
         Route::get('/me', [Admin\AuthController::class, 'me']);
+
+        // File upload
+        Route::post('upload', [Admin\UploadController::class, 'store']);
+
+        // 2FA management
+        Route::prefix('2fa')->group(function () {
+            Route::post('enable', [Admin\TwoFactorController::class, 'enable']);
+            Route::post('verify', [Admin\TwoFactorController::class, 'verify']);
+            Route::post('disable', [Admin\TwoFactorController::class, 'disable']);
+        });
+
+        // Admin user management (master only)
+        Route::middleware('role:master')->group(function () {
+            Route::apiResource('users', Admin\UserController::class);
+            Route::post('users/{id}/reset-password', [Admin\UserController::class, 'updatePassword']);
+            Route::post('users/{id}/reset-2fa', [Admin\UserController::class, 'resetTwoFactor']);
+        });
+
+        // Admin logs
+        Route::get('logs', [Admin\AdminLogController::class, 'index']);
+
+        // System logs (backend Laravel logs)
+        Route::get('logs/backend', [Admin\LogController::class, 'backend']);
+        Route::get('logs/summary', [Admin\LogController::class, 'summary']);
+
+        // Analytics summary (all sites)
+        Route::get('analytics/summary', [Admin\AnalyticsController::class, 'summary']);
 
         // Site management
         Route::apiResource('sites', Admin\SiteController::class);
@@ -81,7 +109,13 @@ Route::prefix('admin')->group(function () {
             Route::post('ai-generate', [Admin\AiGenerateController::class, 'generate']);
 
             Route::apiResource('pages', Admin\PageController::class);
+            Route::get('pages/{id}/revisions', [Admin\PageController::class, 'revisions']);
+            Route::post('pages/{id}/revisions/{revisionId}/revert', [Admin\PageController::class, 'revert']);
+
             Route::apiResource('posts', Admin\PostController::class);
+            Route::get('posts/{id}/revisions', [Admin\PostController::class, 'revisions']);
+            Route::post('posts/{id}/revisions/{revisionId}/revert', [Admin\PostController::class, 'revert']);
+
             Route::apiResource('top-offers', Admin\TopOfferController::class)->names([
                 'index' => 'admin.site-top-offers.index',
                 'store' => 'admin.site-top-offers.store',
@@ -91,6 +125,20 @@ Route::prefix('admin')->group(function () {
             ]);
             Route::apiResource('redirects', Admin\RedirectController::class);
             Route::apiResource('footer-links', Admin\FooterLinkController::class)->except(['show']);
+
+            // Content schedules
+            Route::apiResource('content-schedules', Admin\ContentScheduleController::class)->except(['show']);
+
+            // Analytics
+            Route::get('analytics', [Admin\AnalyticsController::class, 'show']);
+
+            // Google Search Console
+            Route::prefix('gsc')->group(function () {
+                Route::get('performance', [Admin\SearchConsoleController::class, 'performance']);
+                Route::get('sitemaps', [Admin\SearchConsoleController::class, 'sitemaps']);
+                Route::post('sitemaps/submit', [Admin\SearchConsoleController::class, 'submitSitemap']);
+                Route::get('pages', [Admin\SearchConsoleController::class, 'pages']);
+            });
         });
     });
 });

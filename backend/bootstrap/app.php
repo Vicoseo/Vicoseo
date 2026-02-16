@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\CheckSiteAccess;
+use App\Http\Middleware\IpRestriction;
+use App\Http\Middleware\LogAdminAction;
+use App\Http\Middleware\RateLimiter;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant' => ResolveTenant::class,
+            'role' => CheckRole::class,
+            'site.access' => CheckSiteAccess::class,
+            'ip.restriction' => IpRestriction::class,
+            'log.admin' => LogAdminAction::class,
+            'permission' => CheckPermission::class,
+            'rate.limit' => RateLimiter::class,
         ]);
 
         $middleware->api(prepend: [

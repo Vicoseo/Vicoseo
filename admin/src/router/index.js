@@ -11,6 +11,11 @@ import PageForm from '../views/pages/PageForm.vue'
 import PostForm from '../views/posts/PostForm.vue'
 import GlobalOfferList from '../views/top-offers/GlobalOfferList.vue'
 import DomainManager from '../views/domains/DomainManager.vue'
+import UserList from '../views/users/UserList.vue'
+import UserForm from '../views/users/UserForm.vue'
+import TwoFactorSetup from '../views/settings/TwoFactorSetup.vue'
+import AdminLogList from '../views/logs/AdminLogList.vue'
+import SystemLogList from '../views/logs/SystemLogList.vue'
 
 Vue.use(VueRouter)
 
@@ -37,6 +42,12 @@ const routes = [
       { path: 'sites/:siteId/posts/:postId', name: 'PostEdit', component: PostForm, props: true },
       { path: 'domains', name: 'DomainManager', component: DomainManager },
       { path: 'global-offers', name: 'GlobalOffers', component: GlobalOfferList },
+      { path: 'users', name: 'UserList', component: UserList, meta: { masterOnly: true } },
+      { path: 'users/create', name: 'UserCreate', component: UserForm, meta: { masterOnly: true } },
+      { path: 'users/:id/edit', name: 'UserEdit', component: UserForm, props: true, meta: { masterOnly: true } },
+      { path: 'settings/2fa', name: 'TwoFactorSetup', component: TwoFactorSetup },
+      { path: 'logs', name: 'AdminLogs', component: AdminLogList },
+      { path: 'logs/system', name: 'SystemLogs', component: SystemLogList },
     ],
   },
 ]
@@ -56,6 +67,15 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some((r) => r.meta.guest) && isAuthenticated) {
     return next('/')
   }
+
+  // Master-only route check
+  if (to.matched.some((r) => r.meta.masterOnly)) {
+    const user = store.getters['auth/currentUser']
+    if (user && user.role !== 'master') {
+      return next('/')
+    }
+  }
+
   next()
 })
 

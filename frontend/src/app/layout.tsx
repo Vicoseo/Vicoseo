@@ -1,30 +1,34 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
-import { getSiteConfig, getTopOffers } from '@/lib/api';
+import { getSiteConfig, getTopOffers, getSponsors } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginCtaBar from '@/components/LoginCtaBar';
 import SponsorsBlock from '@/components/SponsorsBlock';
-import { SiteConfig, TopOffer } from '@/types';
+import Sponsors from '@/components/Sponsors';
+import { SiteConfig, TopOffer, Sponsor } from '@/types';
 import './globals.css';
 
 async function fetchLayoutData(): Promise<{
   site: SiteConfig | null;
   offers: TopOffer[];
+  sponsors: Sponsor[];
 }> {
   const domain = await getCurrentDomain();
 
   try {
-    const [siteRes, offersRes] = await Promise.all([
+    const [siteRes, offersRes, sponsorsRes] = await Promise.all([
       getSiteConfig(domain),
       getTopOffers(domain),
+      getSponsors(),
     ]);
     return {
       site: siteRes.data,
       offers: Array.isArray(offersRes.data) ? offersRes.data : [],
+      sponsors: Array.isArray(sponsorsRes.data) ? sponsorsRes.data : [],
     };
   } catch {
-    return { site: null, offers: [] };
+    return { site: null, offers: [], sponsors: [] };
   }
 }
 
@@ -77,17 +81,19 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       images: ['/storage/og-image.png'],
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
+    robots: site?.noindex_mode
+      ? { index: false, follow: false }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+          },
+        },
   };
 }
 
@@ -96,7 +102,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site, offers } = await fetchLayoutData();
+  const { site, offers, sponsors } = await fetchLayoutData();
 
   const primaryColor = site?.primary_color || '#007bff';
   const secondaryColor = site?.secondary_color || '#6c757d';
@@ -135,6 +141,13 @@ export default async function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
         )}
+        {site?.custom_css && (
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `.page-content { ${site.custom_css.replace(/<\/?script[^>]*>/gi, '')} }`,
+            }}
+          />
+        )}
       </head>
       <body
         suppressHydrationWarning
@@ -150,6 +163,13 @@ export default async function RootLayout({
       >
         <LoginCtaBar loginUrl={loginUrl} />
         {site?.show_sponsors !== false && <SponsorsBlock offers={offers} />}
+        {site?.sponsor_page_visible !== false && sponsors.length > 0 && (
+          <Sponsors
+            sponsors={sponsors}
+            contactUrl={site?.sponsor_contact_url}
+            contactText={site?.sponsor_contact_text}
+          />
+        )}
         {site && <Header site={site} />}
         <main style={{ flex: 1 }}>{children}</main>
         {site && <Footer site={site} />}
