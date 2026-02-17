@@ -8,6 +8,43 @@
       </el-button>
     </div>
 
+    <!-- Sponsor Ticker Strip -->
+    <el-card shadow="never" class="ticker-card" style="margin-bottom: 16px">
+      <div class="ticker-header">
+        <div class="ticker-title">
+          <i class="el-icon-s-promotion" style="margin-right: 6px"></i>
+          Sponsor Şeridi
+        </div>
+        <el-switch
+          v-model="tickerEnabled"
+          active-text="Aktif"
+          inactive-text="Pasif"
+          active-color="#13ce66"
+          inactive-color="#dcdfe6"
+        />
+      </div>
+      <div v-if="tickerEnabled && activeSponsors.length" class="ticker-wrapper">
+        <div class="ticker-track" :style="{ animationDuration: tickerSpeed + 's' }">
+          <div
+            v-for="sponsor in tickerSponsors"
+            :key="'t-' + sponsor._tickerId"
+            class="ticker-item"
+          >
+            <img
+              v-if="sponsor.logo"
+              :src="sponsor.logo"
+              :alt="sponsor.name"
+              class="ticker-logo"
+            />
+            <span v-else class="ticker-name-fallback" :style="{ color: sponsor.primary_color }">{{ sponsor.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="tickerEnabled && !activeSponsors.length" class="ticker-empty">
+        <i class="el-icon-warning-outline"></i> Aktif sponsor bulunmuyor
+      </div>
+    </el-card>
+
     <!-- Sponsor Table -->
     <el-card shadow="never">
       <el-table :data="sponsors" v-loading="tableLoading" stripe style="width: 100%">
@@ -278,6 +315,9 @@ export default {
     }
 
     return {
+      // Ticker
+      tickerEnabled: true,
+
       // Table
       sponsors: [],
       tableLoading: false,
@@ -317,6 +357,23 @@ export default {
         { required: true, message: 'Cümle alanı zorunludur', trigger: 'blur' },
       ],
     }
+  },
+
+  computed: {
+    activeSponsors() {
+      return this.sponsors.filter((s) => s.is_active)
+    },
+    tickerSponsors() {
+      // Duplicate list for seamless loop
+      const list = this.activeSponsors
+      if (!list.length) return []
+      const doubled = [...list, ...list]
+      return doubled.map((s, i) => ({ ...s, _tickerId: s.id + '-' + i }))
+    },
+    tickerSpeed() {
+      const count = this.activeSponsors.length
+      return Math.max(count * 3, 10)
+    },
   },
 
   created() {
@@ -495,6 +552,106 @@ export default {
   font-size: 22px;
   font-weight: 600;
   color: #303133;
+}
+
+/* Ticker */
+.ticker-card {
+  overflow: hidden;
+}
+
+.ticker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ticker-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.ticker-wrapper {
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8edf3 100%);
+  padding: 12px 0;
+  position: relative;
+}
+
+.ticker-wrapper::before,
+.ticker-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ticker-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, #f5f7fa, transparent);
+}
+
+.ticker-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, #e8edf3, transparent);
+}
+
+.ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  white-space: nowrap;
+  animation: ticker-scroll linear infinite;
+  width: max-content;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 4px 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.ticker-item:hover {
+  transform: scale(1.08);
+}
+
+.ticker-logo {
+  height: 32px;
+  max-width: 100px;
+  object-fit: contain;
+}
+
+.ticker-name-fallback {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ticker-empty {
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
+  padding: 12px;
 }
 
 /* Table */
