@@ -23,11 +23,11 @@
         <el-form-item label="İsim" prop="name">
           <el-input v-model="form.name" placeholder="Site Adı" />
         </el-form-item>
-        <el-form-item label="Logo URL" prop="logo_url">
-          <el-input v-model="form.logo_url" placeholder="https://..." />
+        <el-form-item label="Logo">
+          <image-upload v-model="form.logo_url" directory="site-logos" />
         </el-form-item>
-        <el-form-item label="Favicon URL" prop="favicon_url">
-          <el-input v-model="form.favicon_url" placeholder="https://..." />
+        <el-form-item label="Favicon">
+          <image-upload v-model="form.favicon_url" directory="site-logos" />
         </el-form-item>
         <el-form-item label="Ana Renk">
           <el-color-picker v-model="form.primary_color" />
@@ -195,9 +195,11 @@
 
 <script>
 import { getSite, createSite, updateSite } from '../../api/sites'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 export default {
   name: 'SiteForm',
+  components: { ImageUpload },
   data() {
     return {
       form: {

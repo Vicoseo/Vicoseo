@@ -18,7 +18,22 @@
       </div>
 
       <el-table :data="filteredSites" v-loading="loading" stripe>
-        <el-table-column prop="domain" label="Alan Adı" sortable />
+        <el-table-column label="Alan Adı" sortable sort-by="domain">
+          <template slot-scope="{ row }">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <img
+                v-if="row.logo_url"
+                :src="resolveUrl(row.logo_url)"
+                style="width: 28px; height: 28px; object-fit: contain; border-radius: 4px; border: 1px solid #ebeef5"
+                :alt="row.domain"
+              />
+              <span v-else style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: #f0f2f5; border-radius: 4px; color: #c0c4cc; font-size: 14px; border: 1px solid #ebeef5">
+                <i class="el-icon-picture-outline"></i>
+              </span>
+              <span>{{ row.domain }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="İsim" sortable />
         <el-table-column label="Durum" width="100" sortable sort-by="is_active">
           <template slot-scope="{ row }">
@@ -111,6 +126,12 @@ export default {
           this.$message.error('Silme başarısız')
         }
       }
+    },
+    resolveUrl(url) {
+      if (!url) return ''
+      if (url.startsWith('http')) return url
+      const base = process.env.VUE_APP_API_BASE_URL || ''
+      return base + url
     },
     formatDate(d) {
       if (!d) return ''
