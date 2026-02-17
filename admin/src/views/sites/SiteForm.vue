@@ -60,19 +60,19 @@
             Sitenin en üstündeki "GİRİŞ YAP" butonunun yönlendirme adresi. Boşsa /go/login kullanılır.
           </div>
         </el-form-item>
-        <el-form-item label="Sponsorları Göster">
+        <el-form-item label="Üst Kayan Şerit">
           <el-switch v-model="form.show_sponsors" />
           <span style="color: #909399; font-size: 12px; margin-left: 8px">
-            Kapatılırsa bu sitede sponsor bölümü gizlenir
+            Kapatılırsa üst sponsor marquee şeridi gizlenir
           </span>
         </el-form-item>
 
         <el-divider content-position="left">Sponsor Ayarları</el-divider>
 
-        <el-form-item label="Sponsor Sayfası">
+        <el-form-item label="Alt Kart Listesi">
           <el-switch v-model="form.sponsor_page_visible" />
           <span style="color: #909399; font-size: 12px; margin-left: 8px">
-            Kapatılırsa sponsor slider bölümü gizlenir
+            Kapatılırsa footer üstündeki sponsor kart grid'i gizlenir
           </span>
         </el-form-item>
         <el-form-item label="İletişim Metni">

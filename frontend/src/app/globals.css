@@ -509,6 +509,118 @@ p {
   }
 }
 
+/* Offer Cards Grid (bottom) */
+.offer-cards-section {
+  background: #0f0f23;
+  padding: 20px 0;
+  border-top: 1px solid #1a1a3e;
+}
+
+.offer-cards-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.offer-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .offer-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.offer-grid-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #16213e;
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-decoration: none;
+  color: #fff;
+  transition: background 0.2s, transform 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.offer-grid-card:hover {
+  background: #1c2a4a;
+  transform: translateY(-2px);
+}
+
+.offer-grid-card__logo {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.offer-grid-card__logo img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.offer-grid-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.offer-grid-card__bonus {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e0e0e0;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offer-grid-card__cta {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: var(--primary-color, #007bff);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+
+.offer-grid-card:hover .offer-grid-card__cta {
+  opacity: 0.9;
+}
+
+.offer-cards-contact {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: rgba(255, 215, 0, 0.08);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+}
+
+.offer-cards-contact a {
+  color: #ffd700;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.offer-cards-contact a:hover {
+  text-decoration: underline;
+}
+
 /* Footer */
 .site-footer {
   background: #1a1a2e;

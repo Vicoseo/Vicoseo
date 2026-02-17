@@ -1,34 +1,31 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
-import { getSiteConfig, getTopOffers, getSponsors } from '@/lib/api';
+import { getSiteConfig, getTopOffers } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginCtaBar from '@/components/LoginCtaBar';
 import SponsorsBlock from '@/components/SponsorsBlock';
-import Sponsors from '@/components/Sponsors';
-import { SiteConfig, TopOffer, Sponsor } from '@/types';
+import OfferCards from '@/components/OfferCards';
+import { SiteConfig, TopOffer } from '@/types';
 import './globals.css';
 
 async function fetchLayoutData(): Promise<{
   site: SiteConfig | null;
   offers: TopOffer[];
-  sponsors: Sponsor[];
 }> {
   const domain = await getCurrentDomain();
 
   try {
-    const [siteRes, offersRes, sponsorsRes] = await Promise.all([
+    const [siteRes, offersRes] = await Promise.all([
       getSiteConfig(domain),
       getTopOffers(domain),
-      getSponsors(),
     ]);
     return {
       site: siteRes.data,
       offers: Array.isArray(offersRes.data) ? offersRes.data : [],
-      sponsors: Array.isArray(sponsorsRes.data) ? sponsorsRes.data : [],
     };
   } catch {
-    return { site: null, offers: [], sponsors: [] };
+    return { site: null, offers: [] };
   }
 }
 
@@ -102,7 +99,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site, offers, sponsors } = await fetchLayoutData();
+  const { site, offers } = await fetchLayoutData();
 
   const primaryColor = site?.primary_color || '#007bff';
   const secondaryColor = site?.secondary_color || '#6c757d';
@@ -163,15 +160,15 @@ export default async function RootLayout({
       >
         <LoginCtaBar loginUrl={loginUrl} />
         {site?.show_sponsors !== false && <SponsorsBlock offers={offers} />}
-        {site?.sponsor_page_visible !== false && sponsors.length > 0 && (
-          <Sponsors
-            sponsors={sponsors}
+        {site && <Header site={site} />}
+        <main style={{ flex: 1 }}>{children}</main>
+        {site?.sponsor_page_visible !== false && offers.length > 0 && (
+          <OfferCards
+            offers={offers}
             contactUrl={site?.sponsor_contact_url}
             contactText={site?.sponsor_contact_text}
           />
         )}
-        {site && <Header site={site} />}
-        <main style={{ flex: 1 }}>{children}</main>
         {site && <Footer site={site} />}
       </body>
     </html>
