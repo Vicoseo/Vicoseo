@@ -20,7 +20,7 @@ class StoreTopOfferRequest extends FormRequest
     {
         return [
             'slug' => ['nullable', 'string', 'max:255'],
-            'logo_url' => ['required', 'url', 'max:500'],
+            'logo_url' => ['required', 'string', 'max:500'],
             'bonus_text' => ['required', 'string', 'max:255'],
             'cta_text' => ['required', 'string', 'max:255'],
             'target_url' => ['required', 'url', 'max:500'],

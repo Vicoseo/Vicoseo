@@ -122,7 +122,7 @@ class TopOfferController extends Controller
 
         $validated = $request->validate([
             'slug' => ['nullable', 'string', 'max:255'],
-            'logo_url' => ['sometimes', 'url', 'max:500'],
+            'logo_url' => ['sometimes', 'string', 'max:500'],
             'bonus_text' => ['sometimes', 'string', 'max:255'],
             'cta_text' => ['sometimes', 'string', 'max:255'],
             'target_url' => ['sometimes', 'url', 'max:500'],
@@ -185,7 +185,7 @@ class TopOfferController extends Controller
 
         $validated = $request->validate([
             'slug' => ['nullable', 'string', 'max:255'],
-            'logo_url' => ['sometimes', 'url', 'max:500'],
+            'logo_url' => ['sometimes', 'string', 'max:500'],
             'bonus_text' => ['sometimes', 'string', 'max:255'],
             'cta_text' => ['sometimes', 'string', 'max:255'],
             'target_url' => ['sometimes', 'url', 'max:500'],
