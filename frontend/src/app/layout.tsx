@@ -105,14 +105,29 @@ export default async function RootLayout({
   const secondaryColor = site?.secondary_color || '#6c757d';
   const loginUrl = site?.login_url || site?.entry_url || '/go/login';
 
+  const siteUrl = site ? `https://${site.domain}` : '';
+
   const jsonLd = site
     ? {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: site.name,
-        url: `https://${site.domain}`,
+        url: siteUrl,
         description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
         inLanguage: 'tr',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${siteUrl}/blog?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: site.name,
+          url: siteUrl,
+        },
       }
     : null;
 

@@ -45,7 +45,7 @@ export default function Header({ site }: HeaderProps) {
             </span>
           )}
         </Link>
-        <nav style={{ display: 'flex', gap: 24 }}>
+        <nav style={{ display: 'flex', gap: 24 }} aria-label="Ana menü">
           <Link
             href="/"
             style={{
@@ -55,7 +55,7 @@ export default function Header({ site }: HeaderProps) {
               fontSize: 15,
             }}
           >
-            Home
+            Ana Sayfa
           </Link>
           <Link
             href="/blog"

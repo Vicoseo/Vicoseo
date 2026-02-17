@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getCurrentDomain } from '@/lib/domain';
 import { getPosts, getSiteConfig } from '@/lib/api';
-import { Post } from '@/types';
+import { Post, SiteConfig } from '@/types';
 
 interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
@@ -53,14 +53,38 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   let posts: Post[] = [];
   let lastPage = 1;
+  let site: SiteConfig | null = null;
 
   try {
-    const res = await getPosts(domain, currentPage);
+    const [res, siteRes] = await Promise.all([
+      getPosts(domain, currentPage),
+      getSiteConfig(domain),
+    ]);
     posts = res.data;
     lastPage = res.last_page;
+    site = siteRes.data;
   } catch {
     // API unavailable - render empty state
   }
+
+  const siteUrl = site ? `https://${site.domain}` : '';
+
+  const collectionSchema = posts.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Blog | ${site?.name || ''}`,
+    url: `${siteUrl}/blog`,
+    isPartOf: { '@type': 'WebSite', name: site?.name, url: siteUrl },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: posts.map((post, idx) => ({
+        '@type': 'ListItem',
+        position: idx + 1,
+        url: `${siteUrl}/blog/${post.slug}`,
+        name: post.title,
+      })),
+    },
+  } : null;
 
   if (posts.length === 0) {
     return (
@@ -73,6 +97,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <div className="page-content">
+      {collectionSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+        />
+      )}
       <h1>Blog</h1>
       <div className="blog-grid">
         {posts.map((post) => (

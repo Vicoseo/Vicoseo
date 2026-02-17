@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
 import { getPages, getPage, getSiteConfig } from '@/lib/api';
+import { SiteConfig } from '@/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const domain = await getCurrentDomain();
@@ -74,20 +75,34 @@ function extractFAQSchema(html: string) {
   return faqs;
 }
 
+function buildSameAs(site: SiteConfig): string[] {
+  const links: string[] = [];
+  const social = site.social_links;
+  if (!social) return links;
+  if (social.telegram) links.push(social.telegram);
+  if (social.instagram) links.push(social.instagram);
+  if (social.x) links.push(social.x);
+  if (social.youtube) links.push(social.youtube);
+  if (social.tiktok) links.push(social.tiktok);
+  return links;
+}
+
 export default async function HomePage() {
   const domain = await getCurrentDomain();
 
   let firstPage = null;
   let siteName = 'our site';
   let siteUrl = '';
+  let site: SiteConfig | null = null;
 
   try {
     const [pagesRes, siteRes] = await Promise.all([
       getPages(domain, 1),
       getSiteConfig(domain),
     ]);
-    siteName = siteRes.data.name;
-    siteUrl = `https://${siteRes.data.domain}`;
+    site = siteRes.data;
+    siteName = site.name;
+    siteUrl = `https://${site.domain}`;
 
     const firstSlug = pagesRes.data?.[0]?.slug;
     if (firstSlug) {
@@ -109,13 +124,26 @@ export default async function HomePage() {
 
   const faqs = extractFAQSchema(firstPage.content);
 
+  const logoUrl = site?.logo_url
+    ? (site.logo_url.startsWith('http') ? site.logo_url : `${siteUrl}${site.logo_url}`)
+    : `${siteUrl}/storage/og-image.png`;
+
   const orgSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: siteName,
     url: siteUrl,
-    logo: siteUrl + '/logo.png',
-    sameAs: [],
+    logo: logoUrl,
+    image: logoUrl,
+    sameAs: site ? buildSameAs(site) : [],
+    ...(site?.social_links?.support_email && {
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: site.social_links.support_email,
+        contactType: 'customer service',
+        availableLanguage: 'Turkish',
+      },
+    }),
   };
 
   const webPageSchema = {
