@@ -8,9 +8,33 @@
       </div>
     </div>
 
-    <!-- Kart Önizleme — test sitesindeki sıralama -->
+    <!-- Site Önizleme -->
     <div class="preview-section" v-loading="loading">
-      <div class="preview-label">Site Önizleme (sıralama)</div>
+      <!-- Kayan Şerit -->
+      <div class="marquee-header">
+        <span class="preview-label" style="margin-bottom: 0">Kayan Şerit</span>
+        <el-switch v-model="marqueeEnabled" active-text="Açık" inactive-text="Kapalı" active-color="#13ce66" />
+      </div>
+      <div v-if="marqueeEnabled && activeOffers.length" class="marquee-viewport">
+        <div class="marquee-track" :style="{ animationDuration: marqueeSpeed + 's' }">
+          <a
+            v-for="(offer, idx) in marqueeItems"
+            :key="'m-' + idx"
+            :href="offer.target_url"
+            target="_blank"
+            class="preview-card marquee-card"
+          >
+            <img v-if="offer.logo_url" :src="offer.logo_url" class="preview-logo" alt="" />
+            <div v-else class="preview-logo preview-logo--empty">—</div>
+            <span class="preview-bonus">{{ offer.bonus_text }}</span>
+            <span class="preview-cta">{{ offer.cta_text || 'ÜYE OL' }}</span>
+          </a>
+        </div>
+      </div>
+      <div v-else-if="marqueeEnabled" class="marquee-empty">Aktif sponsor yok</div>
+
+      <!-- Kart Grid -->
+      <div class="preview-label" style="margin-top: 16px">Sponsor Kartları</div>
       <div class="preview-grid">
         <div
           v-for="offer in offers"
@@ -92,12 +116,25 @@ import ImageUpload from '../../components/ImageUpload.vue'
 export default {
   name: 'GlobalOfferList',
   components: { ImageUpload },
+  computed: {
+    activeOffers() {
+      return this.offers.filter(o => o.is_active)
+    },
+    marqueeItems() {
+      const items = this.activeOffers
+      return [...items, ...items, ...items]
+    },
+    marqueeSpeed() {
+      return Math.max(8, this.activeOffers.length * 5)
+    },
+  },
   data() {
     return {
       offers: [],
       loading: false,
       saving: false,
       deploying: false,
+      marqueeEnabled: true,
       currentPage: 1,
       perPage: 30,
       total: 0,
@@ -324,5 +361,48 @@ export default {
   color: #555;
   padding: 24px;
   font-size: 14px;
+}
+
+.marquee-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.marquee-viewport {
+  overflow: hidden;
+  border-radius: 6px;
+  background: #0a0a1a;
+  padding: 8px 0;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 12px;
+  animation: marquee-scroll linear infinite;
+  width: max-content;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+.marquee-card {
+  flex-shrink: 0;
+  min-width: 220px;
+  text-decoration: none;
+}
+
+.marquee-empty {
+  text-align: center;
+  color: #555;
+  padding: 16px;
+  font-size: 13px;
 }
 </style>
