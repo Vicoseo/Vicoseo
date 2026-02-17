@@ -1,5 +1,4 @@
 import { TopOffer } from '@/types';
-import Image from 'next/image';
 
 interface TopOffersProps {
   offers: TopOffer[];
@@ -16,7 +15,7 @@ export default function TopOffers({ offers }: TopOffersProps) {
           {offers.map((offer) => (
             <div key={`${offer.source}-${offer.id}`} style={styles.card}>
               <div style={styles.logoWrapper}>
-                <Image
+                <img
                   src={offer.logo_url}
                   alt={offer.bonus_text}
                   width={120}

@@ -1,7 +1,6 @@
 'use client';
 
 import { Sponsor } from '@/types';
-import Image from 'next/image';
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface SponsorsProps {
@@ -113,7 +112,7 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
                   >
                     {sponsor.logo && (
                       <div className="sponsor-card__logo">
-                        <Image
+                        <img
                           src={sponsor.logo}
                           alt={sponsor.name}
                           width={48}
