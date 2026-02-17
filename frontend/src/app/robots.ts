@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getCurrentDomain, } from '@/lib/domain';
 import { getSiteConfig } from '@/lib/api';
 
-export default async function robots(): Promise<MetadataRoute.Robots | string> {
+export default async function robots(): Promise<MetadataRoute.Robots> {
   let domain = 'localhost';
   try {
     domain = await getCurrentDomain();
@@ -10,15 +10,9 @@ export default async function robots(): Promise<MetadataRoute.Robots | string> {
     // fallback
   }
 
-  // Check if the site has custom robots.txt
   try {
     const siteRes = await getSiteConfig(domain);
     const site = siteRes.data;
-
-    if (site?.robots_txt) {
-      // Return raw text - Next.js will serve it as-is
-      return site.robots_txt as unknown as MetadataRoute.Robots;
-    }
 
     if (site?.noindex_mode) {
       return {
@@ -40,6 +34,10 @@ export default async function robots(): Promise<MetadataRoute.Robots | string> {
         userAgent: '*',
         allow: '/',
         disallow: ['/admin/', '/api/', '/go/'],
+      },
+      {
+        userAgent: 'Googlebot',
+        allow: '/',
       },
     ],
     sitemap: `https://${domain}/sitemap.xml`,

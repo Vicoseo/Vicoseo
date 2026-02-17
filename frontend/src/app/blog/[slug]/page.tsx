@@ -42,6 +42,7 @@ export async function generateMetadata({
           : [{ url: `${siteUrl}/storage/og-image.png`, width: 1200, height: 630, alt: siteRes.data.name }],
         type: 'article',
         publishedTime: post.published_at,
+        modifiedTime: post.updated_at || post.published_at,
         locale: 'tr_TR',
         siteName: siteRes.data.name,
       },
@@ -120,6 +121,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     description: post.meta_description || post.excerpt || '',
     image: post.featured_image || undefined,
     datePublished: post.published_at,
+    dateModified: post.updated_at || post.published_at,
+    author: {
+      '@type': 'Organization',
+      name: siteName,
+      url: siteUrl,
+    },
     url: `${siteUrl}/blog/${slug}`,
     publisher: {
       '@type': 'Organization',

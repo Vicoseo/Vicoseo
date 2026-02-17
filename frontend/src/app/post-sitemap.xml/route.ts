@@ -16,7 +16,7 @@ export async function GET() {
   const now = new Date().toISOString();
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
   // Blog index page
   xml += '  <url>\n';
@@ -32,13 +32,20 @@ export async function GET() {
     const posts = postsRes.data || [];
 
     for (const post of posts) {
-      const lastmod = post.published_at || now;
+      const lastmod = post.updated_at || post.published_at || now;
 
       xml += '  <url>\n';
       xml += `    <loc>${baseUrl}/blog/${post.slug}</loc>\n`;
       xml += `    <lastmod>${new Date(lastmod).toISOString()}</lastmod>\n`;
       xml += '    <changefreq>weekly</changefreq>\n';
       xml += '    <priority>0.8</priority>\n';
+      if (post.featured_image) {
+        const imgUrl = post.featured_image.startsWith('http') ? post.featured_image : `${baseUrl}${post.featured_image}`;
+        xml += '    <image:image>\n';
+        xml += `      <image:loc>${imgUrl}</image:loc>\n`;
+        xml += `      <image:title>${post.title.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</image:title>\n`;
+        xml += '    </image:image>\n';
+      }
       xml += '  </url>\n';
     }
   } catch {
