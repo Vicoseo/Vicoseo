@@ -1,5 +1,4 @@
 import { SiteConfig } from '@/types';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -27,13 +26,12 @@ export default function Header({ site }: HeaderProps) {
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
           {site.logo_url ? (
-            <Image
+            <img
               src={site.logo_url}
               alt={site.name}
               width={150}
               height={40}
               style={{ objectFit: 'contain' }}
-              priority
             />
           ) : (
             <span
