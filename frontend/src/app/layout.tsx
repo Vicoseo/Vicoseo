@@ -1,31 +1,34 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
-import { getSiteConfig, getTopOffers } from '@/lib/api';
+import { getSiteConfig, getTopOffers, getPages } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginCtaBar from '@/components/LoginCtaBar';
 import SponsorsBlock from '@/components/SponsorsBlock';
 import OfferCards from '@/components/OfferCards';
-import { SiteConfig, TopOffer } from '@/types';
+import { SiteConfig, TopOffer, Page } from '@/types';
 import './globals.css';
 
 async function fetchLayoutData(): Promise<{
   site: SiteConfig | null;
   offers: TopOffer[];
+  pages: Page[];
 }> {
   const domain = await getCurrentDomain();
 
   try {
-    const [siteRes, offersRes] = await Promise.all([
+    const [siteRes, offersRes, pagesRes] = await Promise.all([
       getSiteConfig(domain),
       getTopOffers(domain),
+      getPages(domain, 1, 50),
     ]);
     return {
       site: siteRes.data,
       offers: Array.isArray(offersRes.data) ? offersRes.data : [],
+      pages: pagesRes.data || [],
     };
   } catch {
-    return { site: null, offers: [] };
+    return { site: null, offers: [], pages: [] };
   }
 }
 
@@ -99,7 +102,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site, offers } = await fetchLayoutData();
+  const { site, offers, pages } = await fetchLayoutData();
+
+  const navPages = pages.filter(p => !['anasayfa', 'ana-sayfa'].includes(p.slug)).slice(0, 5);
 
   const primaryColor = site?.primary_color || '#007bff';
   const secondaryColor = site?.secondary_color || '#6c757d';
@@ -182,9 +187,9 @@ export default async function RootLayout({
             contactText={site?.sponsor_contact_text}
           />
         )}
-        {site && <Header site={site} />}
+        {site && <Header site={site} pages={navPages} />}
         <main style={{ flex: 1 }}>{children}</main>
-        {site && <Footer site={site} />}
+        {site && <Footer site={site} pages={navPages} />}
       </body>
     </html>
   );

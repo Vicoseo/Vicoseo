@@ -1,11 +1,22 @@
-import { SiteConfig } from '@/types';
+import { SiteConfig, Page } from '@/types';
 import Link from 'next/link';
 
 interface HeaderProps {
   site: SiteConfig;
+  pages?: Page[];
 }
 
-export default function Header({ site }: HeaderProps) {
+const NAV_LABELS: Record<string, string> = {
+  'hakkimizda': 'Hakkımızda',
+  'iletisim': 'İletişim',
+  'gizlilik-politikasi': 'Gizlilik',
+  'sorumluluk-reddi': 'Sorumluluk Reddi',
+  'sartlar-ve-kosullar': 'Şartlar',
+  'promosyonlar': 'Promosyonlar',
+  'cerez-politikasi': 'Çerez Politikası',
+};
+
+export default function Header({ site, pages = [] }: HeaderProps) {
   return (
     <header
       style={{
@@ -45,25 +56,39 @@ export default function Header({ site }: HeaderProps) {
             </span>
           )}
         </Link>
-        <nav style={{ display: 'flex', gap: 24 }} aria-label="Ana menü">
+        <nav style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }} aria-label="Ana menü">
           <Link
             href="/"
             style={{
               color: '#555',
               textDecoration: 'none',
               fontWeight: 500,
-              fontSize: 15,
+              fontSize: 14,
             }}
           >
             Ana Sayfa
           </Link>
+          {pages.slice(0, 3).map((page) => (
+            <Link
+              key={page.slug}
+              href={`/${page.slug}`}
+              style={{
+                color: '#555',
+                textDecoration: 'none',
+                fontWeight: 500,
+                fontSize: 14,
+              }}
+            >
+              {NAV_LABELS[page.slug] || page.title}
+            </Link>
+          ))}
           <Link
             href="/blog"
             style={{
               color: '#555',
               textDecoration: 'none',
               fontWeight: 500,
-              fontSize: 15,
+              fontSize: 14,
             }}
           >
             Blog
