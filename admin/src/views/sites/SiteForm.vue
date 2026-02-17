@@ -60,29 +60,11 @@
             Sitenin en üstündeki "GİRİŞ YAP" butonunun yönlendirme adresi. Boşsa /go/login kullanılır.
           </div>
         </el-form-item>
-        <el-form-item label="Üst Kayan Şerit">
+        <el-form-item label="Sponsorlar Gözüksün mü">
           <el-switch v-model="form.show_sponsors" />
           <span style="color: #909399; font-size: 12px; margin-left: 8px">
-            Kapatılırsa üst sponsor marquee şeridi gizlenir
+            Kapatılırsa sponsor bölümü tamamen gizlenir
           </span>
-        </el-form-item>
-
-        <el-divider content-position="left">Sponsor Ayarları</el-divider>
-
-        <el-form-item label="Alt Kart Listesi">
-          <el-switch v-model="form.sponsor_page_visible" />
-          <span style="color: #909399; font-size: 12px; margin-left: 8px">
-            Kapatılırsa footer üstündeki sponsor kart grid'i gizlenir
-          </span>
-        </el-form-item>
-        <el-form-item label="İletişim Metni">
-          <el-input v-model="form.sponsor_contact_text" placeholder="Reklam ve İş Birliği İçin" />
-        </el-form-item>
-        <el-form-item label="İletişim URL">
-          <el-input v-model="form.sponsor_contact_url" placeholder="https://t.me/kanal" />
-          <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Sponsor bölümünde gösterilecek iletişim linki (ör: Telegram kanalı)
-          </div>
         </el-form-item>
 
         <el-divider content-position="left">Google Analytics</el-divider>
