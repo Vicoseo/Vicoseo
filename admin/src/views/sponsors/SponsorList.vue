@@ -8,12 +8,12 @@
       </el-button>
     </div>
 
-    <!-- Sponsor Ticker Strip -->
-    <el-card shadow="never" class="ticker-card" style="margin-bottom: 16px">
-      <div class="ticker-header">
-        <div class="ticker-title">
-          <i class="el-icon-s-promotion" style="margin-right: 6px"></i>
-          Sponsor Şeridi
+    <!-- Site Önizleme — Sponsor Şeridi -->
+    <div class="preview-card" style="margin-bottom: 16px">
+      <div class="preview-header">
+        <div class="preview-label">
+          <i class="el-icon-view" style="margin-right: 6px"></i>
+          Site Önizleme — Sponsor Şeridi
         </div>
         <el-switch
           v-model="tickerEnabled"
@@ -23,27 +23,49 @@
           inactive-color="#dcdfe6"
         />
       </div>
-      <div v-if="tickerEnabled && activeSponsors.length" class="ticker-wrapper">
-        <div class="ticker-track" :style="{ animationDuration: tickerSpeed + 's' }">
-          <div
-            v-for="sponsor in tickerSponsors"
-            :key="'t-' + sponsor._tickerId"
-            class="ticker-item"
-          >
-            <img
-              v-if="sponsor.logo"
-              :src="sponsor.logo"
-              :alt="sponsor.name"
-              class="ticker-logo"
-            />
-            <span v-else class="ticker-name-fallback" :style="{ color: sponsor.primary_color }">{{ sponsor.name }}</span>
+      <div v-if="tickerEnabled && activeSponsors.length" class="preview-site">
+        <!-- Kategori butonları -->
+        <div class="preview-categories">
+          <span
+            v-for="cat in categories"
+            :key="cat.key"
+            class="preview-cat-btn"
+            :class="{ active: previewCategory === cat.key }"
+            @click="previewCategory = cat.key"
+          >{{ cat.label }}</span>
+        </div>
+        <!-- Kayan şerit -->
+        <div class="preview-slider">
+          <div class="preview-track" :style="{ animationDuration: tickerSpeed + 's' }">
+            <a
+              v-for="sponsor in tickerSponsors"
+              :key="'t-' + sponsor._tickerId"
+              :href="sponsor.url"
+              target="_blank"
+              class="preview-sponsor-card"
+              :style="{ borderLeftColor: sponsor.primary_color }"
+            >
+              <img
+                v-if="sponsor.logo"
+                :src="sponsor.logo"
+                :alt="sponsor.name"
+                class="preview-sponsor-logo"
+              />
+              <div class="preview-sponsor-info">
+                <span class="preview-sponsor-name">{{ sponsor.name }}</span>
+                <span v-if="sponsor.promotions && sponsor.promotions.length" class="preview-sponsor-promo">{{ sponsor.promotions[0].highlight }}</span>
+              </div>
+              <div class="preview-sponsor-rating">
+                <span v-for="s in sponsor.rating" :key="'s'+s">★</span><span v-for="e in (5 - sponsor.rating)" :key="'e'+e" style="opacity: 0.3">★</span>
+              </div>
+            </a>
           </div>
         </div>
       </div>
-      <div v-else-if="tickerEnabled && !activeSponsors.length" class="ticker-empty">
-        <i class="el-icon-warning-outline"></i> Aktif sponsor bulunmuyor
+      <div v-else-if="tickerEnabled && !activeSponsors.length" class="preview-empty">
+        <i class="el-icon-warning-outline"></i> Aktif sponsor bulunmuyor — yukarıdaki tablodan sponsor ekleyin
       </div>
-    </el-card>
+    </div>
 
     <!-- Sponsor Table -->
     <el-card shadow="never">
@@ -315,8 +337,15 @@ export default {
     }
 
     return {
-      // Ticker
+      // Preview ticker
       tickerEnabled: true,
+      previewCategory: null,
+      categories: [
+        { key: null, label: 'Tümü' },
+        { key: 'vip', label: 'VIP Siteler' },
+        { key: 'popular', label: 'En Çok Tercih Edilen' },
+        { key: 'kutu', label: 'Kutu Açılışı' },
+      ],
 
       // Table
       sponsors: [],
@@ -363,16 +392,20 @@ export default {
     activeSponsors() {
       return this.sponsors.filter((s) => s.is_active)
     },
+    filteredPreviewSponsors() {
+      if (!this.previewCategory) return this.activeSponsors
+      return this.activeSponsors.filter((s) => s.category === this.previewCategory)
+    },
     tickerSponsors() {
-      // Duplicate list for seamless loop
-      const list = this.activeSponsors
+      const list = this.filteredPreviewSponsors
       if (!list.length) return []
-      const doubled = [...list, ...list]
-      return doubled.map((s, i) => ({ ...s, _tickerId: s.id + '-' + i }))
+      // Triple for smooth infinite loop
+      const tripled = [...list, ...list, ...list]
+      return tripled.map((s, i) => ({ ...s, _tickerId: s.id + '-' + i }))
     },
     tickerSpeed() {
-      const count = this.activeSponsors.length
-      return Math.max(count * 3, 10)
+      const count = this.filteredPreviewSponsors.length
+      return Math.max(count * 3, 8)
     },
   },
 
@@ -554,34 +587,72 @@ export default {
   color: #303133;
 }
 
-/* Ticker */
-.ticker-card {
+/* Site Preview */
+.preview-card {
+  border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #ebeef5;
 }
 
-.ticker-header {
+.preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #ebeef5;
 }
 
-.ticker-title {
+.preview-label {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
 }
 
-.ticker-wrapper {
-  overflow: hidden;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8edf3 100%);
-  padding: 12px 0;
-  position: relative;
+.preview-site {
+  background: #1a1a2e;
+  padding: 12px 16px;
 }
 
-.ticker-wrapper::before,
-.ticker-wrapper::after {
+.preview-categories {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.preview-cat-btn {
+  padding: 4px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background: transparent;
+  color: #bbb;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.preview-cat-btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+.preview-cat-btn.active {
+  background: #ffd700;
+  border-color: #ffd700;
+  color: #0a0a1a;
+  font-weight: 700;
+}
+
+.preview-slider {
+  overflow: hidden;
+  position: relative;
+  border-radius: 6px;
+}
+
+.preview-slider::before,
+.preview-slider::after {
   content: '';
   position: absolute;
   top: 0;
@@ -591,67 +662,95 @@ export default {
   pointer-events: none;
 }
 
-.ticker-wrapper::before {
+.preview-slider::before {
   left: 0;
-  background: linear-gradient(to right, #f5f7fa, transparent);
+  background: linear-gradient(to right, #1a1a2e, transparent);
 }
 
-.ticker-wrapper::after {
+.preview-slider::after {
   right: 0;
-  background: linear-gradient(to left, #e8edf3, transparent);
+  background: linear-gradient(to left, #1a1a2e, transparent);
 }
 
-.ticker-track {
+.preview-track {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 12px;
   white-space: nowrap;
-  animation: ticker-scroll linear infinite;
+  animation: preview-scroll linear infinite;
   width: max-content;
 }
 
-.ticker-track:hover {
+.preview-track:hover {
   animation-play-state: paused;
 }
 
-@keyframes ticker-scroll {
+@keyframes preview-scroll {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(-33.333%); }
 }
 
-.ticker-item {
+.preview-sponsor-card {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 80px;
-  padding: 4px 12px;
-  background: #fff;
+  gap: 10px;
+  background: #16213e;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s;
+  padding: 10px 16px;
+  border-left: 3px solid;
+  text-decoration: none;
+  color: #fff;
+  min-width: 200px;
+  transition: background 0.2s;
 }
 
-.ticker-item:hover {
-  transform: scale(1.08);
+.preview-sponsor-card:hover {
+  background: #1c2a4a;
 }
 
-.ticker-logo {
-  height: 32px;
-  max-width: 100px;
+.preview-sponsor-logo {
+  width: 40px;
+  height: 40px;
   object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
-.ticker-name-fallback {
-  font-weight: 600;
+.preview-sponsor-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.preview-sponsor-name {
   font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ticker-empty {
+.preview-sponsor-promo {
+  font-size: 11px;
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.preview-sponsor-rating {
+  font-size: 11px;
+  color: #ffd700;
+  flex-shrink: 0;
+}
+
+.preview-empty {
   text-align: center;
   color: #909399;
   font-size: 13px;
-  padding: 12px;
+  padding: 24px 16px;
+  background: #f5f7fa;
 }
 
 /* Table */

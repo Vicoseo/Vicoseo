@@ -48,7 +48,7 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
   }, [isPaused]);
 
   useEffect(() => {
-    if (filtered.length > 3) {
+    if (filtered.length >= 1) {
       animationRef.current = requestAnimationFrame(animate);
       return () => {
         if (animationRef.current) {
