@@ -251,19 +251,39 @@ p {
   border-bottom: 1px solid #1a1a3e;
 }
 
-.top-offers-grid {
+.top-offers-marquee {
+  overflow: hidden;
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
 }
 
-@media (max-width: 640px) {
-  .top-offers-grid {
-    grid-template-columns: 1fr;
-  }
+.top-offers-marquee::before,
+.top-offers-marquee::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.top-offers-marquee::before {
+  left: 0;
+  background: linear-gradient(to right, #0f0f23, transparent);
+}
+
+.top-offers-marquee::after {
+  right: 0;
+  background: linear-gradient(to left, #0f0f23, transparent);
+}
+
+.top-offers-track {
+  display: flex;
+  gap: 12px;
+  white-space: nowrap;
 }
 
 .offer-card {
@@ -276,6 +296,8 @@ p {
   text-decoration: none;
   color: #fff;
   transition: background 0.2s;
+  flex-shrink: 0;
+  min-width: 260px;
 }
 
 .offer-card:hover {
