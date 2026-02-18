@@ -171,7 +171,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <div
         className="post-content"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: post.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }}
       />
     </article>
   );

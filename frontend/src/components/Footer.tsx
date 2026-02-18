@@ -58,7 +58,7 @@ export default function Footer({ site, pages = [] }: FooterProps) {
                   key={key}
                   href={url}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer nofollow"
                   className="site-footer__social-link"
                 >
                   {label}
@@ -96,7 +96,7 @@ export default function Footer({ site, pages = [] }: FooterProps) {
                   <a
                     key={link.id}
                     href={link.link_url}
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow"
                     target="_blank"
                     className="site-footer__link"
                   >
