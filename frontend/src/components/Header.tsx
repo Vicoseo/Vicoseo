@@ -39,7 +39,7 @@ export default function Header({ site, pages = [] }: HeaderProps) {
         <Link href="/" style={{ textDecoration: 'none' }}>
           {site.logo_url ? (
             <Image
-              src={site.logo_url}
+              src={site.logo_url.startsWith('/') ? `https://${site.domain}${site.logo_url}` : site.logo_url}
               alt={site.name}
               width={150}
               height={40}
