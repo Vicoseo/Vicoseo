@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { SiteConfig, Page } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,12 +21,15 @@ const NAV_LABELS: Record<string, string> = {
 };
 
 export default function Header({ site, pages = [] }: HeaderProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <header
       style={{
         background: '#fff',
         borderBottom: `3px solid ${site.primary_color}`,
         padding: '0 16px',
+        position: 'relative',
       }}
     >
       <div
@@ -33,24 +39,25 @@ export default function Header({ site, pages = [] }: HeaderProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          height: 64,
+          minHeight: 52,
+          padding: '6px 0',
         }}
       >
-        <Link href="/" style={{ textDecoration: 'none' }}>
+        <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
           {site.logo_url ? (
             <Image
               src={site.logo_url.startsWith('/') ? `https://${site.domain}${site.logo_url}` : site.logo_url}
               alt={site.name}
-              width={150}
-              height={40}
-              style={{ objectFit: 'contain' }}
-              sizes="150px"
+              width={120}
+              height={34}
+              style={{ objectFit: 'contain', maxWidth: '120px', height: 'auto' }}
+              sizes="(max-width: 480px) 100px, 120px"
               priority
             />
           ) : (
             <span
               style={{
-                fontSize: 22,
+                fontSize: 18,
                 fontWeight: 700,
                 color: site.primary_color,
               }}
@@ -59,45 +66,70 @@ export default function Header({ site, pages = [] }: HeaderProps) {
             </span>
           )}
         </Link>
-        <nav style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }} aria-label="Ana menü">
-          <Link
-            href="/"
-            style={{
-              color: '#555',
-              textDecoration: 'none',
-              fontWeight: 500,
-              fontSize: 14,
-            }}
-          >
-            Ana Sayfa
-          </Link>
+
+        {/* Desktop nav */}
+        <nav className="header-nav-desktop" aria-label="Ana menü">
+          <Link href="/" className="header-nav-link">Ana Sayfa</Link>
           {pages.slice(0, 3).map((page) => (
-            <Link
-              key={page.slug}
-              href={`/${page.slug}`}
-              style={{
-                color: '#555',
-                textDecoration: 'none',
-                fontWeight: 500,
-                fontSize: 14,
-              }}
-            >
+            <Link key={page.slug} href={`/${page.slug}`} className="header-nav-link">
               {NAV_LABELS[page.slug] || page.title}
             </Link>
           ))}
-          <Link
-            href="/blog"
-            style={{
-              color: '#555',
-              textDecoration: 'none',
-              fontWeight: 500,
-              fontSize: 14,
-            }}
-          >
-            Blog
-          </Link>
+          <Link href="/blog" className="header-nav-link">Blog</Link>
         </nav>
+
+        {/* Mobile hamburger button */}
+        <button
+          className="header-hamburger"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menü"
+          aria-expanded={menuOpen}
+        >
+          <span style={{
+            display: 'block',
+            width: 20,
+            height: 2,
+            background: '#333',
+            transition: 'all 0.2s',
+            transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none',
+          }} />
+          <span style={{
+            display: 'block',
+            width: 20,
+            height: 2,
+            background: '#333',
+            transition: 'all 0.2s',
+            opacity: menuOpen ? 0 : 1,
+            marginTop: 5,
+          }} />
+          <span style={{
+            display: 'block',
+            width: 20,
+            height: 2,
+            background: '#333',
+            transition: 'all 0.2s',
+            transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none',
+            marginTop: menuOpen ? 0 : 5,
+          }} />
+        </button>
       </div>
+
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <nav
+          className="header-nav-mobile"
+          aria-label="Mobil menü"
+          onClick={() => setMenuOpen(false)}
+        >
+          <Link href="/" className="header-nav-mobile-link">Ana Sayfa</Link>
+          {pages.slice(0, 5).map((page) => (
+            <Link key={page.slug} href={`/${page.slug}`} className="header-nav-mobile-link">
+              {NAV_LABELS[page.slug] || page.title}
+            </Link>
+          ))}
+          <Link href="/blog" className="header-nav-mobile-link">Blog</Link>
+        </nav>
+      )}
     </header>
   );
 }

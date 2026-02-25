@@ -14,6 +14,21 @@ export interface SocialLinks {
   support_email?: string;
 }
 
+export interface SiteEarning {
+  id: number;
+  image: string | null;
+  video_url: string | null;
+  title: string | null;
+  content: string | null;
+}
+
+export interface SitePromotion {
+  id: number;
+  image: string;
+  title: string | null;
+  link_url: string | null;
+}
+
 export interface SiteConfig {
   id: number;
   domain: string;
@@ -36,6 +51,8 @@ export interface SiteConfig {
   custom_css: string | null;
   social_links: SocialLinks | null;
   ga_measurement_id: string | null;
+  earnings: SiteEarning[];
+  promotions: SitePromotion[];
   footer_links: FooterLink[];
 }
 
@@ -52,6 +69,20 @@ export interface Page {
   updated_at?: string;
 }
 
+export interface Category {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  content: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  sort_order: number;
+  posts_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Post {
   id: number;
   slug: string;
@@ -61,6 +92,7 @@ export interface Post {
   featured_image: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  category_id: number | null;
   published_at: string;
   created_at?: string;
   updated_at?: string;

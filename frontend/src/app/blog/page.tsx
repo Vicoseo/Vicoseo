@@ -110,7 +110,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             {post.featured_image && (
               <div className="blog-card__image-wrapper">
                 <Image
-                  src={post.featured_image}
+                  src={post.featured_image.startsWith('/') ? `${siteUrl}${post.featured_image}` : post.featured_image}
                   alt={post.title}
                   fill
                   style={{ objectFit: 'cover' }}

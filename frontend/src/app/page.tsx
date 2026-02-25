@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
 import { getPages, getPage, getSiteConfig } from '@/lib/api';
 import { SiteConfig } from '@/types';
+import EarningsSection from '@/components/EarningsSection';
+import PromotionSlider from '@/components/PromotionSlider';
+
 
 export async function generateMetadata(): Promise<Metadata> {
   const domain = await getCurrentDomain();
@@ -94,7 +97,6 @@ export default async function HomePage() {
   let siteName = 'our site';
   let siteUrl = '';
   let site: SiteConfig | null = null;
-
   try {
     const [pagesRes, siteRes] = await Promise.all([
       getPages(domain, 1),
@@ -209,10 +211,25 @@ export default async function HomePage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
+      {site && site.promotions && site.promotions.length > 0 && (
+        <div style={{ maxWidth: 1200, margin: '12px auto', padding: '0 16px' }}>
+          <PromotionSlider
+            promotions={site.promotions}
+            domain={site.domain}
+            loginUrl={site.login_url || site.entry_url || undefined}
+          />
+        </div>
+      )}
+
       <div className="page-content">
         <h1>{firstPage.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: firstPage.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
       </div>
+
+      {site && site.earnings && site.earnings.length > 0 && (
+        <EarningsSection earnings={site.earnings} domain={site.domain} />
+      )}
+
     </>
   );
 }

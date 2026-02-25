@@ -1,10 +1,33 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getCurrentDomain } from '@/lib/domain';
-import { getPage, getSiteConfig } from '@/lib/api';
+import { getPage, getPost, getSiteConfig } from '@/lib/api';
+import { Page, Post } from '@/types';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+type ContentResult =
+  | { type: 'page'; data: Page }
+  | { type: 'post'; data: Post };
+
+async function findContent(domain: string, slug: string): Promise<ContentResult | null> {
+  // Try page first
+  try {
+    const res = await getPage(domain, slug);
+    if (res.data) return { type: 'page', data: res.data };
+  } catch {
+    // not a page
+  }
+  // Try post
+  try {
+    const res = await getPost(domain, slug);
+    if (res.data) return { type: 'post', data: res.data };
+  } catch {
+    // not a post
+  }
+  return null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -12,25 +35,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const domain = await getCurrentDomain();
 
   try {
-    const [res, siteRes] = await Promise.all([
-      getPage(domain, slug),
+    const [content, siteRes] = await Promise.all([
+      findContent(domain, slug),
       getSiteConfig(domain),
     ]);
-    const page = res.data;
+
+    if (!content) return { title: 'Sayfa Bulunamadı' };
+
+    // Posts will be redirected to /blog/{slug}, no metadata needed
+    if (content.type === 'post') return { title: content.data.title };
+
+    const item = content.data;
     const siteUrl = `https://${siteRes.data.domain}`;
-    const title = page.meta_title || page.title;
-    const description = page.meta_description || undefined;
+    const title = item.meta_title || item.title;
+    const description = item.meta_description || undefined;
 
     return {
       title,
-      description,
-      keywords: page.meta_keywords || undefined,
+      description: description || undefined,
       alternates: {
         canonical: `${siteUrl}/${slug}`,
       },
       openGraph: {
         title,
-        description,
+        description: description || undefined,
         url: `${siteUrl}/${slug}`,
         type: 'website',
         locale: 'tr_TR',
@@ -40,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       twitter: {
         card: 'summary_large_image',
         title,
-        description,
+        description: description || undefined,
         images: [`${siteUrl}/storage/og-image.png`],
       },
       robots: {
@@ -57,7 +85,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   } catch {
     return {
-      title: 'Page Not Found',
+      title: 'Sayfa Bulunamadı',
     };
   }
 }
@@ -66,25 +94,29 @@ export default async function DynamicPage({ params }: PageProps) {
   const { slug } = await params;
   const domain = await getCurrentDomain();
 
-  let page;
+  let content: ContentResult | null = null;
   let siteName = '';
   let siteUrl = '';
 
   try {
-    const [res, siteRes] = await Promise.all([
-      getPage(domain, slug),
-      getSiteConfig(domain),
-    ]);
-    page = res.data;
+    const siteRes = await getSiteConfig(domain);
     siteName = siteRes.data.name;
     siteUrl = `https://${siteRes.data.domain}`;
+    content = await findContent(domain, slug);
   } catch {
     notFound();
   }
 
-  if (!page) {
+  if (!content) {
     notFound();
   }
+
+  // Posts should live at /blog/{slug} — 301 redirect
+  if (content.type === 'post') {
+    permanentRedirect(`/blog/${slug}`);
+  }
+
+  const item = content.data;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -99,23 +131,19 @@ export default async function DynamicPage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: page.title,
+        name: item.title,
         item: `${siteUrl}/${slug}`,
       },
     ],
   };
 
-  const webPageSchema = {
+  const pageSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: page.meta_title || page.title,
-    description: page.meta_description || '',
+    name: item.meta_title || item.title,
+    description: item.meta_description || '',
     url: `${siteUrl}/${slug}`,
-    isPartOf: {
-      '@type': 'WebSite',
-      name: siteName,
-      url: siteUrl,
-    },
+    isPartOf: { '@type': 'WebSite', name: siteName, url: siteUrl },
     inLanguage: 'tr',
   };
 
@@ -127,11 +155,11 @@ export default async function DynamicPage({ params }: PageProps) {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
       />
       <div className="page-content">
-        <h1>{page.title}</h1>
-        <div dangerouslySetInnerHTML={{ __html: page.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
+        <h1>{item.title}</h1>
+        <div dangerouslySetInnerHTML={{ __html: item.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
       </div>
     </>
   );

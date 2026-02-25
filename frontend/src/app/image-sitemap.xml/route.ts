@@ -14,21 +14,11 @@ export async function GET() {
   }
 
   const baseUrl = `https://${domain}`;
-  const now = new Date().toISOString();
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
-  // Blog index page
-  xml += '  <url>\n';
-  xml += `    <loc>${baseUrl}/blog</loc>\n`;
-  xml += `    <lastmod>${now}</lastmod>\n`;
-  xml += '    <changefreq>daily</changefreq>\n';
-  xml += '    <priority>0.9</priority>\n';
-  xml += '  </url>\n';
-
   try {
-    // Fetch all posts with pagination
     const allPosts: Post[] = [];
     let page = 1;
     let lastPage = 1;
@@ -43,20 +33,42 @@ export async function GET() {
     } while (page <= lastPage);
 
     for (const post of allPosts) {
-      const lastmod = post.updated_at || post.published_at || now;
+      const images: { loc: string; title: string }[] = [];
+
+      // Featured image
+      if (post.featured_image) {
+        const imgUrl = post.featured_image.startsWith('http')
+          ? post.featured_image
+          : `${baseUrl}${post.featured_image}`;
+        images.push({ loc: imgUrl, title: post.title });
+      }
+
+      // Extract images from content
+      if (post.content) {
+        const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?/gi;
+        let match;
+        while ((match = imgRegex.exec(post.content)) !== null) {
+          const src = match[1];
+          const alt = match[2] || post.title;
+          const imgUrl = src.startsWith('http') ? src : `${baseUrl}${src}`;
+          if (!images.some((i) => i.loc === imgUrl)) {
+            images.push({ loc: imgUrl, title: alt });
+          }
+        }
+      }
+
+      if (images.length === 0) continue;
 
       xml += '  <url>\n';
       xml += `    <loc>${baseUrl}/blog/${escapeXml(post.slug)}</loc>\n`;
-      xml += `    <lastmod>${new Date(lastmod).toISOString()}</lastmod>\n`;
-      xml += '    <changefreq>weekly</changefreq>\n';
-      xml += '    <priority>0.8</priority>\n';
-      if (post.featured_image) {
-        const imgUrl = post.featured_image.startsWith('http') ? post.featured_image : `${baseUrl}${post.featured_image}`;
+
+      for (const img of images) {
         xml += '    <image:image>\n';
-        xml += `      <image:loc>${escapeXml(imgUrl)}</image:loc>\n`;
-        xml += `      <image:title>${escapeXml(post.title)}</image:title>\n`;
+        xml += `      <image:loc>${escapeXml(img.loc)}</image:loc>\n`;
+        xml += `      <image:title>${escapeXml(img.title)}</image:title>\n`;
         xml += '    </image:image>\n';
       }
+
       xml += '  </url>\n';
     }
   } catch {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentDomain } from '@/lib/domain';
-import { getPages, getPosts } from '@/lib/api';
+import { getPages, getPosts, getCategories } from '@/lib/api';
 
 export const revalidate = 3600;
 
@@ -14,17 +14,17 @@ export async function GET() {
 
   const baseUrl = `https://${domain}`;
 
-  // Fetch latest update times for each content type
   let pageLastMod = new Date().toISOString();
   let postLastMod = new Date().toISOString();
+  let categoryLastMod = new Date().toISOString();
   let hasPages = false;
   let hasPosts = false;
+  let hasCategories = false;
 
   try {
     const pagesRes = await getPages(domain, 1);
     if (pagesRes.data && pagesRes.data.length > 0) {
       hasPages = true;
-      // Use the most recent updated_at from pages
       const dates = pagesRes.data
         .map((p) => new Date(p.updated_at || p.created_at || Date.now()))
         .sort((a, b) => b.getTime() - a.getTime());
@@ -47,6 +47,19 @@ export async function GET() {
     // posts unavailable
   }
 
+  try {
+    const catRes = await getCategories(domain);
+    if (catRes.data && catRes.data.length > 0) {
+      hasCategories = true;
+      const dates = catRes.data
+        .map((c) => new Date(c.updated_at || c.created_at || Date.now()))
+        .sort((a, b) => b.getTime() - a.getTime());
+      if (dates.length > 0) categoryLastMod = dates[0].toISOString();
+    }
+  } catch {
+    // categories unavailable
+  }
+
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
@@ -62,6 +75,19 @@ export async function GET() {
     xml += `    <loc>${baseUrl}/post-sitemap.xml</loc>\n`;
     xml += `    <lastmod>${postLastMod}</lastmod>\n`;
     xml += '  </sitemap>\n';
+
+    // Image sitemap (derived from posts)
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${baseUrl}/image-sitemap.xml</loc>\n`;
+    xml += `    <lastmod>${postLastMod}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+  }
+
+  if (hasCategories) {
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${baseUrl}/category-sitemap.xml</loc>\n`;
+    xml += `    <lastmod>${categoryLastMod}</lastmod>\n`;
+    xml += '  </sitemap>\n';
   }
 
   xml += '</sitemapindex>';
@@ -71,7 +97,6 @@ export async function GET() {
     headers: {
       'Content-Type': 'application/xml; charset=UTF-8',
       'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-      'X-Robots-Tag': 'noindex',
     },
   });
 }

@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { SiteConfig, SocialLinks, Page } from '@/types';
+import { SiteConfig, SocialLinks, Page, Post, Category } from '@/types';
 
 interface FooterProps {
   site: SiteConfig;
   pages?: Page[];
+  posts?: Post[];
+  categories?: Category[];
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -26,7 +28,7 @@ const SOCIAL_LABELS: Record<keyof SocialLinks, string> = {
   support_email: 'E-posta',
 };
 
-export default function Footer({ site, pages = [] }: FooterProps) {
+export default function Footer({ site, pages = [], posts = [], categories = [] }: FooterProps) {
   const currentYear = new Date().getFullYear();
   const footerLinks = site.footer_links || [];
   const socialLinks = site.social_links || {};
@@ -81,6 +83,36 @@ export default function Footer({ site, pages = [] }: FooterProps) {
               </Link>
             ))}
             <Link href="/blog" className="site-footer__link">Blog</Link>
+          </nav>
+        )}
+
+        {posts.length > 0 && (
+          <nav className="site-footer__posts" aria-label="Son yazılar">
+            <span className="site-footer__posts-title">Son Yazılar</span>
+            {posts.slice(0, 8).map((post) => (
+              <Link
+                key={post.id}
+                href={`/blog/${post.slug}`}
+                className="site-footer__link"
+              >
+                {post.title}
+              </Link>
+            ))}
+          </nav>
+        )}
+
+        {categories.length > 0 && (
+          <nav className="site-footer__categories" aria-label="Kategoriler">
+            <span className="site-footer__posts-title">Kategoriler</span>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/category/${cat.slug}`}
+                className="site-footer__link"
+              >
+                {cat.name}
+              </Link>
+            ))}
           </nav>
         )}
 

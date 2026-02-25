@@ -1,34 +1,41 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
-import { getSiteConfig, getTopOffers, getPages } from '@/lib/api';
+import { getSiteConfig, getTopOffers, getPages, getPosts, getCategories } from '@/lib/api';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginCtaBar from '@/components/LoginCtaBar';
 import SponsorsBlock from '@/components/SponsorsBlock';
 import OfferCards from '@/components/OfferCards';
-import { SiteConfig, TopOffer, Page } from '@/types';
+import { SiteConfig, TopOffer, Page, Post, Category } from '@/types';
 import './globals.css';
 
 async function fetchLayoutData(): Promise<{
   site: SiteConfig | null;
   offers: TopOffer[];
   pages: Page[];
+  posts: Post[];
+  categories: Category[];
 }> {
   const domain = await getCurrentDomain();
 
   try {
-    const [siteRes, offersRes, pagesRes] = await Promise.all([
+    const [siteRes, offersRes, pagesRes, postsRes, catRes] = await Promise.all([
       getSiteConfig(domain),
       getTopOffers(domain),
       getPages(domain, 1, 50),
+      getPosts(domain, 1, 50),
+      getCategories(domain).catch(() => ({ data: [] })),
     ]);
     return {
       site: siteRes.data,
       offers: Array.isArray(offersRes.data) ? offersRes.data : [],
       pages: pagesRes.data || [],
+      posts: postsRes.data || [],
+      categories: Array.isArray(catRes.data) ? catRes.data : [],
     };
   } catch {
-    return { site: null, offers: [], pages: [] };
+    return { site: null, offers: [], pages: [], posts: [], categories: [] };
   }
 }
 
@@ -50,16 +57,25 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${site.name}`,
     },
     description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
-    icons: {
-      icon: [
-        { url: site.favicon_url || '/storage/favicon.ico', type: 'image/x-icon' },
-        { url: '/storage/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { url: '/storage/icon-512.png', sizes: '512x512', type: 'image/png' },
-      ],
-      apple: [
-        { url: '/storage/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-      ],
-    },
+    icons: (() => {
+      // Derive icon paths from favicon_url directory if site-specific
+      const faviconUrl = site.favicon_url || '/storage/favicon.ico';
+      const faviconDir = faviconUrl.includes('/favicons/')
+        ? faviconUrl.substring(0, faviconUrl.lastIndexOf('/'))
+        : null;
+
+      return {
+        icon: [
+          { url: faviconUrl, type: 'image/x-icon', sizes: '48x48' },
+          { url: faviconDir ? `${faviconDir}/favicon-32.png` : faviconUrl, type: 'image/png', sizes: '32x32' },
+          { url: faviconDir ? `${faviconDir}/icon-192.png` : '/storage/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { url: faviconDir ? `${faviconDir}/icon-512.png` : '/storage/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+        apple: [
+          { url: faviconDir ? `${faviconDir}/apple-touch-icon.png` : '/storage/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+        ],
+      };
+    })(),
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: '/',
@@ -102,7 +118,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site, offers, pages } = await fetchLayoutData();
+  const { site, offers, pages, posts, categories } = await fetchLayoutData();
 
   const navPages = pages.filter(p => !['anasayfa', 'ana-sayfa'].includes(p.slug)).slice(0, 5);
 
@@ -189,7 +205,31 @@ export default async function RootLayout({
         )}
         {site && <Header site={site} pages={navPages} />}
         <main style={{ flex: 1 }}>{children}</main>
-        {site && <Footer site={site} pages={navPages} />}
+        {posts.length > 0 && (
+          <section className="recent-posts-section">
+            <h2 className="recent-posts-title">Son Yazılar</h2>
+            <div className="recent-posts-grid">
+              {posts.map((post) => (
+                <article key={post.id} className="recent-post-card">
+                  <Link href={`/blog/${post.slug}`} className="recent-post-link">
+                    <h3 className="recent-post-card__title">{post.title}</h3>
+                    {post.excerpt && (
+                      <p className="recent-post-card__excerpt">{post.excerpt}</p>
+                    )}
+                    <time className="recent-post-card__date" dateTime={post.published_at}>
+                      {new Date(post.published_at).toLocaleDateString('tr-TR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {site && <Footer site={site} pages={navPages} posts={posts} categories={categories} />}
       </body>
     </html>
   );
