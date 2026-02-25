@@ -36,6 +36,10 @@ class Site extends Model
         'noindex_mode',
         'content_prompt_template',
         'custom_css',
+        'earnings_image',
+        'earnings_video_url',
+        'earnings_title',
+        'earnings_content',
     ];
 
     protected function casts(): array

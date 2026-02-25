@@ -83,11 +83,13 @@ class ImageGenerationService
 
             $slug = Str::slug($brandName);
             $filename = $slug . '-' . time() . '-' . Str::random(6) . '.webp';
-            $directory = 'public/images/posts';
+            $directory = 'images/posts';
             $path = $directory . '/' . $filename;
 
+            $disk = Storage::disk('public');
+
             // Ensure directory exists
-            Storage::makeDirectory($directory);
+            $disk->makeDirectory($directory);
 
             // Convert to WebP using GD
             $image = @imagecreatefromstring($imageData);
@@ -95,7 +97,7 @@ class ImageGenerationService
                 // If GD can't process, save original as-is with png extension
                 $filename = $slug . '-' . time() . '-' . Str::random(6) . '.png';
                 $path = $directory . '/' . $filename;
-                Storage::put($path, $imageData);
+                $disk->put($path, $imageData);
 
                 return '/storage/images/posts/' . $filename;
             }
@@ -107,9 +109,9 @@ class ImageGenerationService
             imagedestroy($image);
 
             if (empty($webpData)) {
-                Storage::put($path, $imageData);
+                $disk->put($path, $imageData);
             } else {
-                Storage::put($path, $webpData);
+                $disk->put($path, $webpData);
             }
 
             return '/storage/images/posts/' . $filename;

@@ -18,7 +18,7 @@ class PostController extends Controller
     {
         $posts = Post::published()
             ->latest()
-            ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'published_at', 'created_at', 'updated_at'])
+            ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'created_at', 'updated_at'])
             ->paginate($request->integer('per_page', 15));
 
         return response()->json($posts);

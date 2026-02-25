@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FooterLink;
 use App\Models\Site;
+use App\Models\SiteEarning;
+use App\Models\SitePromotion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,6 +42,15 @@ class SiteController extends Controller
                 'sponsor_page_visible' => (bool) $site->sponsor_page_visible,
                 'sponsor_contact_url' => $site->sponsor_contact_url,
                 'sponsor_contact_text' => $site->sponsor_contact_text,
+                'earnings' => SiteEarning::where('site_id', $site->id)
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'image', 'video_url', 'title', 'content']),
+                'promotions' => SitePromotion::where('site_id', $site->id)
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get(['id', 'image', 'title', 'link_url']),
                 'footer_links' => FooterLink::active()->ordered()->get(['id', 'link_text', 'link_url']),
             ],
         ]);

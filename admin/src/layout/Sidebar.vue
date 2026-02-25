@@ -22,7 +22,7 @@
     </el-menu-item>
     <el-menu-item index="/domains">
       <i class="el-icon-discover"></i>
-      <span slot="title">Domain Y&#246;netimi</span>
+      <span slot="title">Domain Yönetimi</span>
     </el-menu-item>
     <el-menu-item index="/global-offers">
       <i class="el-icon-star-off"></i>
@@ -30,19 +30,19 @@
     </el-menu-item>
     <el-menu-item v-if="isMaster" index="/users">
       <i class="el-icon-user"></i>
-      <span slot="title">Kullanicilar</span>
+      <span slot="title">Kullanıcılar</span>
     </el-menu-item>
     <el-menu-item index="/logs">
       <i class="el-icon-document"></i>
-      <span slot="title">Islem Loglari</span>
+      <span slot="title">İşlem Logları</span>
     </el-menu-item>
     <el-menu-item index="/logs/system">
       <i class="el-icon-warning-outline"></i>
-      <span slot="title">Sistem Loglari</span>
+      <span slot="title">Sistem Logları</span>
     </el-menu-item>
     <el-menu-item index="/settings/2fa">
       <i class="el-icon-lock"></i>
-      <span slot="title">2FA Ayarlari</span>
+      <span slot="title">2FA Ayarları</span>
     </el-menu-item>
   </el-menu>
 </template>

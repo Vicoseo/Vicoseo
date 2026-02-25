@@ -18,6 +18,8 @@ Route::middleware(['tenant', 'rate.limit:public'])->prefix('v1')->group(function
     Route::get('/pages/{slug}', [Api\PageController::class, 'show']);
     Route::get('/posts', [Api\PostController::class, 'index']);
     Route::get('/posts/{slug}', [Api\PostController::class, 'show']);
+    Route::get('/categories', [Api\CategoryController::class, 'index']);
+    Route::get('/categories/{slug}', [Api\CategoryController::class, 'show']);
     Route::get('/top-offers', [Api\TopOfferController::class, 'index']);
     Route::get('/go/{slug}', [Api\RedirectController::class, 'handle']);
 });
@@ -112,6 +114,7 @@ Route::prefix('admin')->group(function () {
             Route::get('pages/{id}/revisions', [Admin\PageController::class, 'revisions']);
             Route::post('pages/{id}/revisions/{revisionId}/revert', [Admin\PageController::class, 'revert']);
 
+            Route::apiResource('categories', Admin\CategoryController::class);
             Route::apiResource('posts', Admin\PostController::class);
             Route::get('posts/{id}/revisions', [Admin\PostController::class, 'revisions']);
             Route::post('posts/{id}/revisions/{revisionId}/revert', [Admin\PostController::class, 'revert']);
@@ -123,6 +126,8 @@ Route::prefix('admin')->group(function () {
                 'update' => 'admin.site-top-offers.update',
                 'destroy' => 'admin.site-top-offers.destroy',
             ]);
+            Route::apiResource('earnings', Admin\SiteEarningController::class)->except(['show']);
+            Route::apiResource('promotions', Admin\SitePromotionController::class)->except(['show']);
             Route::apiResource('redirects', Admin\RedirectController::class);
             Route::apiResource('footer-links', Admin\FooterLinkController::class)->except(['show']);
 

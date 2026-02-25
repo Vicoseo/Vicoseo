@@ -1,7 +1,7 @@
 <template>
   <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
-      <h2 style="margin: 0">Admin Kullanicilari</h2>
+      <h2 style="margin: 0">Admin Kullanıcıları</h2>
       <el-button type="primary" icon="el-icon-plus" @click="$router.push('/users/create')">Yeni Admin</el-button>
     </div>
 
@@ -31,19 +31,19 @@
         </el-table-column>
         <el-table-column label="Siteler" width="120" align="center">
           <template slot-scope="{ row }">
-            <span v-if="row.role === 'master'">Tumu</span>
+            <span v-if="row.role === 'master'">Tümü</span>
             <el-tag v-else size="small" type="info">{{ (row.sites || []).length }} site</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Son Giris" width="150">
+        <el-table-column label="Son Giriş" width="150">
           <template slot-scope="{ row }">
             <span v-if="row.last_login_at" style="font-size: 12px">{{ row.last_login_at }}</span>
             <span v-else style="color: #c0c4cc">--</span>
           </template>
         </el-table-column>
-        <el-table-column label="Islemler" width="150" align="right">
+        <el-table-column label="İşlemler" width="150" align="right">
           <template slot-scope="{ row }">
-            <el-button type="text" icon="el-icon-edit" @click="$router.push(`/users/${row.id}/edit`)">Duzenle</el-button>
+            <el-button type="text" icon="el-icon-edit" @click="$router.push(`/users/${row.id}/edit`)">Düzenle</el-button>
             <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(row)">Sil</el-button>
           </template>
         </el-table-column>
@@ -73,24 +73,24 @@ export default {
         const { data } = await getUsers()
         this.users = data.data || []
       } catch {
-        this.$message.error('Kullanicilar yuklenemedi')
+        this.$message.error('Kullanıcılar yüklenemedi')
       } finally {
         this.loading = false
       }
     },
     async handleDelete(row) {
       try {
-        await this.$confirm(`"${row.name}" kullanicisini silmek istediginize emin misiniz?`, 'Uyari', {
+        await this.$confirm(`"${row.name}" kullanıcısını silmek istediğinize emin misiniz?`, 'Uyarı', {
           confirmButtonText: 'Sil',
-          cancelButtonText: 'Iptal',
+          cancelButtonText: 'İptal',
           type: 'warning',
         })
         await deleteUser(row.id)
-        this.$message.success('Kullanici silindi')
+        this.$message.success('Kullanıcı silindi')
         this.fetchUsers()
       } catch (err) {
         if (err !== 'cancel') {
-          this.$message.error(err?.response?.data?.message || 'Silme basarisiz')
+          this.$message.error(err?.response?.data?.message || 'Silme başarısız')
         }
       }
     },

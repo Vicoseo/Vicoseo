@@ -98,6 +98,10 @@ class SiteController extends Controller
             'noindex_mode' => ['sometimes', 'boolean'],
             'content_prompt_template' => ['nullable', 'string', 'max:5000'],
             'custom_css' => ['nullable', 'string', 'max:10000'],
+            'earnings_image' => ['nullable', 'string', 'max:500'],
+            'earnings_video_url' => ['nullable', 'string', 'max:500'],
+            'earnings_title' => ['nullable', 'string', 'max:255'],
+            'earnings_content' => ['nullable', 'string', 'max:50000'],
         ]);
 
         // Clear tenant cache on any update

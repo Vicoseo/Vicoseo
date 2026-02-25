@@ -1,18 +1,18 @@
 <template>
   <div class="login-wrapper">
     <el-card class="login-card">
-      <h2 style="text-align: center; margin-bottom: 30px">CMS Admin Girisi</h2>
+      <h2 style="text-align: center; margin-bottom: 30px">CMS Admin Girişi</h2>
 
       <!-- Step 1: Email + Password -->
       <el-form v-if="!requires2FA" ref="form" :model="form" :rules="rules" label-position="top" @submit.native.prevent="handleLogin">
         <el-form-item label="E-posta" prop="email">
           <el-input v-model="form.email" prefix-icon="el-icon-message" placeholder="admin@cms.local" />
         </el-form-item>
-        <el-form-item label="Sifre" prop="password">
-          <el-input v-model="form.password" type="password" prefix-icon="el-icon-lock" placeholder="Sifre" show-password />
+        <el-form-item label="Şifre" prop="password">
+          <el-input v-model="form.password" type="password" prefix-icon="el-icon-lock" placeholder="Şifre" show-password />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" native-type="submit" style="width: 100%">Giris Yap</el-button>
+          <el-button type="primary" :loading="loading" native-type="submit" style="width: 100%">Giriş Yap</el-button>
         </el-form-item>
       </el-form>
 
@@ -20,7 +20,7 @@
       <el-form v-else ref="tfaForm" :model="tfaForm" label-position="top" @submit.native.prevent="handleVerify2FA">
         <div style="text-align: center; margin-bottom: 20px">
           <i class="el-icon-lock" style="font-size: 40px; color: #409EFF"></i>
-          <p style="margin-top: 12px; color: #606266">Authenticator uygulamanizdan 6 haneli kodu girin</p>
+          <p style="margin-top: 12px; color: #606266">Authenticator uygulamanızdan 6 haneli kodu girin</p>
         </div>
         <el-form-item>
           <el-input
@@ -31,9 +31,9 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="verifying" native-type="submit" style="width: 100%">Dogrula</el-button>
+          <el-button type="primary" :loading="verifying" native-type="submit" style="width: 100%">Doğrula</el-button>
         </el-form-item>
-        <el-button type="text" @click="requires2FA = false; partialToken = ''">Geri Don</el-button>
+        <el-button type="text" @click="requires2FA = false; partialToken = ''">Geri Dön</el-button>
       </el-form>
     </el-card>
   </div>
@@ -51,9 +51,9 @@ export default {
       rules: {
         email: [
           { required: true, message: 'E-posta zorunludur', trigger: 'blur' },
-          { type: 'email', message: 'Gecersiz e-posta formati', trigger: 'blur' },
+          { type: 'email', message: 'Geçersiz e-posta formatı', trigger: 'blur' },
         ],
-        password: [{ required: true, message: 'Sifre zorunludur', trigger: 'blur' }],
+        password: [{ required: true, message: 'Şifre zorunludur', trigger: 'blur' }],
       },
       loading: false,
       requires2FA: false,
@@ -78,10 +78,10 @@ export default {
 
           this.$store.commit('auth/SET_TOKEN', data.data.token)
           this.$store.commit('auth/SET_USER', data.data.user)
-          this.$message.success('Giris basarili')
+          this.$message.success('Giriş başarılı')
           this.$router.push('/')
         } catch (err) {
-          const msg = err.response?.data?.message || err.response?.data?.errors?.email?.[0] || 'Giris basarisiz'
+          const msg = err.response?.data?.message || err.response?.data?.errors?.email?.[0] || 'Giriş başarısız'
           this.$message.error(msg)
         } finally {
           this.loading = false
@@ -101,10 +101,10 @@ export default {
 
         this.$store.commit('auth/SET_TOKEN', data.data.token)
         this.$store.commit('auth/SET_USER', data.data.user)
-        this.$message.success('Giris basarili')
+        this.$message.success('Giriş başarılı')
         this.$router.push('/')
       } catch (err) {
-        this.$message.error(err?.response?.data?.message || 'Dogrulama basarisiz')
+        this.$message.error(err?.response?.data?.message || 'Doğrulama başarısız')
       } finally {
         this.verifying = false
       }

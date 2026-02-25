@@ -1,27 +1,27 @@
 <template>
   <div>
     <el-card>
-      <div slot="header"><span>Iki Asamali Dogrulama (2FA)</span></div>
+      <div slot="header"><span>İki Aşamalı Doğrulama (2FA)</span></div>
 
       <div v-if="!user.two_factor_enabled">
         <div v-if="!setupData">
-          <p>Hesabinizi daha guvenli hale getirmek icin 2FA'yi etkinlestirin.</p>
-          <el-button type="primary" :loading="enabling" @click="handleEnable">2FA Etkinlestir</el-button>
+          <p>Hesabınızı daha güvenli hale getirmek için 2FA'yı etkinleştirin.</p>
+          <el-button type="primary" :loading="enabling" @click="handleEnable">2FA Etkinleştir</el-button>
         </div>
 
         <div v-else>
-          <p>Google Authenticator veya benzeri bir uygulamayla asagidaki QR kodu okutun:</p>
+          <p>Google Authenticator veya benzeri bir uygulamayla aşağıdaki QR kodu okutun:</p>
           <div style="margin: 20px 0; text-align: center">
             <img :src="qrImageUrl" alt="QR Code" style="max-width: 200px" />
           </div>
           <p style="font-size: 12px; color: #909399">
-            Manuel giris icin secret: <code>{{ setupData.secret }}</code>
+            Manuel giriş için secret: <code>{{ setupData.secret }}</code>
           </p>
           <el-form @submit.native.prevent="handleVerify" style="margin-top: 20px; max-width: 300px">
-            <el-form-item label="Dogrulama Kodu">
+            <el-form-item label="Doğrulama Kodu">
               <el-input v-model="verifyCode" placeholder="6 haneli kod" maxlength="6" />
             </el-form-item>
-            <el-button type="primary" :loading="verifying" @click="handleVerify">Dogrula ve Etkinlestir</el-button>
+            <el-button type="primary" :loading="verifying" @click="handleVerify">Doğrula ve Etkinleştir</el-button>
           </el-form>
         </div>
       </div>
@@ -29,7 +29,7 @@
       <div v-else>
         <p style="color: #67c23a; font-weight: 600">2FA aktif.</p>
         <el-form @submit.native.prevent="handleDisable" style="margin-top: 16px; max-width: 300px">
-          <el-form-item label="Dogrulama Kodu">
+          <el-form-item label="Doğrulama Kodu">
             <el-input v-model="disableCode" placeholder="6 haneli kod" maxlength="6" />
           </el-form-item>
           <el-button type="danger" :loading="disabling" @click="handleDisable">2FA Kapat</el-button>
@@ -70,7 +70,7 @@ export default {
         const { data } = await enable2FA()
         this.setupData = data.data
       } catch {
-        this.$message.error('2FA baslatilamadi')
+        this.$message.error('2FA başlatılamadı')
       } finally {
         this.enabling = false
       }
@@ -82,12 +82,12 @@ export default {
       this.verifying = true
       try {
         await verify2FA(this.verifyCode)
-        this.$message.success('2FA etkinlestirildi!')
+        this.$message.success('2FA etkinleştirildi!')
         this.$store.dispatch('auth/fetchUser')
         this.setupData = null
         this.verifyCode = ''
       } catch (err) {
-        this.$message.error(err?.response?.data?.message || 'Dogrulama basarisiz')
+        this.$message.error(err?.response?.data?.message || 'Doğrulama başarısız')
       } finally {
         this.verifying = false
       }
@@ -99,11 +99,11 @@ export default {
       this.disabling = true
       try {
         await disable2FA(this.disableCode)
-        this.$message.success('2FA kapatildi')
+        this.$message.success('2FA kapatıldı')
         this.$store.dispatch('auth/fetchUser')
         this.disableCode = ''
       } catch (err) {
-        this.$message.error(err?.response?.data?.message || 'Islem basarisiz')
+        this.$message.error(err?.response?.data?.message || 'İşlem başarısız')
       } finally {
         this.disabling = false
       }

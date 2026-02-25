@@ -52,15 +52,15 @@
     </el-card>
 
     <el-card v-if="isEdit && revisions.length" style="margin-top: 20px">
-      <div slot="header">Revizyon Gecmisi</div>
+      <div slot="header">Revizyon Geçmişi</div>
       <el-table :data="revisions" size="small" border>
         <el-table-column label="Alan" prop="field_name" width="140" />
-        <el-table-column label="Eski Deger" width="300">
+        <el-table-column label="Eski Değer" width="300">
           <template slot-scope="{ row }">
             <div style="max-height: 80px; overflow: auto; font-size: 12px">{{ truncate(row.old_value) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="Yeni Deger" width="300">
+        <el-table-column label="Yeni Değer" width="300">
           <template slot-scope="{ row }">
             <div style="max-height: 80px; overflow: auto; font-size: 12px">{{ truncate(row.new_value) }}</div>
           </template>
@@ -68,7 +68,7 @@
         <el-table-column label="Tarih" width="150">
           <template slot-scope="{ row }">{{ row.created_at }}</template>
         </el-table-column>
-        <el-table-column label="Islem" width="100" align="center">
+        <el-table-column label="İşlem" width="100" align="center">
           <template slot-scope="{ row }">
             <el-button size="mini" type="warning" @click="handleRevert(row)">Geri Al</el-button>
           </template>
@@ -138,9 +138,9 @@ export default {
     },
     async handleRevert(revision) {
       try {
-        await this.$confirm('Bu alan eski degerine dondurulecek. Emin misiniz?', 'Geri Al', {
+        await this.$confirm('Bu alan eski değerine döndürülecek. Emin misiniz?', 'Geri Al', {
           confirmButtonText: 'Geri Al',
-          cancelButtonText: 'Iptal',
+          cancelButtonText: 'İptal',
           type: 'warning',
         })
       } catch {
@@ -152,10 +152,10 @@ export default {
         Object.keys(this.form).forEach((key) => {
           if (post[key] !== undefined && post[key] !== null) this.form[key] = post[key]
         })
-        this.$message.success('Yazi geri alindi')
+        this.$message.success('Yazı geri alındı')
         this.fetchRevisions()
       } catch {
-        this.$message.error('Geri alma basarisiz')
+        this.$message.error('Geri alma başarısız')
       }
     },
     async fetchPost() {

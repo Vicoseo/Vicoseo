@@ -77,6 +77,7 @@ class PostController extends Controller
             'meta_description' => ['nullable', 'string', 'max:1000'],
             'is_published' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
+            'category_id' => ['nullable', 'integer', 'exists:tenant.categories,id'],
         ]);
 
         $post->update($validated);

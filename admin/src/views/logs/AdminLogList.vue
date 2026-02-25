@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h2 style="margin: 0 0 20px">Admin Islem Loglari</h2>
+    <h2 style="margin: 0 0 20px">Admin İşlem Logları</h2>
 
     <!-- Filters -->
     <el-card shadow="never" style="margin-bottom: 16px">
       <el-form :inline="true" size="small">
         <el-form-item label="Admin">
-          <el-select v-model="filters.user_id" clearable placeholder="Tum adminler" style="width: 180px">
+          <el-select v-model="filters.user_id" clearable placeholder="Tüm adminler" style="width: 180px">
             <el-option v-for="u in admins" :key="u.id" :label="u.name" :value="u.id" />
           </el-select>
         </el-form-item>
@@ -14,7 +14,7 @@
           <el-input v-model="filters.action" placeholder="Arama..." clearable style="width: 150px" />
         </el-form-item>
         <el-form-item label="Tarih">
-          <el-date-picker v-model="dateRange" type="daterange" range-separator="-" start-placeholder="Baslangic" end-placeholder="Bitis" value-format="yyyy-MM-dd" style="width: 240px" />
+          <el-date-picker v-model="dateRange" type="daterange" range-separator="-" start-placeholder="Başlangıç" end-placeholder="Bitiş" value-format="yyyy-MM-dd" style="width: 240px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetchLogs">Filtrele</el-button>
@@ -32,7 +32,7 @@
         </el-table-column>
         <el-table-column label="Admin" width="140">
           <template slot-scope="{ row }">
-            {{ row.user ? row.user.name : 'Silinmis' }}
+            {{ row.user ? row.user.name : 'Silinmiş' }}
           </template>
         </el-table-column>
         <el-table-column prop="action" label="Aksiyon" min-width="200" show-overflow-tooltip />
@@ -42,7 +42,7 @@
           <template slot-scope="{ row }">
             <el-popover trigger="click" width="300" v-if="row.details">
               <pre style="font-size: 11px; max-height: 200px; overflow: auto">{{ JSON.stringify(row.details, null, 2) }}</pre>
-              <el-button slot="reference" type="text" size="small">Gor</el-button>
+              <el-button slot="reference" type="text" size="small">Gör</el-button>
             </el-popover>
           </template>
         </el-table-column>
@@ -103,7 +103,7 @@ export default {
         this.logs = data.data || []
         this.total = data.total || 0
       } catch {
-        this.$message.error('Loglar yuklenemedi')
+        this.$message.error('Loglar yüklenemedi')
       } finally {
         this.loading = false
       }

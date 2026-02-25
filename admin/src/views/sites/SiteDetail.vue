@@ -51,6 +51,79 @@
         <el-tab-pane label="Yazılar" name="posts">
           <PostList ref="postList" :site-id="siteId" />
         </el-tab-pane>
+        <el-tab-pane label="Kazanç" name="earnings">
+          <div v-if="activeTab === 'earnings'" v-loading="earningsLoading">
+            <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center">
+              <span style="color: #909399; font-size: 13px">
+                Anasayfada gösterilecek kazanç kartları. Görsele tıklanınca içerik açılır.
+              </span>
+              <el-button type="primary" size="small" icon="el-icon-plus" @click="openEarningDialog(null)">
+                Yeni Kazanç Ekle
+              </el-button>
+            </div>
+
+            <div v-if="earningsList.length === 0 && !earningsLoading" style="text-align: center; padding: 40px; color: #909399">
+              Henüz kazanç eklenmemiş. Yeni kazanç eklemek için yukarıdaki butona tıklayın.
+            </div>
+
+            <el-row :gutter="16">
+              <el-col :span="8" v-for="item in earningsList" :key="item.id" style="margin-bottom: 16px">
+                <el-card shadow="hover" :body-style="{ padding: '0' }">
+                  <div v-if="item.image" style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f5f7fa">
+                    <img :src="resolveUrl(item.image)" style="width: 100%; height: 100%; object-fit: cover" />
+                  </div>
+                  <div v-else style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f5f7fa; color: #c0c4cc">
+                    <i class="el-icon-picture" style="font-size: 48px"></i>
+                  </div>
+                  <div style="padding: 14px">
+                    <h4 style="margin: 0 0 8px 0; font-size: 15px">{{ item.title || 'Başlıksız' }}</h4>
+                    <div v-if="item.video_url" style="font-size: 12px; color: #67c23a; margin-bottom: 8px">
+                      <i class="el-icon-video-camera"></i> Video bağlantısı var
+                    </div>
+                    <div v-if="item.content" style="font-size: 12px; color: #909399; margin-bottom: 8px; max-height: 40px; overflow: hidden">
+                      {{ stripHtml(item.content).substring(0, 80) }}...
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end">
+                      <el-button size="mini" icon="el-icon-edit" @click="openEarningDialog(item)">Düzenle</el-button>
+                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteEarning(item)">Sil</el-button>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="Promosyon" name="promotions">
+          <div v-if="activeTab === 'promotions'" v-loading="promosLoading">
+            <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center">
+              <span style="color: #909399; font-size: 13px">
+                Anasayfada slider olarak gösterilecek promosyon görselleri.
+              </span>
+              <el-button type="primary" size="small" icon="el-icon-plus" @click="openPromoDialog(null)">
+                Yeni Promosyon
+              </el-button>
+            </div>
+            <div v-if="promosList.length === 0 && !promosLoading" style="text-align: center; padding: 40px; color: #909399">
+              Henüz promosyon eklenmemiş.
+            </div>
+            <el-row :gutter="12">
+              <el-col :span="6" v-for="item in promosList" :key="item.id" style="margin-bottom: 12px">
+                <el-card shadow="hover" :body-style="{ padding: '0' }">
+                  <div style="height: 100px; overflow: hidden; background: #f5f7fa">
+                    <img :src="resolveUrl(item.image)" style="width: 100%; height: 100%; object-fit: cover" />
+                  </div>
+                  <div style="padding: 8px 10px">
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ item.title || 'Başlıksız' }}</div>
+                    <div style="display: flex; gap: 4px; justify-content: flex-end">
+                      <el-button size="mini" icon="el-icon-edit" @click="openPromoDialog(item)"></el-button>
+                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="deletePromo(item)"></el-button>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </el-tab-pane>
         <el-tab-pane label="Sponsorlar" name="offers">
           <OfferList :site-id="siteId" />
         </el-tab-pane>
@@ -134,6 +207,83 @@
       </el-tabs>
     </el-card>
 
+    <!-- Earning Add/Edit Dialog -->
+    <el-dialog
+      :title="editingEarning ? 'Kazanç Düzenle' : 'Yeni Kazanç Ekle'"
+      :visible.sync="earningDialogVisible"
+      width="700px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="130px" v-loading="earningsSaving">
+        <el-form-item label="Kazanç Görseli">
+          <image-upload v-model="earningForm.image" directory="earnings" />
+        </el-form-item>
+        <el-form-item label="Video URL">
+          <el-input v-model="earningForm.video_url" placeholder="https://youtube.com/watch?v=...">
+            <template slot="prepend">🎬</template>
+          </el-input>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Kazanç detayında gösterilecek video bağlantısı
+          </div>
+        </el-form-item>
+        <el-form-item label="Başlık">
+          <el-input v-model="earningForm.title" placeholder="Bigger Bass Bonanza 70.000 TL Kazanç" />
+        </el-form-item>
+        <el-form-item label="İçerik">
+          <el-input
+            v-model="earningForm.content"
+            type="textarea"
+            :rows="8"
+            placeholder="Kazanç detayında gösterilecek özgün içerik (HTML destekler)"
+          />
+        </el-form-item>
+        <el-form-item label="Sıralama">
+          <el-input-number v-model="earningForm.sort_order" :min="0" :max="999" />
+        </el-form-item>
+        <el-form-item label="Aktif">
+          <el-switch v-model="earningForm.is_active" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="earningDialogVisible = false">İptal</el-button>
+        <el-button type="primary" :loading="earningsSaving" @click="saveEarning">
+          {{ editingEarning ? 'Güncelle' : 'Ekle' }}
+        </el-button>
+      </span>
+    </el-dialog>
+
+    <!-- Promotion Add/Edit Dialog -->
+    <el-dialog
+      :title="editingPromo ? 'Promosyon Düzenle' : 'Yeni Promosyon'"
+      :visible.sync="promoDialogVisible"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="120px" v-loading="promosSaving">
+        <el-form-item label="Görsel">
+          <image-upload v-model="promoForm.image" directory="promotions" />
+        </el-form-item>
+        <el-form-item label="Başlık">
+          <el-input v-model="promoForm.title" placeholder="Promosyon başlığı" />
+        </el-form-item>
+        <el-form-item label="Bağlantı URL">
+          <el-input v-model="promoForm.link_url" placeholder="https://..." />
+        </el-form-item>
+        <el-form-item label="Sıralama">
+          <el-input-number v-model="promoForm.sort_order" :min="0" :max="999" />
+        </el-form-item>
+        <el-form-item label="Aktif">
+          <el-switch v-model="promoForm.is_active" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="promoDialogVisible = false">İptal</el-button>
+        <el-button type="primary" :loading="promosSaving" @click="savePromo">
+          {{ editingPromo ? 'Güncelle' : 'Ekle' }}
+        </el-button>
+      </span>
+    </el-dialog>
+
     <!-- AI Content Generation Dialog -->
     <el-dialog
       :title="aiDialogTitle"
@@ -174,6 +324,8 @@
 
 <script>
 import { getSite, aiGenerateContent, provisionSite, getProvisionStatus } from '../../api/sites'
+import { getEarnings, createEarning, updateEarning, deleteEarning } from '../../api/earnings'
+import { getPromotions, createPromotion, updatePromotion, deletePromotion } from '../../api/promotions'
 import { getSiteAnalytics } from '../../api/analytics'
 import { getGscPerformance, submitGscSitemap } from '../../api/gsc'
 import PageList from '../pages/PageList.vue'
@@ -182,10 +334,11 @@ import OfferList from './OfferList.vue'
 import RedirectList from '../redirects/RedirectList.vue'
 import FooterLinkList from '../footerLinks/FooterLinkList.vue'
 import ContentScheduleForm from '../content/ContentScheduleForm.vue'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 export default {
   name: 'SiteDetail',
-  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList, ContentScheduleForm },
+  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList, ContentScheduleForm, ImageUpload },
   data() {
     return {
       site: null,
@@ -197,6 +350,33 @@ export default {
       aiDialogVisible: false,
       selectedProvider: null,
       aiContentType: 'all',
+      // Earnings
+      earningsList: [],
+      earningsLoading: false,
+      earningsSaving: false,
+      earningDialogVisible: false,
+      editingEarning: null,
+      earningForm: {
+        image: '',
+        video_url: '',
+        title: '',
+        content: '',
+        sort_order: 0,
+        is_active: true,
+      },
+      // Promotions
+      promosList: [],
+      promosLoading: false,
+      promosSaving: false,
+      promoDialogVisible: false,
+      editingPromo: null,
+      promoForm: {
+        image: '',
+        title: '',
+        link_url: '',
+        sort_order: 0,
+        is_active: true,
+      },
       // Analytics
       analyticsPeriod: '7d',
       analyticsData: null,
@@ -221,6 +401,8 @@ export default {
   },
   watch: {
     activeTab(tab) {
+      if (tab === 'earnings') this.fetchEarnings()
+      if (tab === 'promotions') this.fetchPromos()
       if (tab === 'analytics' && !this.analyticsData) this.fetchAnalytics()
       if (tab === 'gsc' && !this.gscData) this.fetchGsc()
     },
@@ -316,6 +498,165 @@ export default {
         this.$message.error('Sitemap gonderilemedi')
       } finally {
         this.submittingSitemap = false
+      }
+    },
+
+    resolveUrl(url) {
+      if (!url) return ''
+      if (url.startsWith('http')) return url
+      const base = import.meta.env.VITE_API_BASE_URL || ''
+      return base.replace('/api/v1', '') + url
+    },
+
+    stripHtml(html) {
+      return html ? html.replace(/<[^>]*>/g, '') : ''
+    },
+
+    async fetchEarnings() {
+      this.earningsLoading = true
+      try {
+        const { data } = await getEarnings(this.siteId)
+        this.earningsList = data.data
+      } catch {
+        this.$message.error('Kazançlar yüklenemedi')
+      } finally {
+        this.earningsLoading = false
+      }
+    },
+
+    openEarningDialog(item) {
+      if (item) {
+        this.editingEarning = item
+        this.earningForm = {
+          image: item.image || '',
+          video_url: item.video_url || '',
+          title: item.title || '',
+          content: item.content || '',
+          sort_order: item.sort_order || 0,
+          is_active: item.is_active !== false,
+        }
+      } else {
+        this.editingEarning = null
+        this.earningForm = {
+          image: '',
+          video_url: '',
+          title: '',
+          content: '',
+          sort_order: 0,
+          is_active: true,
+        }
+      }
+      this.earningDialogVisible = true
+    },
+
+    async saveEarning() {
+      this.earningsSaving = true
+      try {
+        if (this.editingEarning) {
+          await updateEarning(this.siteId, this.editingEarning.id, this.earningForm)
+          this.$message.success('Kazanç güncellendi')
+        } else {
+          await createEarning(this.siteId, this.earningForm)
+          this.$message.success('Kazanç eklendi')
+        }
+        this.earningDialogVisible = false
+        this.fetchEarnings()
+      } catch {
+        this.$message.error('Kazanç kaydedilemedi')
+      } finally {
+        this.earningsSaving = false
+      }
+    },
+
+    async deleteEarning(item) {
+      try {
+        await this.$confirm('Bu kazanç kaydı silinecek. Emin misiniz?', 'Kazanç Sil', {
+          confirmButtonText: 'Sil',
+          cancelButtonText: 'İptal',
+          type: 'warning',
+        })
+      } catch {
+        return
+      }
+      try {
+        await deleteEarning(this.siteId, item.id)
+        this.$message.success('Kazanç silindi')
+        this.fetchEarnings()
+      } catch {
+        this.$message.error('Kazanç silinemedi')
+      }
+    },
+
+    async fetchPromos() {
+      this.promosLoading = true
+      try {
+        const { data } = await getPromotions(this.siteId)
+        this.promosList = data.data
+      } catch {
+        this.$message.error('Promosyonlar yüklenemedi')
+      } finally {
+        this.promosLoading = false
+      }
+    },
+
+    openPromoDialog(item) {
+      if (item) {
+        this.editingPromo = item
+        this.promoForm = {
+          image: item.image || '',
+          title: item.title || '',
+          link_url: item.link_url || '',
+          sort_order: item.sort_order || 0,
+          is_active: item.is_active !== false,
+        }
+      } else {
+        this.editingPromo = null
+        this.promoForm = {
+          image: '',
+          title: '',
+          link_url: '',
+          sort_order: 0,
+          is_active: true,
+        }
+      }
+      this.promoDialogVisible = true
+    },
+
+    async savePromo() {
+      this.promosSaving = true
+      try {
+        if (this.editingPromo) {
+          await updatePromotion(this.siteId, this.editingPromo.id, this.promoForm)
+          this.$message.success('Promosyon güncellendi')
+        } else {
+          await createPromotion(this.siteId, this.promoForm)
+          this.$message.success('Promosyon eklendi')
+        }
+        this.promoDialogVisible = false
+        this.fetchPromos()
+      } catch {
+        this.$message.error('Promosyon kaydedilemedi')
+      } finally {
+        this.promosSaving = false
+      }
+    },
+
+    async deletePromo(item) {
+      try {
+        await this.$confirm('Bu promosyon silinecek. Emin misiniz?', 'Promosyon Sil', {
+          confirmButtonText: 'Sil',
+          cancelButtonText: 'İptal',
+          type: 'warning',
+        })
+      } catch {
+        return
+      }
+      try {
+        await deletePromotion(this.siteId, item.id)
+        this.$message.success('Promosyon silindi')
+        this.fetchPromos()
+      } catch {
+        this.$message.error('Promosyon silinemedi')
       }
     },
 

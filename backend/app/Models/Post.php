@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasRevisions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
@@ -26,7 +27,13 @@ class Post extends Model
         'meta_description',
         'is_published',
         'published_at',
+        'category_id',
     ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     protected function casts(): array
     {

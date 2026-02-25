@@ -1,9 +1,9 @@
 <template>
   <div>
-    <h2 style="margin-top: 0">Sistem Loglari</h2>
+    <h2 style="margin-top: 0">Sistem Logları</h2>
 
     <el-tabs v-model="activeTab">
-      <el-tab-pane label="Backend Loglari" name="backend">
+      <el-tab-pane label="Backend Logları" name="backend">
         <div style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center">
           <el-select v-model="level" placeholder="Log Seviyesi" size="small" clearable style="width: 150px" @change="fetchBackendLogs">
             <el-option label="Error" value="error" />
@@ -13,7 +13,7 @@
             <el-option label="Critical" value="critical" />
           </el-select>
           <el-button size="small" @click="fetchBackendLogs">Yenile</el-button>
-          <span style="color: #909399; font-size: 12px" v-if="backendTotal">Toplam: {{ backendTotal }} kayit</span>
+          <span style="color: #909399; font-size: 12px" v-if="backendTotal">Toplam: {{ backendTotal }} kayıt</span>
         </div>
 
         <el-table :data="backendLogs" v-loading="backendLoading" size="small" border max-height="600">
@@ -31,7 +31,7 @@
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="Admin Islem Loglari" name="admin">
+      <el-tab-pane label="Admin İşlem Logları" name="admin">
         <AdminLogList />
       </el-tab-pane>
     </el-tabs>
@@ -80,7 +80,7 @@ export default {
         this.backendLogs = data.data
         this.backendTotal = data.total
       } catch {
-        this.$message.error('Loglar yuklenemedi')
+        this.$message.error('Loglar yüklenemedi')
       } finally {
         this.backendLoading = false
       }

@@ -78,18 +78,18 @@
           </div>
         </el-form-item>
 
-        <el-divider content-position="left">SEO Ayarlari</el-divider>
+        <el-divider content-position="left">SEO Ayarları</el-divider>
 
         <el-form-item label="Fallback Domain">
           <el-input v-model="form.fallback_domain" placeholder="fallback-site.com" />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Redirect bulunamazsa kullanicinin yonlendirilecegi domain
+            Redirect bulunamazsa kullanıcının yönlendirileceği domain
           </div>
         </el-form-item>
         <el-form-item label="Noindex Modu">
           <el-switch v-model="form.noindex_mode" />
           <span style="color: #909399; font-size: 12px; margin-left: 8px">
-            Aktifse arama motorlari bu siteyi indekslemez
+            Aktifse arama motorları bu siteyi indekslemez
           </span>
         </el-form-item>
         <el-form-item label="robots.txt">
@@ -101,11 +101,11 @@
             style="font-family: monospace"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Ozel robots.txt icerigi. Bos birakilirsa varsayilan kullanilir.
+            Özel robots.txt içeriği. Boş bırakılırsa varsayılan kullanılır.
           </div>
         </el-form-item>
 
-        <el-divider content-position="left">Ozel CSS</el-divider>
+        <el-divider content-position="left">Özel CSS</el-divider>
 
         <el-form-item label="Custom CSS">
           <el-input
@@ -116,22 +116,22 @@
             style="font-family: monospace; font-size: 13px"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Siteye ozel CSS. Sadece .page-content icinde gecerli olur, sponsor bolumune etki etmez. Max 10KB.
+            Siteye özel CSS. Sadece .page-content içinde geçerli olur, sponsor bölümüne etki etmez. Max 10KB.
           </div>
         </el-form-item>
 
-        <el-divider content-position="left">Icerik Sablonu</el-divider>
+        <el-divider content-position="left">İçerik Şablonu</el-divider>
 
-        <el-form-item label="Prompt Sablonu">
+        <el-form-item label="Prompt Şablonu">
           <el-input
             v-model="form.content_prompt_template"
             type="textarea"
             :rows="6"
-            placeholder="AI icerik uretiminde kullanilacak ek talimatlar. Placeholders: {{brand_name}}, {{domain}}, {{telegram}}, {{login_url}}, {{entry_url}}"
+            placeholder="AI içerik üretiminde kullanılacak ek talimatlar. Placeholders: {{brand_name}}, {{domain}}, {{telegram}}, {{login_url}}, {{entry_url}}"
             style="font-family: monospace"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Her AI icerik uretiminde bu talimatlar prompt'a eklenir. Bos birakilirsa varsayilan kullanilir.
+            Her AI içerik üretiminde bu talimatlar prompt'a eklenir. Boş bırakılırsa varsayılan kullanılır.
           </div>
         </el-form-item>
 
