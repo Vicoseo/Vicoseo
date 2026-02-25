@@ -1,4 +1,4 @@
-import { SiteConfig, Page, Post, TopOffer, Sponsor, PaginatedResponse, ApiResponse, RedirectResponse } from '@/types';
+import { SiteConfig, Page, Post, Category, TopOffer, Sponsor, PaginatedResponse, ApiResponse, RedirectResponse } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -10,7 +10,7 @@ async function fetchApi<T>(
   const url = `${API_URL}${endpoint}`;
 
   const res = await fetch(url, {
-    cache: 'no-store',
+    next: { revalidate: 120 },
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -45,6 +45,14 @@ export function getPosts(domain: string, page = 1, perPage = 15): Promise<Pagina
 
 export function getPost(domain: string, slug: string): Promise<ApiResponse<Post>> {
   return fetchApi<ApiResponse<Post>>(`/posts/${slug}`, domain);
+}
+
+export function getCategories(domain: string): Promise<ApiResponse<Category[]>> {
+  return fetchApi<ApiResponse<Category[]>>('/categories', domain);
+}
+
+export function getCategory(domain: string, slug: string): Promise<{ data: Category; posts: PaginatedResponse<Post> }> {
+  return fetchApi<{ data: Category; posts: PaginatedResponse<Post> }>(`/categories/${slug}`, domain);
 }
 
 export function getTopOffers(domain: string): Promise<ApiResponse<TopOffer[]>> {
