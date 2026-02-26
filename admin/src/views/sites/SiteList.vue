@@ -2,100 +2,96 @@
   <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
       <h2 style="margin: 0">Siteler</h2>
-      <div style="display: flex; align-items: center; gap: 12px">
-        <el-tag v-if="analyticsLoaded" type="info" size="small">
-          {{ analyticsData.length }} site analitik verisi
-        </el-tag>
-        <el-button type="primary" icon="el-icon-plus" @click="$router.push('/sites/create')">Yeni Site</el-button>
+      <el-button type="primary" icon="el-icon-plus" size="small" @click="$router.push('/sites/create')">Yeni Site</el-button>
+    </div>
+
+    <div style="margin-bottom: 16px">
+      <el-input
+        v-model="search"
+        placeholder="Ara..."
+        prefix-icon="el-icon-search"
+        clearable
+        size="small"
+        style="width: 240px"
+        @input="handleSearch"
+      />
+    </div>
+
+    <div v-loading="loading" class="site-grid">
+      <div
+        v-for="row in filteredSites"
+        :key="row.id"
+        class="site-card"
+        @click="$router.push(`/sites/${row.id}`)"
+      >
+        <!-- Header: Logo + Domain + Status -->
+        <div class="site-card-header">
+          <div class="site-identity">
+            <img
+              v-if="row.logo_url"
+              :src="resolveUrl(row.logo_url)"
+              class="site-logo"
+              :alt="row.domain"
+            />
+            <span v-else class="site-logo-placeholder">
+              <i class="el-icon-monitor"></i>
+            </span>
+            <div>
+              <div class="site-domain">{{ row.domain }}</div>
+              <div class="site-name">{{ row.name }}</div>
+            </div>
+          </div>
+          <span :class="['status-dot', row.is_active ? 'active' : 'inactive']"></span>
+        </div>
+
+        <!-- Sparkline -->
+        <div class="site-card-chart">
+          <canvas
+            v-if="getSiteAnalytics(row.id) && getSiteAnalytics(row.id).daily && getSiteAnalytics(row.id).daily.length > 1"
+            :ref="'spark-' + row.id"
+            width="260"
+            height="40"
+          ></canvas>
+          <div v-else class="chart-empty"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="site-card-stats">
+          <div class="stat-item">
+            <span class="stat-value visitors">{{ getSiteAnalytics(row.id) ? formatNumber(getSiteAnalytics(row.id).active_users) : '-' }}</span>
+            <span class="stat-label">Ziyaretçi</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value pageviews">{{ getSiteAnalytics(row.id) ? formatNumber(getSiteAnalytics(row.id).page_views) : '-' }}</span>
+            <span class="stat-label">Sayfa</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value clicks">{{ getSiteAnalytics(row.id) && getSiteAnalytics(row.id).clicks > 0 ? formatNumber(getSiteAnalytics(row.id).clicks) : '-' }}</span>
+            <span class="stat-label">Tıklama</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="site-card-actions" @click.stop>
+          <el-button type="text" size="mini" @click="$router.push(`/sites/${row.id}/edit`)">
+            <i class="el-icon-edit"></i> Düzenle
+          </el-button>
+          <el-button type="text" size="mini" style="color: #f56c6c" @click="handleDelete(row)">
+            <i class="el-icon-delete"></i> Sil
+          </el-button>
+        </div>
       </div>
     </div>
 
-    <el-card>
-      <div style="margin-bottom: 16px">
-        <el-input
-          v-model="search"
-          placeholder="Alan adı veya isim ile ara..."
-          prefix-icon="el-icon-search"
-          clearable
-          style="width: 300px"
-          @input="handleSearch"
-        />
-      </div>
-
-      <el-table :data="filteredSites" v-loading="loading" stripe style="width: 100%">
-        <el-table-column label="Alan Adı" min-width="200" sortable sort-by="domain">
-          <template slot-scope="{ row }">
-            <div style="display: flex; align-items: center; gap: 8px">
-              <img
-                v-if="row.logo_url"
-                :src="resolveUrl(row.logo_url)"
-                style="width: 28px; height: 28px; object-fit: contain; border-radius: 4px; border: 1px solid #ebeef5"
-                :alt="row.domain"
-              />
-              <span v-else style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: #f0f2f5; border-radius: 4px; color: #c0c4cc; font-size: 14px; border: 1px solid #ebeef5">
-                <i class="el-icon-picture-outline"></i>
-              </span>
-              <span style="font-weight: 500">{{ row.domain }}</span>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="name" label="İsim" min-width="120" sortable />
-
-        <el-table-column label="7 Gün Trend" width="120" align="center">
-          <template slot-scope="{ row }">
-            <div v-if="getSiteAnalytics(row.id) && getSiteAnalytics(row.id).daily && getSiteAnalytics(row.id).daily.length > 1" style="display: flex; align-items: center; justify-content: center">
-              <canvas :ref="'spark-' + row.id" width="90" height="30" style="display: block"></canvas>
-            </div>
-            <span v-else style="color: #c0c4cc; font-size: 12px">-</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Ziyaretçi" width="100" align="right" sortable :sort-method="sortByVisitors">
-          <template slot-scope="{ row }">
-            <span v-if="getSiteAnalytics(row.id)" style="font-weight: 600; color: #409eff">
-              {{ formatNumber(getSiteAnalytics(row.id).active_users) }}
-            </span>
-            <span v-else style="color: #c0c4cc">-</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Tıklama" width="100" align="right" sortable :sort-method="sortByClicks">
-          <template slot-scope="{ row }">
-            <span v-if="getSiteAnalytics(row.id) && getSiteAnalytics(row.id).clicks > 0" style="font-weight: 600; color: #67c23a">
-              {{ formatNumber(getSiteAnalytics(row.id).clicks) }}
-            </span>
-            <span v-else style="color: #c0c4cc">-</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="Durum" width="80" sortable sort-by="is_active" align="center">
-          <template slot-scope="{ row }">
-            <el-tag :type="row.is_active ? 'success' : 'danger'" size="mini">
-              {{ row.is_active ? 'Aktif' : 'Pasif' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="İşlemler" width="200" align="right">
-          <template slot-scope="{ row }">
-            <el-button type="primary" size="mini" @click="$router.push(`/sites/${row.id}`)">Yönet</el-button>
-            <el-button size="mini" @click="$router.push(`/sites/${row.id}/edit`)">Düzenle</el-button>
-            <el-button type="danger" size="mini" @click="handleDelete(row)">Sil</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <el-pagination
-        v-if="total > perPage"
-        style="margin-top: 16px; text-align: right"
-        layout="prev, pager, next, total"
-        :total="total"
-        :page-size="perPage"
-        :current-page.sync="currentPage"
-        @current-change="fetchSites"
-      />
-    </el-card>
+    <el-pagination
+      v-if="total > perPage"
+      style="margin-top: 20px; text-align: center"
+      layout="prev, pager, next"
+      :total="total"
+      :page-size="perPage"
+      :current-page.sync="currentPage"
+      @current-change="fetchSites"
+    />
   </div>
 </template>
 
@@ -114,7 +110,7 @@ export default {
       loading: false,
       search: '',
       currentPage: 1,
-      perPage: 15,
+      perPage: 18,
       total: 0,
       analyticsData: [],
       analyticsLoaded: false,
@@ -164,7 +160,6 @@ export default {
           this.renderSparklines()
         })
       } catch {
-        // GA not configured, skip silently
         this.analyticsLoaded = false
       }
     },
@@ -172,7 +167,6 @@ export default {
       return this.analyticsMap[siteId] || null
     },
     renderSparklines() {
-      // Destroy existing charts
       Object.values(this.sparkCharts).forEach((c) => c.destroy())
       this.sparkCharts = {}
 
@@ -187,6 +181,8 @@ export default {
 
         const values = analytics.daily.map((d) => d.users)
         const isUp = values[values.length - 1] >= values[0]
+        const color = isUp ? '#67c23a' : '#f56c6c'
+        const bg = isUp ? 'rgba(103,194,58,0.08)' : 'rgba(245,108,108,0.08)'
 
         this.sparkCharts[site.id] = new Chart(el, {
           type: 'line',
@@ -194,8 +190,8 @@ export default {
             labels: analytics.daily.map((d) => d.date),
             datasets: [{
               data: values,
-              borderColor: isUp ? '#67c23a' : '#f56c6c',
-              backgroundColor: isUp ? 'rgba(103,194,58,0.1)' : 'rgba(245,108,108,0.1)',
+              borderColor: color,
+              backgroundColor: bg,
               borderWidth: 1.5,
               fill: true,
               tension: 0.4,
@@ -209,28 +205,22 @@ export default {
             plugins: { legend: { display: false }, tooltip: { enabled: false } },
             scales: {
               x: { display: false },
-              y: { display: false },
+              y: { display: false, beginAtZero: true },
             },
             animation: false,
           },
         })
       })
     },
-    handleSearch() {
-      // Client-side filtering
-    },
+    handleSearch() {},
     async handleDelete(site) {
       try {
-        await this.$confirm(`"${site.domain}" sitesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`, 'Uyarı', {
-          type: 'warning',
-        })
+        await this.$confirm(`"${site.domain}" sitesini silmek istediğinize emin misiniz?`, 'Uyarı', { type: 'warning' })
         await deleteSite(site.id)
         this.$message.success('Site silindi')
         this.fetchSites()
       } catch (err) {
-        if (err !== 'cancel') {
-          this.$message.error('Silme başarısız')
-        }
+        if (err !== 'cancel') this.$message.error('Silme başarısız')
       }
     },
     resolveUrl(url) {
@@ -239,23 +229,9 @@ export default {
       const base = process.env.VUE_APP_API_BASE_URL || ''
       return base + url
     },
-    formatDate(d) {
-      if (!d) return ''
-      return new Date(d).toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric' })
-    },
     formatNumber(n) {
       if (n == null) return '-'
       return Number(n).toLocaleString('tr-TR')
-    },
-    sortByVisitors(a, b) {
-      const aVal = this.getSiteAnalytics(a.id)?.active_users || 0
-      const bVal = this.getSiteAnalytics(b.id)?.active_users || 0
-      return aVal - bVal
-    },
-    sortByClicks(a, b) {
-      const aVal = this.getSiteAnalytics(a.id)?.clicks || 0
-      const bVal = this.getSiteAnalytics(b.id)?.clicks || 0
-      return aVal - bVal
     },
   },
   beforeDestroy() {
@@ -263,3 +239,135 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.site-card {
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.site-card:hover {
+  border-color: #d0d7de;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.site-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.site-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.site-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.site-logo-placeholder {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border-radius: 6px;
+  color: #c0c4cc;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.site-domain {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.site-name {
+  font-size: 11px;
+  color: #909399;
+  margin-top: 1px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.status-dot.active { background: #67c23a; }
+.status-dot.inactive { background: #f56c6c; }
+
+.site-card-chart {
+  margin: 0 -4px 12px;
+  height: 40px;
+}
+.site-card-chart canvas {
+  display: block;
+  width: 100% !important;
+}
+.chart-empty {
+  height: 40px;
+  background: linear-gradient(to right, #fafafa, #f5f7fa, #fafafa);
+  border-radius: 4px;
+}
+
+.site-card-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid #f5f5f5;
+  border-bottom: 1px solid #f5f5f5;
+}
+.stat-item {
+  text-align: center;
+  flex: 1;
+}
+.stat-value {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.stat-value.visitors { color: #e6a23c; }
+.stat-value.pageviews { color: #909399; }
+.stat-value.clicks { color: #67c23a; }
+.stat-label {
+  display: block;
+  font-size: 10px;
+  color: #b0b4bb;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.site-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 10px;
+}
+.site-card-actions .el-button--mini {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+</style>
