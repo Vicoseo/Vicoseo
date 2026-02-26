@@ -7,3 +7,7 @@ export function getSiteAnalytics(siteId, params = {}) {
 export function getAnalyticsSummary(params = {}) {
   return client.get('/admin/analytics/summary', { params })
 }
+
+export function getSiteGscPerformance(siteId, params = {}) {
+  return client.get(`/admin/sites/${siteId}/gsc/performance`, { params })
+}

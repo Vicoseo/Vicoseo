@@ -1,7 +1,16 @@
 <template>
   <div>
-    <h2 style="margin-top: 0">Panel</h2>
-    <el-row :gutter="20" style="margin-bottom: 20px">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+      <h2 style="margin: 0">Panel</h2>
+      <el-radio-group v-model="period" size="small" @change="onPeriodChange">
+        <el-radio-button label="7d">7 Gün</el-radio-button>
+        <el-radio-button label="30d">30 Gün</el-radio-button>
+        <el-radio-button label="90d">90 Gün</el-radio-button>
+      </el-radio-group>
+    </div>
+
+    <!-- Site Count Stats -->
+    <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="8">
         <el-card shadow="hover">
           <div class="stat-card">
@@ -28,33 +37,57 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" style="margin-bottom: 20px" v-if="analyticsSummary">
-      <el-col :span="8">
-        <el-card shadow="hover">
+    <!-- Analytics Stats -->
+    <el-row :gutter="16" style="margin-bottom: 20px">
+      <el-col :span="6">
+        <el-card shadow="hover" v-loading="analyticsLoading">
           <div class="stat-card">
-            <div class="stat-number" style="color: #e6a23c">{{ analyticsSummary.active_users }}</div>
-            <div class="stat-label">Toplam Ziyaretci (7 gun)</div>
+            <div class="stat-number stat-visitors">{{ formatNumber(analyticsTotals.active_users) }}</div>
+            <div class="stat-label">Ziyaretçi</div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover">
+      <el-col :span="6">
+        <el-card shadow="hover" v-loading="analyticsLoading">
           <div class="stat-card">
-            <div class="stat-number" style="color: #909399">{{ analyticsSummary.page_views }}</div>
-            <div class="stat-label">Sayfa Goruntulenme</div>
+            <div class="stat-number stat-pageviews">{{ formatNumber(analyticsTotals.page_views) }}</div>
+            <div class="stat-label">Sayfa Görüntüleme</div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover">
+      <el-col :span="6">
+        <el-card shadow="hover" v-loading="analyticsLoading">
           <div class="stat-card">
-            <div class="stat-number" style="color: #67c23a">{{ analyticsSummary.sessions }}</div>
-            <div class="stat-label">Oturum</div>
+            <div class="stat-number stat-clicks">{{ formatNumber(analyticsTotals.clicks) }}</div>
+            <div class="stat-label">Google Tıklama</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card shadow="hover" v-loading="analyticsLoading">
+          <div class="stat-card">
+            <div class="stat-number stat-impressions">{{ formatNumber(analyticsTotals.impressions) }}</div>
+            <div class="stat-label">Gösterim</div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
+    <!-- Site Comparison Bar Chart -->
+    <el-card style="margin-bottom: 20px" v-loading="analyticsLoading">
+      <div slot="header">
+        <span>Site Ziyaretçi Karşılaştırması</span>
+      </div>
+      <div v-if="perSiteData.length > 0" style="position: relative; height: 350px">
+        <canvas ref="barChart"></canvas>
+      </div>
+      <div v-else style="text-align: center; padding: 40px 0; color: #909399">
+        <i class="el-icon-data-analysis" style="font-size: 40px; margin-bottom: 8px; display: block"></i>
+        Analitik verisi bulunamadı. Google Analytics yapılandırmasını kontrol edin.
+      </div>
+    </el-card>
+
+    <!-- Bulk Operations -->
     <el-card style="margin-bottom: 20px">
       <div slot="header">
         <span>Toplu İşlemler</span>
@@ -118,6 +151,7 @@
       </span>
     </el-dialog>
 
+    <!-- Recent Sites -->
     <el-card>
       <div slot="header" style="display: flex; justify-content: space-between; align-items: center">
         <span>Son Eklenen Siteler</span>
@@ -149,15 +183,21 @@
 </template>
 
 <script>
+import { Chart, BarController, BarElement, LinearScale, CategoryScale, Tooltip, Legend } from 'chart.js'
 import { getSites, startBulkContent, getBulkContentProgress } from '../api/sites'
 import { getAnalyticsSummary } from '../api/analytics'
+
+Chart.register(BarController, BarElement, LinearScale, CategoryScale, Tooltip, Legend)
 
 export default {
   name: 'Dashboard',
   data() {
     return {
       sites: [],
-      analyticsSummary: null,
+      period: '7d',
+      analyticsTotals: { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 },
+      perSiteData: [],
+      analyticsLoading: false,
       loading: false,
       showBulkDialog: false,
       bulkLoading: false,
@@ -170,6 +210,7 @@ export default {
         overwrite: false,
         daily_count: 2,
       },
+      barChart: null,
     }
   },
   computed: {
@@ -192,16 +233,94 @@ export default {
   },
   created() {
     this.fetchSites()
-    this.fetchAnalyticsSummary()
+    this.fetchAnalytics()
   },
   methods: {
-    async fetchAnalyticsSummary() {
+    async fetchAnalytics() {
+      this.analyticsLoading = true
       try {
-        const { data } = await getAnalyticsSummary({ period: '7d' })
-        this.analyticsSummary = data.data?.totals || null
+        const { data } = await getAnalyticsSummary({ period: this.period })
+        this.analyticsTotals = data.data?.totals || { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 }
+        this.perSiteData = (data.data?.per_site || []).filter((s) => !s.ga_error)
+        this.$nextTick(() => {
+          this.renderBarChart()
+        })
       } catch {
         // GA not configured, skip silently
+      } finally {
+        this.analyticsLoading = false
       }
+    },
+    onPeriodChange() {
+      this.fetchAnalytics()
+    },
+    renderBarChart() {
+      if (this.barChart) {
+        this.barChart.destroy()
+        this.barChart = null
+      }
+
+      const canvas = this.$refs.barChart
+      if (!canvas || this.perSiteData.length === 0) return
+
+      const sorted = [...this.perSiteData].sort((a, b) => (b.active_users || 0) - (a.active_users || 0))
+      const labels = sorted.map((s) => s.domain.replace(/\.(com|net|me|click|site|online|one|link)$/, ''))
+      const visitors = sorted.map((s) => s.active_users || 0)
+      const clicks = sorted.map((s) => s.clicks || 0)
+
+      this.barChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Ziyaretçi',
+              data: visitors,
+              backgroundColor: 'rgba(64, 158, 255, 0.7)',
+              borderColor: '#409eff',
+              borderWidth: 1,
+              borderRadius: 3,
+            },
+            {
+              label: 'Google Tıklama',
+              data: clicks,
+              backgroundColor: 'rgba(103, 194, 58, 0.7)',
+              borderColor: '#67c23a',
+              borderWidth: 1,
+              borderRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { size: 12 }, usePointStyle: true, pointStyle: 'rectRounded' },
+            },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const idx = items[0].dataIndex
+                  return sorted[idx].domain
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 30 },
+              grid: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+          },
+        },
+      })
     },
     async fetchSites() {
       this.loading = true
@@ -221,6 +340,10 @@ export default {
         month: 'short',
         day: 'numeric',
       })
+    },
+    formatNumber(n) {
+      if (n == null || n === 0) return '0'
+      return Number(n).toLocaleString('tr-TR')
     },
     async startBulkContent() {
       this.bulkLoading = true
@@ -269,6 +392,7 @@ export default {
   },
   beforeDestroy() {
     if (this.bulkPollTimer) clearTimeout(this.bulkPollTimer)
+    if (this.barChart) this.barChart.destroy()
   },
 }
 </script>
@@ -279,13 +403,17 @@ export default {
   padding: 10px 0;
 }
 .stat-number {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: #409eff;
 }
 .stat-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
   margin-top: 4px;
 }
+.stat-visitors { color: #e6a23c; }
+.stat-pageviews { color: #909399; }
+.stat-clicks { color: #67c23a; }
+.stat-impressions { color: #409eff; }
 </style>
