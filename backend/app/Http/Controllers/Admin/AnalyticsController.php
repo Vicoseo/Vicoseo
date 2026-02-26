@@ -25,19 +25,20 @@ class AnalyticsController extends Controller
     {
         $site = Site::findOrFail($siteId);
 
-        $propertyId = $site->ga_measurement_id;
+        $propertyId = $site->ga_property_id;
         if (!$propertyId) {
             return response()->json([
-                'error' => 'GA Measurement ID is not configured for this site.',
+                'error' => 'GA Property ID is not configured for this site.',
             ], 422);
         }
 
         $period = $request->query('period', '7d');
         [$startDate, $endDate] = $this->parsePeriod($period);
+        $hostname = $site->domain;
 
-        $visitors = $this->analytics->getVisitors($propertyId, $startDate, $endDate);
-        $topPages = $this->analytics->getTopPages($propertyId, $startDate, $endDate);
-        $dailyData = $this->analytics->getDailyVisitors($propertyId, $startDate, $endDate);
+        $visitors = $this->analytics->getVisitors($propertyId, $startDate, $endDate, $hostname);
+        $topPages = $this->analytics->getTopPages($propertyId, $startDate, $endDate, 20, $hostname);
+        $dailyData = $this->analytics->getDailyVisitors($propertyId, $startDate, $endDate, $hostname);
 
         return response()->json([
             'data' => [
@@ -60,7 +61,7 @@ class AnalyticsController extends Controller
         [$gscStart, $gscEnd] = $this->parseGscPeriod($period);
 
         $sites = Site::where('is_active', true)
-            ->whereNotNull('ga_measurement_id')
+            ->whereNotNull('ga_property_id')
             ->get();
 
         $totals = [
@@ -80,9 +81,10 @@ class AnalyticsController extends Controller
                 'domain' => $site->domain,
             ];
 
-            // GA data
+            // GA data (filter by hostname for shared properties)
             try {
-                $data = $this->analytics->getVisitors($site->ga_measurement_id, $startDate, $endDate);
+                $hostname = $site->domain;
+                $data = $this->analytics->getVisitors($site->ga_property_id, $startDate, $endDate, $hostname);
                 $totals['active_users'] += $data['active_users'];
                 $totals['page_views'] += $data['page_views'];
                 $totals['sessions'] += $data['sessions'];
@@ -91,7 +93,7 @@ class AnalyticsController extends Controller
                 $siteData['page_views'] = $data['page_views'];
 
                 // Daily data for sparklines
-                $daily = $this->analytics->getDailyVisitors($site->ga_measurement_id, $startDate, $endDate);
+                $daily = $this->analytics->getDailyVisitors($site->ga_property_id, $startDate, $endDate, $hostname);
                 $siteData['daily'] = $daily;
             } catch (\Exception $e) {
                 $siteData['ga_error'] = $e->getMessage();
