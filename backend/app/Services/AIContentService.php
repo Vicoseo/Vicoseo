@@ -742,7 +742,7 @@ PROMPT;
             'Authorization' => 'Bearer ' . config('ai.openai.api_key'),
         ])->timeout(180)->post('https://api.openai.com/v1/chat/completions', [
             'model' => config('ai.openai.model'),
-            'max_tokens' => $maxTokens,
+            'max_completion_tokens' => $maxTokens,
             'messages' => [
                 ['role' => 'system', 'content' => 'Sen profesyonel bir SEO uzmanı ve Türkçe içerik yazarısın. Google Helpful Content güncellemelerine uygun, doğal ve özgün içerik üretirsin. Yanıtlarını her zaman geçerli JSON formatında ver. Markdown veya code block KULLANMA, sadece düz JSON ver.'],
                 ['role' => 'user', 'content' => $prompt],
