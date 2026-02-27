@@ -40,7 +40,7 @@ class UploadController extends Controller
             $file->storeAs($storagePath, $finalName);
         } else {
             // For JPG/PNG/WebP: save optimized original format + WebP version
-            $image = Image::read($file->getRealPath());
+            $image = Image::read($file->getContent());
 
             if ($image->width() > 1200 || $image->height() > 800) {
                 $image->scaleDown(1200, 800);
