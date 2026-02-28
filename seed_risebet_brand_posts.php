@@ -15,17 +15,30 @@ $mainDb = 'cms_main';
 $pdo = new PDO("mysql:host=$host;dbname=$mainDb;charset=utf8mb4", $user, $pass);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-// Risebet sitelerini al
-$sites = $pdo->query("SELECT id, domain, name, db_name FROM sites WHERE is_active = 1 AND domain LIKE '%rise%' ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+// Tüm aktif siteleri al
+$sites = $pdo->query("SELECT id, domain, name, db_name FROM sites WHERE is_active = 1 ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
 
-echo "Toplam " . count($sites) . " risebet sitesi bulundu.\n\n";
+echo "Toplam " . count($sites) . " site bulundu.\n\n";
 
 function getBrandName($domain) {
     $map = [
         'rise-bets.com' => 'Rise Bets',
+        'casival.me' => 'Casival',
+        'ilkbahis.click' => 'İlkbahis',
+        'ilkbahis.link' => 'İlkbahis',
+        'ilkbahisgiri.net' => 'İlkbahis Giriş',
+        'ilkbahisonline.com' => 'İlkbahis Online',
+        'prensbet.me' => 'Prensbet',
         'risebett.me' => 'Risebett',
+        'rayzbet.net' => 'Rayzbet',
+        'prensbetgiris.online' => 'Prensbet Giriş',
+        'prensbetgiris.site' => 'Prensbet Giriş',
+        'prensbetgirisonline.one' => 'Prensbet Giriş Online',
+        'prenssbet.com' => 'Prenssbet',
+        'prenssbet.net' => 'Prenssbet',
         'risebette.com' => 'Risebette',
         'risebets.click' => 'Rise Bets',
+        'pragmaticlive.click' => 'Pragmatic Live',
     ];
     return $map[$domain] ?? ucfirst(explode('.', $domain)[0]);
 }
@@ -33,9 +46,22 @@ function getBrandName($domain) {
 function getSlugPrefix($domain) {
     $map = [
         'rise-bets.com' => 'risebets',
+        'casival.me' => 'casival',
+        'ilkbahis.click' => 'ilkbahis',
+        'ilkbahis.link' => 'ilkbahis-link',
+        'ilkbahisgiri.net' => 'ilkbahisgiri',
+        'ilkbahisonline.com' => 'ilkbahisonline',
+        'prensbet.me' => 'prensbet',
         'risebett.me' => 'risebett',
+        'rayzbet.net' => 'rayzbet',
+        'prensbetgiris.online' => 'prensbetgiris',
+        'prensbetgiris.site' => 'prensbetgiris-site',
+        'prensbetgirisonline.one' => 'prensbetgirisonline',
+        'prenssbet.com' => 'prenssbet',
+        'prenssbet.net' => 'prenssbet-net',
         'risebette.com' => 'risebette',
         'risebets.click' => 'risebets-click',
+        'pragmaticlive.click' => 'pragmaticlive',
     ];
     return $map[$domain] ?? strtolower(str_replace(['.', '-'], ['', ''], $domain));
 }
