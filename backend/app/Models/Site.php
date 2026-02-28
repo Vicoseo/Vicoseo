@@ -36,6 +36,7 @@ class Site extends Model
         'noindex_mode',
         'content_prompt_template',
         'custom_css',
+        'background_url',
         'earnings_image',
         'earnings_video_url',
         'earnings_title',
