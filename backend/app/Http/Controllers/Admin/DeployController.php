@@ -20,6 +20,12 @@ class DeployController extends Controller
         Cache::flush();
         Artisan::call('cache:clear');
 
+        // Clear Next.js fetch cache (ISR/SSR cached API responses)
+        $cachePath = '/var/www/multi-tenant-cms/frontend/.next/cache/fetch-cache';
+        if (is_dir($cachePath)) {
+            exec("rm -rf {$cachePath}/*");
+        }
+
         // Restart PM2 frontend process
         $output = '';
         $exitCode = 0;
