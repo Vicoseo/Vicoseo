@@ -25,10 +25,10 @@ class AnalyticsController extends Controller
     {
         $site = Site::findOrFail($siteId);
 
-        $propertyId = $site->ga_property_id;
+        $propertyId = $site->ga_measurement_id;
         if (!$propertyId) {
             return response()->json([
-                'error' => 'GA Property ID is not configured for this site.',
+                'error' => 'GA Measurement ID is not configured for this site.',
             ], 422);
         }
 
@@ -61,7 +61,7 @@ class AnalyticsController extends Controller
         [$gscStart, $gscEnd] = $this->parseGscPeriod($period);
 
         $sites = Site::where('is_active', true)
-            ->whereNotNull('ga_property_id')
+            ->whereNotNull('ga_measurement_id')
             ->get();
 
         $totals = [
@@ -84,7 +84,7 @@ class AnalyticsController extends Controller
             // GA data (filter by hostname for shared properties)
             try {
                 $hostname = $site->domain;
-                $data = $this->analytics->getVisitors($site->ga_property_id, $startDate, $endDate, $hostname);
+                $data = $this->analytics->getVisitors($site->ga_measurement_id, $startDate, $endDate, $hostname);
                 $totals['active_users'] += $data['active_users'];
                 $totals['page_views'] += $data['page_views'];
                 $totals['sessions'] += $data['sessions'];
@@ -93,7 +93,7 @@ class AnalyticsController extends Controller
                 $siteData['page_views'] = $data['page_views'];
 
                 // Daily data for sparklines
-                $daily = $this->analytics->getDailyVisitors($site->ga_property_id, $startDate, $endDate, $hostname);
+                $daily = $this->analytics->getDailyVisitors($site->ga_measurement_id, $startDate, $endDate, $hostname);
                 $siteData['daily'] = $daily;
             } catch (\Exception $e) {
                 $siteData['ga_error'] = $e->getMessage();
