@@ -22,6 +22,7 @@ Route::middleware(['tenant', 'rate.limit:public'])->prefix('v1')->group(function
     Route::get('/categories/{slug}', [Api\CategoryController::class, 'show']);
     Route::get('/top-offers', [Api\TopOfferController::class, 'index']);
     Route::get('/go/{slug}', [Api\RedirectController::class, 'handle']);
+    Route::post('/contact', [Api\ContactController::class, 'store']);
 });
 
 // Public sponsors (global, no tenant middleware needed)

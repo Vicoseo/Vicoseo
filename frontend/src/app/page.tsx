@@ -4,6 +4,7 @@ import { getPages, getPage, getSiteConfig } from '@/lib/api';
 import { SiteConfig } from '@/types';
 import EarningsSection from '@/components/EarningsSection';
 import PromotionSlider from '@/components/PromotionSlider';
+import ServiceCards from '@/components/ServiceCards';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -225,6 +226,8 @@ export default async function HomePage() {
         <h1>{firstPage.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: firstPage.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
       </div>
+
+      <ServiceCards />
 
       {site && site.earnings && site.earnings.length > 0 && (
         <EarningsSection earnings={site.earnings} domain={site.domain} />

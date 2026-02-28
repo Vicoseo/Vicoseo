@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { getCurrentDomain } from '@/lib/domain';
 import { getPage, getPost, getSiteConfig } from '@/lib/api';
 import { Page, Post } from '@/types';
+import ContactForm from '@/components/ContactForm';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -160,6 +161,7 @@ export default async function DynamicPage({ params }: PageProps) {
       <div className="page-content">
         <h1>{item.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: item.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
+        {slug === 'iletisim' && <ContactForm domain={domain} />}
       </div>
     </>
   );
