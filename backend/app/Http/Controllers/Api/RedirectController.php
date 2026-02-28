@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\GlobalTopOffer;
 use App\Models\Redirect;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,20 @@ class RedirectController extends Controller
             ->first();
 
         if (!$redirect) {
+            // Check global top offers (sponsor links)
+            $globalOffer = GlobalTopOffer::where('slug', $slug)
+                ->where('is_active', true)
+                ->first();
+
+            if ($globalOffer) {
+                return response()->json([
+                    'data' => [
+                        'target_url' => $globalOffer->target_url,
+                        'status' => 302,
+                    ],
+                ]);
+            }
+
             // Check for fallback domain
             $site = $request->attributes->get('site');
             if ($site && $site->fallback_domain) {
