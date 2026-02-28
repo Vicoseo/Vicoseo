@@ -9,11 +9,13 @@ export async function GET(
   const host = request.headers.get('host') || 'localhost';
   const domain = host.split(':')[0];
 
+  const baseUrl = `https://${domain}`;
+
   try {
     const response = await getRedirect(domain, slug);
     const statusCode = response.data.status || 302;
     return NextResponse.redirect(response.data.target_url, statusCode);
   } catch {
-    return NextResponse.json({ error: 'Redirect not found' }, { status: 404 });
+    return NextResponse.redirect(baseUrl, 302);
   }
 }
