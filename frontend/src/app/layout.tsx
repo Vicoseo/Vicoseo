@@ -205,8 +205,8 @@ export default async function RootLayout({
         }
       >
         <LoginCtaBar loginUrl={loginUrl} />
-        {site?.show_sponsors !== false && <SponsorsBlock offers={offers} />}
-        {site?.sponsor_page_visible !== false && offers.length > 0 && (
+        {!!site?.show_sponsors && <SponsorsBlock offers={offers} />}
+        {!!site?.sponsor_page_visible && offers.length > 0 && (
           <OfferCards
             offers={offers}
             contactUrl={site?.sponsor_contact_url}
