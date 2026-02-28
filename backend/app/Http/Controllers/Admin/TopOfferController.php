@@ -228,19 +228,34 @@ class TopOfferController extends Controller
     }
 
     /**
-     * Clear top_offers cache for all active sites.
+     * Clear top_offers cache for all active sites and frontend cache.
      * Called after any global or site-specific offer change.
      */
     private function clearOffersCache(?int $siteId = null): void
     {
         if ($siteId) {
             Cache::forget("top_offers:site:{$siteId}");
-            return;
+        } else {
+            // Global offer changed — clear cache for every site
+            Site::where('is_active', true)->pluck('id')->each(function ($id) {
+                Cache::forget("top_offers:site:{$id}");
+            });
         }
 
-        // Global offer changed — clear cache for every site
-        Site::where('is_active', true)->pluck('id')->each(function ($id) {
-            Cache::forget("top_offers:site:{$id}");
-        });
+        // Clear Next.js fetch cache and restart frontend
+        $this->clearFrontendCache();
+    }
+
+    /**
+     * Clear the Next.js fetch cache and restart the frontend process.
+     */
+    private function clearFrontendCache(): void
+    {
+        $cachePath = '/var/www/multi-tenant-cms/frontend/.next/cache/fetch-cache';
+        if (is_dir($cachePath)) {
+            exec("rm -rf {$cachePath}");
+        }
+
+        exec('sudo /usr/bin/pm2 restart cms-frontend 2>&1');
     }
 }

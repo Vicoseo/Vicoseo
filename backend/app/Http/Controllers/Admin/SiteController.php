@@ -10,6 +10,7 @@ use App\Models\Site;
 use App\Services\TenantManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SiteController extends Controller
 {
@@ -112,12 +113,32 @@ class SiteController extends Controller
             $this->tenantManager->clearTenantCache($validated['domain']);
         }
 
+        // Clear top_offers cache for this site
+        Cache::forget("top_offers:site:{$site->id}");
+
         $site->update($validated);
+
+        // Clear Next.js fetch cache and restart frontend so changes reflect immediately
+        $this->clearFrontendCache();
 
         return response()->json([
             'data' => $site->fresh(),
             'message' => 'Site updated successfully.',
         ]);
+    }
+
+    /**
+     * Clear the Next.js fetch cache and restart the frontend process
+     * so that admin changes reflect on sites immediately.
+     */
+    private function clearFrontendCache(): void
+    {
+        $cachePath = '/var/www/multi-tenant-cms/frontend/.next/cache/fetch-cache';
+        if (is_dir($cachePath)) {
+            exec("rm -rf {$cachePath}");
+        }
+
+        exec('sudo /usr/bin/pm2 restart cms-frontend 2>&1');
     }
 
     /**
