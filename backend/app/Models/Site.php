@@ -19,6 +19,7 @@ class Site extends Model
         'favicon_url',
         'primary_color',
         'secondary_color',
+        'header_bg_color',
         'db_name',
         'is_active',
         'meta_title',
