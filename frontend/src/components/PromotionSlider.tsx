@@ -37,7 +37,7 @@ export default function PromotionSlider({ promotions, domain, loginUrl }: Props)
   if (!promotions || promotions.length === 0) return null;
 
   const item = promotions[current];
-  const href = item.link_url || loginUrl || '#';
+  const href = item.link_url || null;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -78,12 +78,25 @@ export default function PromotionSlider({ promotions, domain, loginUrl }: Props)
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ display: 'block' }}
-      >
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          style={{ display: 'block' }}
+        >
+          <img
+            src={resolveUrl(item.image, domain)}
+            alt={item.title || 'Promosyon'}
+            style={{
+              width: '100%',
+              display: 'block',
+              aspectRatio: '25/8',
+              objectFit: 'cover',
+            }}
+          />
+        </a>
+      ) : (
         <img
           src={resolveUrl(item.image, domain)}
           alt={item.title || 'Promosyon'}
@@ -94,7 +107,7 @@ export default function PromotionSlider({ promotions, domain, loginUrl }: Props)
             objectFit: 'cover',
           }}
         />
-      </a>
+      )}
 
       {promotions.length > 1 && (
         <>

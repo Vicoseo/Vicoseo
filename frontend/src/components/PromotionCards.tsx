@@ -26,8 +26,22 @@ export default function PromotionCards({ cards, domain, loginUrl }: Props) {
       margin: '0 auto',
     }} className="promo-cards-grid">
       {cards.map((card) => {
-        const href = card.link_url || loginUrl || '#';
-        return (
+        const href = card.link_url || null;
+        const imgEl = (
+          <img
+            src={resolveUrl(card.image, domain)}
+            alt={card.title || 'Promosyon'}
+            loading="lazy"
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'block',
+              aspectRatio: '5/3',
+              objectFit: 'cover',
+            }}
+          />
+        );
+        return href ? (
           <a
             key={card.id}
             href={href}
@@ -41,19 +55,20 @@ export default function PromotionCards({ cards, domain, loginUrl }: Props) {
             }}
             className="promo-card-item"
           >
-            <img
-              src={resolveUrl(card.image, domain)}
-              alt={card.title || 'Promosyon'}
-              loading="lazy"
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'block',
-                aspectRatio: '5/3',
-                objectFit: 'cover',
-              }}
-            />
+            {imgEl}
           </a>
+        ) : (
+          <div
+            key={card.id}
+            style={{
+              display: 'block',
+              borderRadius: '10px',
+              overflow: 'hidden',
+            }}
+            className="promo-card-item"
+          >
+            {imgEl}
+          </div>
         );
       })}
     </div>
