@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Google\Analytics\Admin\V1alpha\AnalyticsAdminServiceClient;
 use Google\Client;
 use Google\Service\AnalyticsData;
 use Google\Service\AnalyticsData\DateRange;
@@ -14,6 +15,7 @@ use Google\Service\AnalyticsData\Metric;
 use Google\Service\AnalyticsData\RunReportRequest;
 use Google\Service\AnalyticsData\StringFilter;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class GoogleAnalyticsService
 {
@@ -32,6 +34,87 @@ class GoogleAnalyticsService
         $this->service = new AnalyticsData($client);
 
         return $this->service;
+    }
+
+    /**
+     * Resolve a GA4 Measurement ID (G-XXXXXXX) to a numeric Property ID.
+     */
+    public function resolvePropertyId(string $measurementId): string
+    {
+        // Already numeric — return as-is
+        if (is_numeric($measurementId)) {
+            return $measurementId;
+        }
+
+        $map = $this->getMeasurementIdMap();
+
+        if (isset($map[$measurementId])) {
+            return $map[$measurementId];
+        }
+
+        // Force refresh cache and try again
+        $map = $this->buildMeasurementIdMap();
+
+        if (isset($map[$measurementId])) {
+            return $map[$measurementId];
+        }
+
+        throw new \RuntimeException("Cannot resolve Measurement ID {$measurementId} to a numeric Property ID. Ensure the service account has access to this GA4 property.");
+    }
+
+    /**
+     * Get the cached measurement-id → property-id map.
+     */
+    private function getMeasurementIdMap(): array
+    {
+        return Cache::remember('ga:measurement_id_map', 86400, function () {
+            return $this->buildMeasurementIdMap();
+        });
+    }
+
+    /**
+     * Build mapping by listing all properties and their data streams via GA Admin API.
+     */
+    private function buildMeasurementIdMap(): array
+    {
+        $credPath = config('google.service_account_path');
+        $adminClient = new AnalyticsAdminServiceClient([
+            'credentials' => $credPath,
+            'transport' => 'rest',
+        ]);
+
+        $map = [];
+
+        try {
+            $accounts = $adminClient->listAccountSummaries();
+
+            foreach ($accounts as $account) {
+                foreach ($account->getPropertySummaries() as $propSummary) {
+                    // e.g. "properties/525078596"
+                    $propertyResource = $propSummary->getProperty();
+                    $numericId = str_replace('properties/', '', $propertyResource);
+
+                    try {
+                        $streams = $adminClient->listDataStreams($propertyResource);
+                        foreach ($streams as $stream) {
+                            $webData = $stream->getWebStreamData();
+                            if ($webData && $webData->getMeasurementId()) {
+                                $map[$webData->getMeasurementId()] = $numericId;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning("GA Admin: could not list streams for {$propertyResource}: " . $e->getMessage());
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("GA Admin: could not list account summaries: " . $e->getMessage());
+        }
+
+        // Persist refreshed map in cache
+        Cache::put('ga:measurement_id_map', $map, 86400);
+
+        return $map;
     }
 
     /**
@@ -59,10 +142,11 @@ class GoogleAnalyticsService
      */
     public function getVisitors(string $propertyId, string $startDate, string $endDate, ?string $hostname = null): array
     {
-        $cacheKey = "ga:visitors:{$propertyId}:{$hostname}:{$startDate}:{$endDate}";
+        $numericId = $this->resolvePropertyId($propertyId);
+        $cacheKey = "ga:visitors:{$numericId}:{$hostname}:{$startDate}:{$endDate}";
 
-        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($propertyId, $startDate, $endDate, $hostname) {
-            return $this->runVisitorReport($propertyId, $startDate, $endDate, $hostname);
+        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($numericId, $startDate, $endDate, $hostname) {
+            return $this->runVisitorReport($numericId, $startDate, $endDate, $hostname);
         });
     }
 
@@ -71,10 +155,11 @@ class GoogleAnalyticsService
      */
     public function getTopPages(string $propertyId, string $startDate, string $endDate, int $limit = 20, ?string $hostname = null): array
     {
-        $cacheKey = "ga:top_pages:{$propertyId}:{$hostname}:{$startDate}:{$endDate}:{$limit}";
+        $numericId = $this->resolvePropertyId($propertyId);
+        $cacheKey = "ga:top_pages:{$numericId}:{$hostname}:{$startDate}:{$endDate}:{$limit}";
 
-        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($propertyId, $startDate, $endDate, $limit, $hostname) {
-            return $this->runTopPagesReport($propertyId, $startDate, $endDate, $limit, $hostname);
+        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($numericId, $startDate, $endDate, $limit, $hostname) {
+            return $this->runTopPagesReport($numericId, $startDate, $endDate, $limit, $hostname);
         });
     }
 
@@ -83,10 +168,11 @@ class GoogleAnalyticsService
      */
     public function getDailyVisitors(string $propertyId, string $startDate, string $endDate, ?string $hostname = null): array
     {
-        $cacheKey = "ga:daily:{$propertyId}:{$hostname}:{$startDate}:{$endDate}";
+        $numericId = $this->resolvePropertyId($propertyId);
+        $cacheKey = "ga:daily:{$numericId}:{$hostname}:{$startDate}:{$endDate}";
 
-        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($propertyId, $startDate, $endDate, $hostname) {
-            return $this->runDailyReport($propertyId, $startDate, $endDate, $hostname);
+        return Cache::remember($cacheKey, config('google.analytics.cache_ttl', 3600), function () use ($numericId, $startDate, $endDate, $hostname) {
+            return $this->runDailyReport($numericId, $startDate, $endDate, $hostname);
         });
     }
 

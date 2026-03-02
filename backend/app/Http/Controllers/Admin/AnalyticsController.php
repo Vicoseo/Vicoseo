@@ -36,9 +36,22 @@ class AnalyticsController extends Controller
         [$startDate, $endDate] = $this->parsePeriod($period);
         $hostname = $site->domain;
 
-        $visitors = $this->analytics->getVisitors($propertyId, $startDate, $endDate, $hostname);
-        $topPages = $this->analytics->getTopPages($propertyId, $startDate, $endDate, 20, $hostname);
-        $dailyData = $this->analytics->getDailyVisitors($propertyId, $startDate, $endDate, $hostname);
+        try {
+            $visitors = $this->analytics->getVisitors($propertyId, $startDate, $endDate, $hostname);
+            $topPages = $this->analytics->getTopPages($propertyId, $startDate, $endDate, 20, $hostname);
+            $dailyData = $this->analytics->getDailyVisitors($propertyId, $startDate, $endDate, $hostname);
+        } catch (\Exception $e) {
+            return response()->json([
+                'data' => [
+                    'site' => $site->domain,
+                    'period' => $period,
+                    'summary' => ['active_users' => 0, 'page_views' => 0, 'sessions' => 0, 'avg_session_duration' => 0],
+                    'top_pages' => [],
+                    'daily' => [],
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+        }
 
         return response()->json([
             'data' => [
