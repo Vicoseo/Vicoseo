@@ -83,7 +83,11 @@ class GoogleAnalyticsService
             'transport' => 'rest',
         ]);
 
-        $map = [];
+        // Manual fallback for properties not discoverable via Admin API
+        // (e.g. service account has property-level access but not account-level)
+        $map = [
+            'G-TTZXWHEXWD' => '526513575', // risespor.com
+        ];
 
         try {
             $accounts = $adminClient->listAccountSummaries();
