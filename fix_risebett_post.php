@@ -3,7 +3,7 @@
  * Fix risebett.me blog post ID 192 - content was empty due to stdin pipe failure.
  */
 
-$pdo = new PDO('mysql:host=127.0.0.1;dbname=tenant_risebett_me;charset=utf8mb4', 'root', '', [
+$pdo = new PDO('mysql:host=127.0.0.1;dbname=tenant_risebett_me;charset=utf8mb4', 'cms_user', 'Cms@Pr0d2026!xK9', [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
