@@ -37,6 +37,7 @@ export interface SiteConfig {
   favicon_url: string | null;
   primary_color: string;
   secondary_color: string;
+  header_bg_color: string | null;
   meta_title: string | null;
   meta_description: string | null;
   entry_url: string | null;

@@ -30,6 +30,7 @@ class SiteController extends Controller
                 'favicon_url' => $site->favicon_url,
                 'primary_color' => $site->primary_color,
                 'secondary_color' => $site->secondary_color,
+                'header_bg_color' => $site->header_bg_color,
                 'meta_title' => $site->meta_title,
                 'meta_description' => $site->meta_description,
                 'entry_url' => $site->entry_url,
