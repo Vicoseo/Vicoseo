@@ -280,6 +280,26 @@ p {
   right: 8px;
 }
 
+/* ===== PROMOTION CARDS GRID ===== */
+.promo-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+  .promo-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .promo-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+}
+
 /* ===== HEADER ===== */
 .header-nav-desktop {
   display: flex;

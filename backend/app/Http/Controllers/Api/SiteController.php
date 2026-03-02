@@ -50,6 +50,12 @@ class SiteController extends Controller
                     ->get(['id', 'image', 'video_url', 'title', 'content']),
                 'promotions' => SitePromotion::where('site_id', $site->id)
                     ->where('is_active', true)
+                    ->where('display_type', 'slider')
+                    ->orderBy('sort_order')
+                    ->get(['id', 'image', 'title', 'link_url']),
+                'promotion_cards' => SitePromotion::where('site_id', $site->id)
+                    ->where('is_active', true)
+                    ->where('display_type', 'card')
                     ->orderBy('sort_order')
                     ->get(['id', 'image', 'title', 'link_url']),
                 'footer_links' => FooterLink::active()->ordered()->get(['id', 'link_text', 'link_url']),

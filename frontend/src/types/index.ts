@@ -54,6 +54,7 @@ export interface SiteConfig {
   ga_measurement_id: string | null;
   earnings: SiteEarning[];
   promotions: SitePromotion[];
+  promotion_cards: SitePromotion[];
   footer_links: FooterLink[];
 }
 

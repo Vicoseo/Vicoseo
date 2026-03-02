@@ -4,6 +4,7 @@ import { getPages, getPage, getSiteConfig } from '@/lib/api';
 import { SiteConfig } from '@/types';
 import EarningsSection from '@/components/EarningsSection';
 import PromotionSlider from '@/components/PromotionSlider';
+import PromotionCards from '@/components/PromotionCards';
 import ServiceCards from '@/components/ServiceCards';
 
 
@@ -216,6 +217,15 @@ export default async function HomePage() {
         <div style={{ maxWidth: 1200, margin: '12px auto', padding: '0 16px' }}>
           <PromotionSlider
             promotions={site.promotions}
+            domain={site.domain}
+            loginUrl={site.login_url || site.entry_url || undefined}
+          />
+        </div>
+      )}
+      {site && site.promotion_cards && site.promotion_cards.length > 0 && (
+        <div style={{ maxWidth: 1200, margin: '10px auto', padding: '0 16px' }}>
+          <PromotionCards
+            cards={site.promotion_cards}
             domain={site.domain}
             loginUrl={site.login_url || site.entry_url || undefined}
           />
