@@ -2,11 +2,29 @@
   <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
       <h2 style="margin: 0">Panel</h2>
-      <el-radio-group v-model="period" size="small" @change="onPeriodChange">
-        <el-radio-button label="7d">7 Gün</el-radio-button>
-        <el-radio-button label="30d">30 Gün</el-radio-button>
-        <el-radio-button label="90d">90 Gün</el-radio-button>
-      </el-radio-group>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <el-radio-group v-model="period" size="small" @change="onPeriodChange">
+          <el-radio-button label="7d">7 Gün</el-radio-button>
+          <el-radio-button label="30d">30 Gün</el-radio-button>
+          <el-radio-button label="90d">90 Gün</el-radio-button>
+        </el-radio-group>
+        <el-button
+          type="primary"
+          size="small"
+          icon="el-icon-refresh"
+          :loading="analyticsLoading"
+          :disabled="cooldownActive"
+          @click="refreshAnalytics"
+        >
+          {{ cooldownActive ? cooldownText : 'Verileri Güncelle' }}
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Last Updated Info -->
+    <div v-if="lastUpdated" style="margin-bottom: 12px; font-size: 12px; color: #909399; text-align: right">
+      <i class="el-icon-time"></i> Son güncelleme: {{ formatDateTime(lastUpdated) }}
+      <span v-if="fromCache" style="margin-left: 6px; color: #e6a23c">(önbellek)</span>
     </div>
 
     <!-- Site Count Stats -->
@@ -81,9 +99,9 @@
       <div v-if="perSiteData.length > 0" style="position: relative; height: 350px">
         <canvas ref="barChart"></canvas>
       </div>
-      <div v-else style="text-align: center; padding: 40px 0; color: #909399">
+      <div v-else-if="!analyticsLoading" style="text-align: center; padding: 40px 0; color: #909399">
         <i class="el-icon-data-analysis" style="font-size: 40px; margin-bottom: 8px; display: block"></i>
-        Analitik verisi bulunamadı. Google Analytics yapılandırmasını kontrol edin.
+        Analitik verisi bulunamadı. "Verileri Güncelle" butonuna tıklayarak verileri çekin.
       </div>
     </el-card>
 
@@ -198,6 +216,12 @@ export default {
       analyticsTotals: { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 },
       perSiteData: [],
       analyticsLoading: false,
+      lastUpdated: null,
+      fromCache: false,
+      cooldownActive: false,
+      cooldownRemaining: 0,
+      cooldownTimer: null,
+      autoRefreshTimer: null,
       loading: false,
       showBulkDialog: false,
       bulkLoading: false,
@@ -230,29 +254,77 @@ export default {
       if (!this.bulkProgress.is_finished) return null
       return this.bulkProgress.failed > 0 ? 'exception' : 'success'
     },
+    cooldownText() {
+      const min = Math.floor(this.cooldownRemaining / 60)
+      const sec = this.cooldownRemaining % 60
+      return `${min}:${sec.toString().padStart(2, '0')}`
+    },
   },
   created() {
     this.fetchSites()
-    this.fetchAnalytics()
+    this.fetchAnalytics(false) // Load from cache
+    this.startAutoRefresh()
   },
   methods: {
-    async fetchAnalytics() {
+    async fetchAnalytics(refresh = false) {
       this.analyticsLoading = true
       try {
-        const { data } = await getAnalyticsSummary({ period: this.period })
-        this.analyticsTotals = data.data?.totals || { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 }
-        this.perSiteData = (data.data?.per_site || []).filter((s) => !s.ga_error)
+        const params = { period: this.period }
+        if (refresh) params.refresh = 1
+        const { data } = await getAnalyticsSummary(params)
+        const result = data.data
+        if (result) {
+          this.analyticsTotals = result.totals || { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 }
+          this.perSiteData = (result.per_site || []).filter((s) => !s.ga_error)
+          this.lastUpdated = result.last_updated || null
+          this.fromCache = !!data.from_cache
+        }
+        // Handle cooldown from server
+        if (data.cooldown_remaining > 0) {
+          this.startCooldown(data.cooldown_remaining)
+        }
+        if (data.cooldown && refresh) {
+          this.$message.warning(data.message || 'Lütfen bekleyin, veriler yakın zamanda güncellendi.')
+        }
+        if (data.refreshed) {
+          this.$message.success('Veriler başarıyla güncellendi!')
+          this.fromCache = false
+        }
         this.$nextTick(() => {
           this.renderBarChart()
         })
       } catch {
-        // GA not configured, skip silently
+        if (refresh) {
+          this.$message.error('Veriler güncellenirken hata oluştu.')
+        }
       } finally {
         this.analyticsLoading = false
       }
     },
+    refreshAnalytics() {
+      this.fetchAnalytics(true)
+    },
     onPeriodChange() {
-      this.fetchAnalytics()
+      this.fetchAnalytics(false) // period change loads from cache first
+    },
+    startCooldown(seconds) {
+      this.cooldownRemaining = Math.ceil(seconds)
+      this.cooldownActive = true
+      if (this.cooldownTimer) clearInterval(this.cooldownTimer)
+      this.cooldownTimer = setInterval(() => {
+        this.cooldownRemaining--
+        if (this.cooldownRemaining <= 0) {
+          this.cooldownActive = false
+          clearInterval(this.cooldownTimer)
+          this.cooldownTimer = null
+        }
+      }, 1000)
+    },
+    startAutoRefresh() {
+      // Auto refresh every 2 hours
+      this.autoRefreshTimer = setInterval(() => {
+        this.fetchAnalytics(true)
+      }, 7200000)
     },
     renderBarChart() {
       if (this.barChart) {
@@ -341,6 +413,16 @@ export default {
         day: 'numeric',
       })
     },
+    formatDateTime(d) {
+      if (!d) return ''
+      return new Date(d).toLocaleString('tr-TR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    },
     formatNumber(n) {
       if (n == null || n === 0) return '0'
       return Number(n).toLocaleString('tr-TR')
@@ -368,7 +450,6 @@ export default {
           this.bulkPollTimer = setTimeout(() => this.pollBulkProgress(), 3000)
         }
       } catch {
-        // silently retry
         this.bulkPollTimer = setTimeout(() => this.pollBulkProgress(), 5000)
       }
     },
@@ -392,6 +473,8 @@ export default {
   },
   beforeDestroy() {
     if (this.bulkPollTimer) clearTimeout(this.bulkPollTimer)
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer)
+    if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer)
     if (this.barChart) this.barChart.destroy()
   },
 }

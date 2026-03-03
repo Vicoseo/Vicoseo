@@ -10,9 +10,13 @@ use App\Services\GoogleAnalyticsService;
 use App\Services\GoogleSearchConsoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AnalyticsController extends Controller
 {
+    private const CACHE_TTL = 7200;      // 2 hours
+    private const COOLDOWN_TTL = 300;    // 5 minutes
+
     public function __construct(
         private GoogleAnalyticsService $analytics,
         private GoogleSearchConsoleService $gsc,
@@ -66,10 +70,80 @@ class AnalyticsController extends Controller
 
     /**
      * Get aggregated analytics summary across all sites.
+     * Uses a snapshot cache (2h TTL). Pass ?refresh=1 to force update (5min cooldown).
      */
     public function summary(Request $request): JsonResponse
     {
         $period = $request->query('period', '7d');
+        $forceRefresh = $request->boolean('refresh');
+
+        $cacheKey = "analytics_summary:{$period}";
+        $cooldownKey = "analytics_cooldown:{$period}";
+
+        // Force refresh requested
+        if ($forceRefresh) {
+            if (Cache::has($cooldownKey)) {
+                $remaining = Cache::get($cooldownKey) - time();
+                return response()->json([
+                    'data' => Cache::get($cacheKey),
+                    'cooldown' => true,
+                    'cooldown_remaining' => max(0, $remaining),
+                    'message' => 'Lütfen bekleyin, veriler yakın zamanda güncellendi.',
+                ]);
+            }
+
+            // Set cooldown
+            Cache::put($cooldownKey, time() + self::COOLDOWN_TTL, self::COOLDOWN_TTL);
+
+            // Fetch fresh data
+            $data = $this->fetchSummaryData($period);
+            Cache::put($cacheKey, $data, self::CACHE_TTL);
+
+            return response()->json([
+                'data' => $data,
+                'refreshed' => true,
+                'cooldown' => false,
+            ]);
+        }
+
+        // Return cached data or fetch if empty
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            $cooldownRemaining = 0;
+            if (Cache::has($cooldownKey)) {
+                $cooldownRemaining = max(0, Cache::get($cooldownKey) - time());
+            }
+
+            return response()->json([
+                'data' => $cached,
+                'from_cache' => true,
+                'cooldown_remaining' => $cooldownRemaining,
+            ]);
+        }
+
+        // No cache exists — fetch for the first time
+        if (Cache::has($cooldownKey)) {
+            return response()->json([
+                'data' => $this->emptySummary($period),
+                'from_cache' => false,
+                'cooldown' => true,
+                'cooldown_remaining' => max(0, Cache::get($cooldownKey) - time()),
+            ]);
+        }
+
+        Cache::put($cooldownKey, time() + self::COOLDOWN_TTL, self::COOLDOWN_TTL);
+        $data = $this->fetchSummaryData($period);
+        Cache::put($cacheKey, $data, self::CACHE_TTL);
+
+        return response()->json([
+            'data' => $data,
+            'refreshed' => true,
+            'cooldown' => false,
+        ]);
+    }
+
+    private function fetchSummaryData(string $period): array
+    {
         [$startDate, $endDate] = $this->parsePeriod($period);
         [$gscStart, $gscEnd] = $this->parseGscPeriod($period);
 
@@ -94,7 +168,6 @@ class AnalyticsController extends Controller
                 'domain' => $site->domain,
             ];
 
-            // GA data (filter by hostname for shared properties)
             try {
                 $hostname = $site->domain;
                 $data = $this->analytics->getVisitors($site->ga_measurement_id, $startDate, $endDate, $hostname);
@@ -105,7 +178,6 @@ class AnalyticsController extends Controller
                 $siteData['active_users'] = $data['active_users'];
                 $siteData['page_views'] = $data['page_views'];
 
-                // Daily data for sparklines
                 $daily = $this->analytics->getDailyVisitors($site->ga_measurement_id, $startDate, $endDate, $hostname);
                 $siteData['daily'] = $daily;
             } catch (\Exception $e) {
@@ -115,7 +187,6 @@ class AnalyticsController extends Controller
                 $siteData['daily'] = [];
             }
 
-            // GSC data
             try {
                 $siteUrl = 'https://' . $site->domain;
                 $gscData = $this->gsc->getPerformanceSummary($siteUrl, $gscStart, $gscEnd);
@@ -131,13 +202,22 @@ class AnalyticsController extends Controller
             $perSite[] = $siteData;
         }
 
-        return response()->json([
-            'data' => [
-                'period' => $period,
-                'totals' => $totals,
-                'per_site' => $perSite,
-            ],
-        ]);
+        return [
+            'period' => $period,
+            'totals' => $totals,
+            'per_site' => $perSite,
+            'last_updated' => now()->toIso8601String(),
+        ];
+    }
+
+    private function emptySummary(string $period): array
+    {
+        return [
+            'period' => $period,
+            'totals' => ['active_users' => 0, 'page_views' => 0, 'sessions' => 0, 'clicks' => 0, 'impressions' => 0, 'sites_count' => 0],
+            'per_site' => [],
+            'last_updated' => null,
+        ];
     }
 
     private function parsePeriod(string $period): array

@@ -5,7 +5,7 @@ export function getSiteAnalytics(siteId, params = {}) {
 }
 
 export function getAnalyticsSummary(params = {}) {
-  return client.get('/admin/analytics/summary', { params })
+  return client.get('/admin/analytics/summary', { params, timeout: 120000 })
 }
 
 export function getSiteGscPerformance(siteId, params = {}) {
