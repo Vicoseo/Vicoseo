@@ -30,6 +30,10 @@ class GoogleAnalyticsService
         $client = new Client();
         $client->setAuthConfig(config('google.service_account_path'));
         $client->addScope(AnalyticsData::ANALYTICS_READONLY);
+        $client->setHttpClient(new \GuzzleHttp\Client([
+            'timeout' => 15,
+            'connect_timeout' => 5,
+        ]));
 
         $this->service = new AnalyticsData($client);
 

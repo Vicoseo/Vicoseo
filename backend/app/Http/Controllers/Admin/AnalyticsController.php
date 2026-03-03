@@ -11,6 +11,7 @@ use App\Services\GoogleSearchConsoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class AnalyticsController extends Controller
 {
@@ -97,7 +98,11 @@ class AnalyticsController extends Controller
 
             // Fetch fresh data
             $data = $this->fetchSummaryData($period);
-            Cache::put($cacheKey, $data, self::CACHE_TTL);
+
+            // Don't cache error responses (missing credentials, etc.)
+            if (!isset($data['error'])) {
+                Cache::put($cacheKey, $data, self::CACHE_TTL);
+            }
 
             return response()->json([
                 'data' => $data,
@@ -133,7 +138,10 @@ class AnalyticsController extends Controller
 
         Cache::put($cooldownKey, time() + self::COOLDOWN_TTL, self::COOLDOWN_TTL);
         $data = $this->fetchSummaryData($period);
-        Cache::put($cacheKey, $data, self::CACHE_TTL);
+
+        if (!isset($data['error'])) {
+            Cache::put($cacheKey, $data, self::CACHE_TTL);
+        }
 
         return response()->json([
             'data' => $data,
@@ -144,6 +152,23 @@ class AnalyticsController extends Controller
 
     private function fetchSummaryData(string $period): array
     {
+        $credPath = config('google.service_account_path');
+        if (!$credPath || !file_exists($credPath)) {
+            Log::error('Google service account file not found: ' . ($credPath ?: 'not configured'));
+
+            return $this->emptySummary($period) + [
+                'error' => 'Google service account yapılandırılmamış. Lütfen service-account.json dosyasını yükleyin.',
+            ];
+        }
+
+        if (!class_exists(\Google\Client::class)) {
+            Log::error('Google API client package is not installed');
+
+            return $this->emptySummary($period) + [
+                'error' => 'Google API paketleri yüklü değil. Sunucuda "composer install" çalıştırın.',
+            ];
+        }
+
         [$startDate, $endDate] = $this->parsePeriod($period);
         [$gscStart, $gscEnd] = $this->parseGscPeriod($period);
 
@@ -202,12 +227,20 @@ class AnalyticsController extends Controller
             $perSite[] = $siteData;
         }
 
-        return [
+        $failedCount = collect($perSite)->filter(fn ($s) => isset($s['ga_error']))->count();
+
+        $result = [
             'period' => $period,
             'totals' => $totals,
             'per_site' => $perSite,
             'last_updated' => now()->toIso8601String(),
         ];
+
+        if ($failedCount > 0 && $failedCount === count($perSite)) {
+            $result['error'] = "Hiçbir site için analitik verisi alınamadı ({$failedCount} site hata verdi).";
+        }
+
+        return $result;
     }
 
     private function emptySummary(string $period): array
@@ -218,6 +251,66 @@ class AnalyticsController extends Controller
             'per_site' => [],
             'last_updated' => null,
         ];
+    }
+
+    public function diagnostics(): JsonResponse
+    {
+        $checks = [];
+
+        // 1. Service account file
+        $credPath = config('google.service_account_path');
+        $checks['service_account_path'] = $credPath;
+        $checks['service_account_exists'] = $credPath && file_exists($credPath);
+
+        if ($checks['service_account_exists']) {
+            $json = json_decode(file_get_contents($credPath), true);
+            $checks['service_account_email'] = $json['client_email'] ?? 'unknown';
+            $checks['service_account_project'] = $json['project_id'] ?? 'unknown';
+        }
+
+        // 2. Required packages
+        $checks['packages'] = [
+            'google/apiclient' => class_exists(\Google\Client::class),
+            'google/apiclient-services' => class_exists(\Google\Service\AnalyticsData::class),
+            'google/analytics-admin' => class_exists(\Google\Analytics\Admin\V1alpha\AnalyticsAdminServiceClient::class),
+        ];
+
+        // 3. Sites with GA measurement IDs
+        $sites = Site::where('is_active', true)->whereNotNull('ga_measurement_id')->get(['id', 'domain', 'ga_measurement_id']);
+        $checks['sites_with_ga'] = $sites->map(fn ($s) => [
+            'id' => $s->id,
+            'domain' => $s->domain,
+            'measurement_id' => $s->ga_measurement_id,
+        ]);
+
+        // 4. Test API call (first site only)
+        $checks['api_test'] = null;
+        if ($checks['service_account_exists'] && $checks['packages']['google/apiclient'] && $sites->isNotEmpty()) {
+            try {
+                $testSite = $sites->first();
+                $data = $this->analytics->getVisitors($testSite->ga_measurement_id, '7daysAgo', 'today', $testSite->domain);
+                $checks['api_test'] = [
+                    'success' => true,
+                    'site' => $testSite->domain,
+                    'result' => $data,
+                ];
+            } catch (\Exception $e) {
+                $checks['api_test'] = [
+                    'success' => false,
+                    'site' => $sites->first()->domain,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        // 5. Cache status
+        $checks['cache'] = [
+            'summary_7d' => Cache::has('analytics_summary:7d'),
+            'summary_30d' => Cache::has('analytics_summary:30d'),
+            'measurement_id_map' => Cache::has('ga:measurement_id_map'),
+        ];
+
+        return response()->json(['diagnostics' => $checks]);
     }
 
     private function parsePeriod(string $period): array

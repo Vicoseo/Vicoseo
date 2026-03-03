@@ -100,8 +100,14 @@
         <canvas ref="barChart"></canvas>
       </div>
       <div v-else-if="!analyticsLoading" style="text-align: center; padding: 40px 0; color: #909399">
-        <i class="el-icon-data-analysis" style="font-size: 40px; margin-bottom: 8px; display: block"></i>
-        Analitik verisi bulunamadı. "Verileri Güncelle" butonuna tıklayarak verileri çekin.
+        <i :class="analyticsError ? 'el-icon-warning' : 'el-icon-data-analysis'" style="font-size: 40px; margin-bottom: 8px; display: block"></i>
+        <template v-if="analyticsError">
+          <div style="color: #f56c6c; margin-bottom: 8px">{{ analyticsError }}</div>
+          <div>Sorunu çözdükten sonra "Verileri Güncelle" butonuna tıklayın.</div>
+        </template>
+        <template v-else>
+          Analitik verisi bulunamadı. "Verileri Güncelle" butonuna tıklayarak verileri çekin.
+        </template>
       </div>
     </el-card>
 
@@ -216,6 +222,7 @@ export default {
       analyticsTotals: { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 },
       perSiteData: [],
       analyticsLoading: false,
+      analyticsError: null,
       lastUpdated: null,
       fromCache: false,
       cooldownActive: false,
@@ -278,6 +285,13 @@ export default {
           this.perSiteData = (result.per_site || []).filter((s) => !s.ga_error)
           this.lastUpdated = result.last_updated || null
           this.fromCache = !!data.from_cache
+
+          if (result.error) {
+            this.analyticsError = result.error
+            this.$message.warning(result.error)
+          } else {
+            this.analyticsError = null
+          }
         }
         // Handle cooldown from server
         if (data.cooldown_remaining > 0) {
@@ -296,6 +310,8 @@ export default {
       } catch {
         if (refresh) {
           this.$message.error('Veriler güncellenirken hata oluştu.')
+        } else {
+          this.$message.warning('Bu dönem için veriler yüklenemedi.')
         }
       } finally {
         this.analyticsLoading = false

@@ -24,6 +24,10 @@ class GoogleSearchConsoleService
         $this->client->setAuthConfig(config('google.service_account_path'));
         $this->client->addScope(Webmasters::WEBMASTERS_READONLY);
         $this->client->addScope(Webmasters::WEBMASTERS);
+        $this->client->setHttpClient(new \GuzzleHttp\Client([
+            'timeout' => 15,
+            'connect_timeout' => 5,
+        ]));
 
         return $this->client;
     }

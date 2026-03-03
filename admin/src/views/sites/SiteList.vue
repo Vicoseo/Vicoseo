@@ -5,7 +5,59 @@
       <el-button type="primary" icon="el-icon-plus" size="small" @click="$router.push('/sites/create')">Yeni Site</el-button>
     </div>
 
-    <div style="margin-bottom: 16px">
+    <!-- Summary Stats -->
+    <el-row :gutter="16" style="margin-bottom: 16px">
+      <el-col :span="4">
+        <el-card shadow="hover">
+          <div class="summary-stat">
+            <div class="summary-num">{{ sites.length }}</div>
+            <div class="summary-label">Toplam Site</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #67c23a">{{ activeSiteCount }}</div>
+            <div class="summary-label">Aktif</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #f56c6c">{{ inactiveSiteCount }}</div>
+            <div class="summary-label">Pasif</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" v-loading="analyticsLoading">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #e6a23c">{{ formatNumber(analyticsTotals.active_users) }}</div>
+            <div class="summary-label">Ziyaretçi</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" v-loading="analyticsLoading">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #909399">{{ formatNumber(analyticsTotals.page_views) }}</div>
+            <div class="summary-label">Sayfa Gör.</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" v-loading="analyticsLoading">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #67c23a">{{ formatNumber(analyticsTotals.clicks) }}</div>
+            <div class="summary-label">Tıklama</div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
       <el-input
         v-model="search"
         placeholder="Ara..."
@@ -15,6 +67,11 @@
         style="width: 240px"
         @input="handleSearch"
       />
+      <el-radio-group v-model="period" size="small" @change="onPeriodChange">
+        <el-radio-button label="7d">7 Gün</el-radio-button>
+        <el-radio-button label="30d">30 Gün</el-radio-button>
+        <el-radio-button label="90d">90 Gün</el-radio-button>
+      </el-radio-group>
     </div>
 
     <div v-loading="loading" class="site-grid">
@@ -112,7 +169,10 @@ export default {
       currentPage: 1,
       perPage: 18,
       total: 0,
+      period: '7d',
       analyticsData: [],
+      analyticsTotals: { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 },
+      analyticsLoading: false,
       analyticsLoaded: false,
       sparkCharts: {},
     }
@@ -131,6 +191,12 @@ export default {
         map[item.site_id] = item
       })
       return map
+    },
+    activeSiteCount() {
+      return this.sites.filter((s) => s.is_active).length
+    },
+    inactiveSiteCount() {
+      return this.sites.filter((s) => !s.is_active).length
     },
   },
   created() {
@@ -152,16 +218,23 @@ export default {
       }
     },
     async fetchAnalytics() {
+      this.analyticsLoading = true
       try {
-        const { data } = await getAnalyticsSummary({ period: '7d' })
+        const { data } = await getAnalyticsSummary({ period: this.period })
         this.analyticsData = data.data?.per_site || []
+        this.analyticsTotals = data.data?.totals || { active_users: 0, page_views: 0, sessions: 0, clicks: 0, impressions: 0 }
         this.analyticsLoaded = true
         this.$nextTick(() => {
           this.renderSparklines()
         })
       } catch {
         this.analyticsLoaded = false
+      } finally {
+        this.analyticsLoading = false
       }
+    },
+    onPeriodChange() {
+      this.fetchAnalytics()
     },
     getSiteAnalytics(siteId) {
       return this.analyticsMap[siteId] || null
@@ -241,6 +314,10 @@ export default {
 </script>
 
 <style scoped>
+.summary-stat { text-align: center; padding: 8px 0; }
+.summary-num { font-size: 24px; font-weight: 700; color: #409eff; }
+.summary-label { font-size: 11px; color: #909399; margin-top: 2px; }
+
 .site-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

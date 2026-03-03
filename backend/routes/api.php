@@ -65,6 +65,7 @@ Route::prefix('admin')->group(function () {
 
         // Analytics summary (all sites)
         Route::get('analytics/summary', [Admin\AnalyticsController::class, 'summary']);
+        Route::get('analytics/diagnostics', [Admin\AnalyticsController::class, 'diagnostics']);
 
         // Site management
         Route::apiResource('sites', Admin\SiteController::class);

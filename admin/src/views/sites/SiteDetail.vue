@@ -43,6 +43,65 @@
       </div>
     </div>
 
+    <!-- Analytics Summary Cards + Chart (like Dashboard) -->
+    <div style="margin-bottom: 20px">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+        <el-radio-group v-model="analyticsPeriod" size="small" @change="fetchAnalytics(); fetchGsc()">
+          <el-radio-button label="7d">7 Gün</el-radio-button>
+          <el-radio-button label="30d">30 Gün</el-radio-button>
+          <el-radio-button label="90d">90 Gün</el-radio-button>
+        </el-radio-group>
+        <div v-if="analyticsError" style="font-size: 12px; color: #f56c6c">
+          <i class="el-icon-warning"></i> {{ analyticsError }}
+        </div>
+      </div>
+
+      <el-row :gutter="16" style="margin-bottom: 16px">
+        <el-col :span="6">
+          <el-card shadow="hover" v-loading="analyticsLoading">
+            <div class="stat-card">
+              <div class="stat-number stat-visitors">{{ formatNumber(quickStats.active_users) }}</div>
+              <div class="stat-label">Ziyaretçi</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover" v-loading="analyticsLoading">
+            <div class="stat-card">
+              <div class="stat-number stat-pageviews">{{ formatNumber(quickStats.page_views) }}</div>
+              <div class="stat-label">Sayfa Görüntüleme</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover" v-loading="gscLoading">
+            <div class="stat-card">
+              <div class="stat-number stat-clicks">{{ formatNumber(quickStats.clicks) }}</div>
+              <div class="stat-label">Google Tıklama</div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card shadow="hover" v-loading="gscLoading">
+            <div class="stat-card">
+              <div class="stat-number stat-impressions">{{ formatNumber(quickStats.impressions) }}</div>
+              <div class="stat-label">Gösterim</div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <el-card shadow="hover" v-loading="analyticsLoading" style="margin-bottom: 0">
+        <div v-if="analyticsData && analyticsData.daily && analyticsData.daily.length > 1" style="position: relative; height: 220px">
+          <canvas ref="dailyChart"></canvas>
+        </div>
+        <div v-else-if="!analyticsLoading" style="text-align: center; padding: 30px 0; color: #909399">
+          <i class="el-icon-data-analysis" style="font-size: 32px; display: block; margin-bottom: 6px"></i>
+          Grafik verisi bulunamadı.
+        </div>
+      </el-card>
+    </div>
+
     <el-card v-loading="loading">
       <el-tabs v-model="activeTab">
         <el-tab-pane label="Sayfalar" name="pages">
@@ -138,32 +197,22 @@
         </el-tab-pane>
         <el-tab-pane label="Analytics" name="analytics">
           <div v-if="activeTab === 'analytics'">
-            <div style="margin-bottom: 12px">
-              <el-radio-group v-model="analyticsPeriod" size="small" @change="fetchAnalytics">
-                <el-radio-button label="7d">7 Gun</el-radio-button>
-                <el-radio-button label="30d">30 Gun</el-radio-button>
-                <el-radio-button label="90d">90 Gun</el-radio-button>
-              </el-radio-group>
-            </div>
             <div v-loading="analyticsLoading">
               <el-row :gutter="16" style="margin-bottom: 16px" v-if="analyticsData">
-                <el-col :span="6">
-                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.active_users }}</div><div class="mini-label">Kullanicilar</div></div></el-card>
-                </el-col>
-                <el-col :span="6">
-                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.page_views }}</div><div class="mini-label">Sayfa Goruntulenme</div></div></el-card>
-                </el-col>
-                <el-col :span="6">
+                <el-col :span="8">
                   <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.sessions }}</div><div class="mini-label">Oturum</div></div></el-card>
                 </el-col>
-                <el-col :span="6">
-                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.avg_session_duration }}s</div><div class="mini-label">Ort. Sure</div></div></el-card>
+                <el-col :span="8">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData.summary.avg_session_duration }}s</div><div class="mini-label">Ort. Süre</div></div></el-card>
+                </el-col>
+                <el-col :span="8">
+                  <el-card shadow="never"><div class="mini-stat"><div class="mini-num">{{ analyticsData ? analyticsData.top_pages.length : 0 }}</div><div class="mini-label">Sayfa Sayısı</div></div></el-card>
                 </el-col>
               </el-row>
               <el-table :data="analyticsData ? analyticsData.top_pages : []" size="small" border v-if="analyticsData">
                 <el-table-column prop="path" label="Sayfa" />
-                <el-table-column prop="page_views" label="Goruntulenme" width="140" />
-                <el-table-column prop="users" label="Kullanicilar" width="130" />
+                <el-table-column prop="page_views" label="Görüntülenme" width="140" />
+                <el-table-column prop="users" label="Kullanıcılar" width="130" />
               </el-table>
               <div v-if="analyticsError" style="color: #f56c6c; padding: 20px">{{ analyticsError }}</div>
             </div>
@@ -323,6 +372,7 @@
 </template>
 
 <script>
+import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler } from 'chart.js'
 import { getSite, aiGenerateContent, provisionSite, getProvisionStatus } from '../../api/sites'
 import { getEarnings, createEarning, updateEarning, deleteEarning } from '../../api/earnings'
 import { getPromotions, createPromotion, updatePromotion, deletePromotion } from '../../api/promotions'
@@ -335,6 +385,8 @@ import RedirectList from '../redirects/RedirectList.vue'
 import FooterLinkList from '../footerLinks/FooterLinkList.vue'
 import ContentScheduleForm from '../content/ContentScheduleForm.vue'
 import ImageUpload from '../../components/ImageUpload.vue'
+
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler)
 
 export default {
   name: 'SiteDetail',
@@ -382,6 +434,7 @@ export default {
       analyticsData: null,
       analyticsLoading: false,
       analyticsError: null,
+      dailyChart: null,
       // GSC
       gscPeriod: '28d',
       gscData: null,
@@ -398,18 +451,28 @@ export default {
         ? 'ChatGPT ile İçerik Oluştur'
         : 'Claude ile İçerik Oluştur'
     },
+    quickStats() {
+      const ga = this.analyticsData?.summary || {}
+      const gsc = this.gscData?.summary || {}
+      return {
+        active_users: ga.active_users || 0,
+        page_views: ga.page_views || 0,
+        clicks: gsc.clicks || 0,
+        impressions: gsc.impressions || 0,
+      }
+    },
   },
   watch: {
     activeTab(tab) {
       if (tab === 'earnings') this.fetchEarnings()
       if (tab === 'promotions') this.fetchPromos()
-      if (tab === 'analytics' && !this.analyticsData) this.fetchAnalytics()
-      if (tab === 'gsc' && !this.gscData) this.fetchGsc()
     },
   },
   created() {
     this.fetchSite()
     this.fetchProvisionStatus()
+    this.fetchAnalytics()
+    this.fetchGsc()
   },
   methods: {
     async fetchSite() {
@@ -468,22 +531,101 @@ export default {
       try {
         const { data } = await getSiteAnalytics(this.siteId, { period: this.analyticsPeriod })
         this.analyticsData = data.data
+        if (data.data?.error) {
+          this.analyticsError = data.data.error
+        }
+        this.$nextTick(() => this.renderDailyChart())
       } catch (err) {
-        this.analyticsError = err.response?.data?.error || 'Analytics verileri yuklenemedi'
+        this.analyticsError = err.response?.data?.error || 'Analytics verileri yüklenemedi'
       } finally {
         this.analyticsLoading = false
       }
     },
     async fetchGsc() {
       this.gscLoading = true
+      const gscPeriodMap = { '7d': '7d', '30d': '28d', '90d': '90d' }
+      this.gscPeriod = gscPeriodMap[this.analyticsPeriod] || '28d'
       try {
         const { data } = await getGscPerformance(this.siteId, { period: this.gscPeriod })
         this.gscData = data.data
       } catch {
-        this.$message.error('Search Console verileri yuklenemedi')
+        // GSC data may not be available
       } finally {
         this.gscLoading = false
       }
+    },
+    renderDailyChart() {
+      if (this.dailyChart) {
+        this.dailyChart.destroy()
+        this.dailyChart = null
+      }
+      const canvas = this.$refs.dailyChart
+      if (!canvas || !this.analyticsData?.daily || this.analyticsData.daily.length < 2) return
+
+      const daily = this.analyticsData.daily
+      const labels = daily.map((d) => {
+        const dt = new Date(d.date)
+        return dt.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })
+      })
+      const users = daily.map((d) => d.users || 0)
+      const pageViews = daily.map((d) => d.page_views || d.pageViews || 0)
+
+      this.dailyChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Ziyaretçi',
+              data: users,
+              borderColor: '#e6a23c',
+              backgroundColor: 'rgba(230, 162, 60, 0.08)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 2,
+              pointHoverRadius: 5,
+            },
+            ...(pageViews.some((v) => v > 0) ? [{
+              label: 'Sayfa Görüntüleme',
+              data: pageViews,
+              borderColor: '#909399',
+              backgroundColor: 'rgba(144, 147, 153, 0.05)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 2,
+              pointHoverRadius: 5,
+            }] : []),
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { size: 12 }, usePointStyle: true, pointStyle: 'rectRounded' },
+            },
+            tooltip: { mode: 'index', intersect: false },
+          },
+          scales: {
+            x: {
+              ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 30 },
+              grid: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+          },
+        },
+      })
+    },
+    formatNumber(n) {
+      if (n == null || n === 0) return '0'
+      return Number(n).toLocaleString('tr-TR')
     },
     async handleSubmitSitemap() {
       this.submittingSitemap = true
@@ -702,10 +844,20 @@ export default {
       }
     },
   },
+  beforeDestroy() {
+    if (this.dailyChart) this.dailyChart.destroy()
+  },
 }
 </script>
 
 <style scoped>
+.stat-card { text-align: center; padding: 10px 0; }
+.stat-number { font-size: 28px; font-weight: 700; color: #409eff; }
+.stat-label { font-size: 12px; color: #909399; margin-top: 4px; }
+.stat-visitors { color: #e6a23c; }
+.stat-pageviews { color: #909399; }
+.stat-clicks { color: #67c23a; }
+.stat-impressions { color: #409eff; }
 .mini-stat { text-align: center; padding: 6px 0; }
 .mini-num { font-size: 22px; font-weight: 700; color: #409eff; }
 .mini-label { font-size: 12px; color: #909399; margin-top: 2px; }
