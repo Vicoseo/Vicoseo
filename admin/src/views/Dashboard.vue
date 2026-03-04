@@ -144,6 +144,10 @@
         <el-form-item label="Günlük Sayısı" v-if="bulkForm.content_type === 'daily' || bulkForm.content_type === 'all'">
           <el-input-number v-model="bulkForm.daily_count" :min="1" :max="10" />
         </el-form-item>
+        <el-form-item label="Görsel Üretimi">
+          <el-switch v-model="bulkForm.no_image" active-text="Üretme" inactive-text="Üret" />
+          <div style="font-size: 12px; color: #909399; margin-top: 4px">Kapalıyken yazılara DALL-E görsel üretilmez</div>
+        </el-form-item>
       </el-form>
 
       <!-- Progress View -->
@@ -240,6 +244,7 @@ export default {
         content_type: 'all',
         overwrite: false,
         daily_count: 2,
+        no_image: true,
       },
       barChart: null,
     }

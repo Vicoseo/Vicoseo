@@ -29,6 +29,7 @@ class BulkContentJob implements ShouldQueue
         public string $provider,
         public bool $overwrite = false,
         public int $dailyCount = 2,
+        public bool $noImage = false,
     ) {}
 
     public function handle(AIContentService $aiService, ImageGenerationService $imageService): void
@@ -55,6 +56,11 @@ class BulkContentJob implements ShouldQueue
                 "{$slug}-guncel-adres",
                 "{$slug}-bonus",
                 "{$slug}-mobil-giris",
+                "{$slug}-casino",
+                "{$slug}-slot",
+                "{$slug}-canli-casino",
+                "{$slug}-kayit",
+                "{$slug}-para-yatirma",
             ];
 
             $created = 0;
@@ -179,7 +185,10 @@ class BulkContentJob implements ShouldQueue
                             $brandName, $domain, $topic['topic'], $topic['instructions'], $siteInfo, $clusterSlugs, $allExistingSlugs
                         );
 
-                        $featuredImage = $imageService->generateFeaturedImage($topic['topic'], $brandName);
+                        $featuredImage = null;
+                        if (!$this->noImage) {
+                            $featuredImage = $imageService->generateFeaturedImage($topic['topic'], $brandName);
+                        }
 
                         Post::create([
                             'slug' => $generated['slug'] ?? $topicSlug,
@@ -214,8 +223,11 @@ class BulkContentJob implements ShouldQueue
                             $brandName, $domain, $topic['topic'], $topic['instructions'], $existingPostSlugs
                         );
 
-                        $imagePrompt = $generated['featured_image_prompt'] ?? null;
-                        $featuredImage = $imageService->generateFeaturedImage($topicName, $brandName, $imagePrompt);
+                        $featuredImage = null;
+                        if (!$this->noImage) {
+                            $imagePrompt = $generated['featured_image_prompt'] ?? null;
+                            $featuredImage = $imageService->generateFeaturedImage($topicName, $brandName, $imagePrompt);
+                        }
 
                         Post::create([
                             'slug' => $topic['full_slug'],
@@ -269,6 +281,11 @@ class BulkContentJob implements ShouldQueue
             ['slug' => "{$slug}-guncel-adres", 'topic' => "{$brandName} Güncel Adres " . date('Y'), 'instructions' => "{$brandName} " . date('Y') . " güncel erişim bilgileri. 1500-2200 kelime."],
             ['slug' => "{$slug}-bonus", 'topic' => "{$brandName} Bonus ve Kampanyalar", 'instructions' => "{$brandName} bonus türleri ve çevrim şartları. 1500-2200 kelime."],
             ['slug' => "{$slug}-mobil-giris", 'topic' => "{$brandName} Mobil Giriş", 'instructions' => "{$brandName} mobil giriş rehberi. 1500-2200 kelime."],
+            ['slug' => "{$slug}-casino", 'topic' => "{$brandName} Casino Oyunları Rehberi", 'instructions' => "{$brandName} casino oyunları rehberi. Rulet, blackjack, poker, baccarat gibi masa oyunları ve casino deneyimi. Oyun kuralları, masa limitleri, strateji ipuçları, popüler oyun sağlayıcıları. 1500-2200 kelime."],
+            ['slug' => "{$slug}-slot", 'topic' => "{$brandName} Slot Oyunları Rehberi", 'instructions' => "{$brandName} slot oyunları detaylı rehberi. Popüler slotlar, RTP oranları, bonus özellikler, free spin mekanikleri, jackpot oyunları. Pragmatic Play, NetEnt gibi sağlayıcılar ve en çok kazandıran slotlar. 1500-2200 kelime."],
+            ['slug' => "{$slug}-canli-casino", 'topic' => "{$brandName} Canlı Casino Deneyimi", 'instructions' => "{$brandName} canlı casino rehberi. Canlı rulet, canlı blackjack, game show oyunları (Crazy Time, Monopoly Live), canlı poker masaları. Gerçek krupiyelerle oynama deneyimi, yayın kalitesi, masa limitleri. 1500-2200 kelime."],
+            ['slug' => "{$slug}-kayit", 'topic' => "{$brandName} Kayıt ve Üyelik Rehberi", 'instructions' => "{$brandName} üyelik açma adım adım rehber. Kayıt formu doldurma, hesap doğrulama süreci, ilk giriş adımları, hesap güvenliği ayarları. Kayıt sırasında dikkat edilmesi gerekenler. 1500-2200 kelime."],
+            ['slug' => "{$slug}-para-yatirma", 'topic' => "{$brandName} Para Yatırma ve Çekme Rehberi", 'instructions' => "{$brandName} ödeme yöntemleri rehberi. Papara, kripto para, banka havalesi ile para yatırma ve çekme. Minimum/maksimum limitler, çekim süreleri, komisyon bilgileri, hesap doğrulama gereklilikleri. 1500-2200 kelime."],
         ];
     }
 

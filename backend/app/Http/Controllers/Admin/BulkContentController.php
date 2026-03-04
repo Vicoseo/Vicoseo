@@ -26,12 +26,14 @@ class BulkContentController extends Controller
             'daily_count' => ['sometimes', 'integer', 'min:1', 'max:10'],
             'site_ids' => ['sometimes', 'array'],
             'site_ids.*' => ['integer', 'exists:landlord.sites,id'],
+            'no_image' => ['sometimes', 'boolean'],
         ]);
 
         $provider = $request->input('provider');
         $contentType = $request->input('content_type');
         $overwrite = $request->boolean('overwrite', false);
         $dailyCount = $request->integer('daily_count', 2);
+        $noImage = $request->boolean('no_image', false);
 
         // Validate API key
         $apiKey = config("ai.{$provider}.api_key");
@@ -81,6 +83,7 @@ class BulkContentController extends Controller
                 $provider,
                 $overwrite,
                 $dailyCount,
+                $noImage,
             )->onQueue('content');
 
             $tasks[] = [
