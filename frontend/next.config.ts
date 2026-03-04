@@ -18,6 +18,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      {
         source: '/blog/:slug*',
         headers: [
           { key: 'Cache-Control', value: 'public, s-maxage=120, stale-while-revalidate=300' },
@@ -36,17 +47,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/robots.txt',
+        headers: [
+          { key: 'Vary', value: 'Accept-Encoding' },
+        ],
+      },
+      {
         source: '/sitemap.xml',
         headers: [
           { key: 'Cache-Control', value: 'public, s-maxage=3600, stale-while-revalidate=7200' },
-          { key: 'Content-Type', value: 'application/xml' },
+          { key: 'Content-Type', value: 'application/xml; charset=UTF-8' },
+          { key: 'Vary', value: 'Accept-Encoding' },
         ],
       },
       {
         source: '/:path*-sitemap.xml',
         headers: [
           { key: 'Cache-Control', value: 'public, s-maxage=3600, stale-while-revalidate=7200' },
-          { key: 'Content-Type', value: 'application/xml' },
+          { key: 'Content-Type', value: 'application/xml; charset=UTF-8' },
+          { key: 'Vary', value: 'Accept-Encoding' },
         ],
       },
     ];
