@@ -3,7 +3,7 @@ import { getCurrentDomain } from '@/lib/domain';
 import { getPages } from '@/lib/api';
 import { Page } from '@/types';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   let domain = 'localhost';

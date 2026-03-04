@@ -11,6 +11,7 @@ html {
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -22,11 +23,16 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   width: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 img {
   max-width: 100%;
   height: auto;
+}
+
+a, button {
+  touch-action: manipulation;
 }
 
 a {
@@ -62,13 +68,13 @@ p {
 }
 
 .page-content h1 {
-  font-size: 1.85rem;
+  font-size: clamp(1.4rem, 4vw, 1.85rem);
   margin-bottom: 20px;
   line-height: 1.25;
 }
 
 .page-content h2 {
-  font-size: 1.4rem;
+  font-size: clamp(1.15rem, 3vw, 1.4rem);
   margin-top: 1.5em;
 }
 
@@ -1737,5 +1743,14 @@ p {
 @media (max-width: 480px) {
   .service-cards-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

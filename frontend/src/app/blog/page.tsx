@@ -9,7 +9,9 @@ interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const resolvedParams = await searchParams;
+  const currentPage = Number(resolvedParams.page) || 1;
   const domain = await getCurrentDomain();
 
   try {
@@ -17,10 +19,10 @@ export async function generateMetadata(): Promise<Metadata> {
     const siteUrl = `https://${siteRes.data.domain}`;
 
     return {
-      title: 'Blog',
+      title: currentPage > 1 ? `Blog - Sayfa ${currentPage}` : 'Blog',
       description: `${siteRes.data.name} blog yazıları ve güncel makaleler.`,
       alternates: {
-        canonical: `${siteUrl}/blog`,
+        canonical: `${siteUrl}/blog${currentPage > 1 ? `?page=${currentPage}` : ''}`,
       },
       openGraph: {
         title: `Blog | ${siteRes.data.name}`,

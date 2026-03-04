@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import type { SitePromotion } from '@/types';
 
 interface Props {
@@ -83,30 +84,28 @@ export default function PromotionSlider({ promotions, domain, loginUrl }: Props)
           href={href}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          style={{ display: 'block' }}
+          style={{ display: 'block', position: 'relative', aspectRatio: '25/8' }}
         >
-          <img
+          <Image
             src={resolveUrl(item.image, domain)}
             alt={item.title || 'Promosyon'}
-            style={{
-              width: '100%',
-              display: 'block',
-              aspectRatio: '25/8',
-              objectFit: 'cover',
-            }}
+            fill
+            sizes="(max-width: 768px) 100vw, 1200px"
+            style={{ objectFit: 'cover' }}
+            priority={current === 0}
           />
         </a>
       ) : (
-        <img
-          src={resolveUrl(item.image, domain)}
-          alt={item.title || 'Promosyon'}
-          style={{
-            width: '100%',
-            display: 'block',
-            aspectRatio: '25/8',
-            objectFit: 'cover',
-          }}
-        />
+        <div style={{ position: 'relative', aspectRatio: '25/8' }}>
+          <Image
+            src={resolveUrl(item.image, domain)}
+            alt={item.title || 'Promosyon'}
+            fill
+            sizes="(max-width: 768px) 100vw, 1200px"
+            style={{ objectFit: 'cover' }}
+            priority={current === 0}
+          />
+        </div>
       )}
 
       {promotions.length > 1 && (
