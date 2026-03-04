@@ -165,6 +165,83 @@ class CloudflareService
     }
 
     /**
+     * Add a custom hostname via Cloudflare for SaaS.
+     * Requires a Business+ plan zone with SaaS enabled.
+     */
+    public function addCustomHostname(string $hostname): array
+    {
+        $zoneId = config('domains.cloudflare.saas_zone_id');
+        if (!$zoneId) {
+            return ['success' => false, 'message' => 'CLOUDFLARE_SAAS_ZONE_ID yapılandırılmamış.'];
+        }
+
+        $response = $this->post("/zones/{$zoneId}/custom_hostnames", [
+            'hostname' => $hostname,
+            'ssl' => [
+                'method' => 'http',
+                'type' => 'dv',
+                'settings' => [
+                    'min_tls_version' => '1.2',
+                ],
+            ],
+        ]);
+
+        if (!$response['success']) {
+            return [
+                'success' => false,
+                'message' => $this->extractError($response),
+            ];
+        }
+
+        return [
+            'success' => true,
+            'custom_hostname_id' => $response['result']['id'],
+            'hostname' => $response['result']['hostname'],
+            'status' => $response['result']['status'],
+            'ssl_status' => $response['result']['ssl']['status'] ?? 'pending',
+        ];
+    }
+
+    /**
+     * Remove a custom hostname from Cloudflare for SaaS.
+     */
+    public function removeCustomHostname(string $customHostnameId): bool
+    {
+        $zoneId = config('domains.cloudflare.saas_zone_id');
+        if (!$zoneId) {
+            return false;
+        }
+
+        $response = $this->request('delete', "/zones/{$zoneId}/custom_hostnames/{$customHostnameId}");
+
+        return $response['success'] ?? false;
+    }
+
+    /**
+     * Get custom hostname status.
+     */
+    public function getCustomHostname(string $customHostnameId): array
+    {
+        $zoneId = config('domains.cloudflare.saas_zone_id');
+        if (!$zoneId) {
+            return ['success' => false, 'message' => 'CLOUDFLARE_SAAS_ZONE_ID yapılandırılmamış.'];
+        }
+
+        $response = $this->get("/zones/{$zoneId}/custom_hostnames/{$customHostnameId}");
+
+        if (!$response['success']) {
+            return ['success' => false, 'message' => $this->extractError($response)];
+        }
+
+        return [
+            'success' => true,
+            'hostname' => $response['result']['hostname'],
+            'status' => $response['result']['status'],
+            'ssl_status' => $response['result']['ssl']['status'] ?? 'unknown',
+        ];
+    }
+
+    /**
      * List all zones.
      */
     public function listZones(int $page = 1, int $perPage = 50): array

@@ -87,6 +87,10 @@ Route::prefix('admin')->group(function () {
         Route::post('bulk-content/start', [Admin\BulkContentController::class, 'start']);
         Route::get('bulk-content/progress/{batchId}', [Admin\BulkContentController::class, 'progress']);
 
+        // Site cloning
+        Route::post('sites/clone', [Admin\CloneController::class, 'cloneSingle']);
+        Route::post('sites/batch-clone', [Admin\CloneController::class, 'cloneBulk']);
+
         // Deploy actions
         Route::post('deploy/restart-frontend', [Admin\DeployController::class, 'restartFrontend']);
 

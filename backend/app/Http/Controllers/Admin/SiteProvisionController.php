@@ -6,12 +6,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 
 class SiteProvisionController extends Controller
 {
+    public function __construct(
+        private CloudflareService $cloudflare,
+    ) {}
+
     /**
-     * Provision SSL certificate and Nginx config for a site.
+     * Check provision status: DNS resolution + Cloudflare status.
+     * Wildcard Nginx handles all domains automatically — no per-site provisioning needed.
      */
     public function provision(int $siteId): JsonResponse
     {
@@ -25,51 +31,42 @@ class SiteProvisionController extends Controller
             ], 422);
         }
 
-        // Run the provision script
-        $output = [];
-        $exitCode = 0;
-        exec(
-            sprintf('sudo /usr/local/bin/provision-site.sh %s 2>&1', escapeshellarg($domain)),
-            $output,
-            $exitCode
-        );
+        // Check DNS resolution
+        $dnsResolved = !empty(dns_get_record($domain, DNS_A));
 
-        $rawOutput = implode("\n", $output);
+        // Check Cloudflare zone status
+        $cfZone = $this->cloudflare->getZoneByName($domain);
+        $cfActive = $cfZone && ($cfZone['status'] ?? '') === 'active';
 
-        // Try to parse JSON from last line
-        $lastLine = end($output);
-        $result = json_decode($lastLine ?: '', true);
-
-        if ($result && isset($result['success'])) {
-            return response()->json($result, $result['success'] ? 200 : 500);
-        }
+        $provisioned = $dnsResolved && $cfActive;
 
         return response()->json([
-            'success' => $exitCode === 0,
-            'message' => $exitCode === 0
-                ? "{$domain} başarıyla yapılandırıldı."
-                : "Yapılandırma başarısız oldu.",
-            'output' => $rawOutput,
-        ], $exitCode === 0 ? 200 : 500);
+            'success' => $provisioned,
+            'message' => $provisioned
+                ? "{$domain} aktif ve erişilebilir."
+                : 'Site henüz tam yapılandırılmadı.',
+            'dns_resolved' => $dnsResolved,
+            'cloudflare_active' => $cfActive,
+        ]);
     }
 
     /**
-     * Check if a site has been provisioned (SSL + Nginx).
+     * Check if a site is fully provisioned (DNS + Cloudflare).
      */
     public function status(int $siteId): JsonResponse
     {
         $site = Site::findOrFail($siteId);
         $domain = preg_replace('/^www\./', '', $site->domain);
-        $confName = str_replace('.', '-', $domain);
 
-        $hasNginx = file_exists("/etc/nginx/sites-enabled/{$confName}");
-        $hasSsl = is_dir("/etc/letsencrypt/live/{$domain}");
+        $dnsResolved = !empty(dns_get_record($domain, DNS_A));
+        $cfZone = $this->cloudflare->getZoneByName($domain);
+        $cfActive = $cfZone && ($cfZone['status'] ?? '') === 'active';
 
         return response()->json([
             'domain' => $domain,
-            'nginx_configured' => $hasNginx,
-            'ssl_active' => $hasSsl,
-            'provisioned' => $hasNginx && $hasSsl,
+            'dns_resolved' => $dnsResolved,
+            'cloudflare_active' => $cfActive,
+            'provisioned' => $dnsResolved && $cfActive,
         ]);
     }
 }

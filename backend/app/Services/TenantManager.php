@@ -54,6 +54,11 @@ class TenantManager
      */
     private function configureTenantConnection(Site $site): void
     {
+        $currentDb = Config::get('database.connections.tenant.database');
+        if ($currentDb === $site->db_name) {
+            return;
+        }
+
         $landlordConfig = Config::get('database.connections.landlord');
 
         Config::set('database.connections.tenant', array_merge($landlordConfig, [

@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\Site;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 class SitemapController extends Controller
 {
@@ -32,14 +33,14 @@ class SitemapController extends Controller
         if ($pageLastMod) {
             $xml .= '<sitemap>';
             $xml .= "<loc>{$baseUrl}/page-sitemap.xml</loc>";
-            $xml .= '<lastmod>' . $pageLastMod->toW3cString() . '</lastmod>';
+            $xml .= '<lastmod>' . Carbon::parse($pageLastMod)->toW3cString() . '</lastmod>';
             $xml .= '</sitemap>';
         }
 
         if ($postLastMod) {
             $xml .= '<sitemap>';
             $xml .= "<loc>{$baseUrl}/post-sitemap.xml</loc>";
-            $xml .= '<lastmod>' . $postLastMod->toW3cString() . '</lastmod>';
+            $xml .= '<lastmod>' . Carbon::parse($postLastMod)->toW3cString() . '</lastmod>';
             $xml .= '</sitemap>';
         }
 

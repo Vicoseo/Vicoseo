@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
 import { getSiteConfig, getTopOffers, getPages, getPosts, getCategories } from '@/lib/api';
 import Link from 'next/link';
@@ -37,6 +37,17 @@ async function fetchLayoutData(): Promise<{
   } catch {
     return { site: null, offers: [], pages: [], posts: [], categories: [] };
   }
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const { site } = await fetchLayoutData();
+
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    themeColor: site?.primary_color || '#0a0a1a',
+  };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -156,6 +167,8 @@ export default async function RootLayout({
   return (
     <html lang="tr">
       <head>
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="" />
         {site?.ga_measurement_id && (
           <>
             <script

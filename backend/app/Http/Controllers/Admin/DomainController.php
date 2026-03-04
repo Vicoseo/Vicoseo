@@ -193,20 +193,12 @@ class DomainController extends Controller
                 $steps[4] = ['step' => 'cms_site', 'status' => 'done', 'site_id' => $site->id];
             }
 
-            // Step 6: Nginx + SSL provision
-            $steps[] = ['step' => 'nginx', 'status' => 'running'];
-            $output = [];
-            $exitCode = 0;
-            exec(
-                sprintf('sudo /usr/local/bin/provision-site.sh %s 2>&1', escapeshellarg($domain)),
-                $output,
-                $exitCode,
-            );
-            $rawOutput = implode("\n", $output);
-            $steps[5] = [
-                'step' => 'nginx',
-                'status' => $exitCode === 0 ? 'done' : 'warning',
-                'message' => $exitCode === 0 ? 'Nginx yapılandırıldı.' : 'Nginx yapılandırma uyarısı: ' . $rawOutput,
+            // Step 6: Clear domain cache (wildcard nginx handles all domains)
+            $this->tenantManager->clearTenantCache($domain);
+            $steps[] = [
+                'step' => 'cache_clear',
+                'status' => 'done',
+                'message' => 'Domain cache temizlendi. Wildcard Nginx tüm domainleri otomatik karşılar.',
             ];
 
             return response()->json([
@@ -459,8 +451,7 @@ class DomainController extends Controller
             'domain' => $domain,
             'cloudflare' => null,
             'cms_site' => null,
-            'nginx' => false,
-            'ssl' => false,
+            'dns_resolved' => false,
         ];
 
         // Check Cloudflare
@@ -483,11 +474,8 @@ class DomainController extends Controller
             ];
         }
 
-        // Check Nginx & SSL
-        $cleanDomain = preg_replace('/^www\./', '', $domain);
-        $confName = str_replace('.', '-', $cleanDomain);
-        $status['nginx'] = file_exists("/etc/nginx/sites-enabled/{$confName}");
-        $status['ssl'] = is_dir("/etc/letsencrypt/live/{$cleanDomain}");
+        // Check DNS resolution
+        $status['dns_resolved'] = !empty(dns_get_record($domain, DNS_A));
 
         return response()->json($status);
     }

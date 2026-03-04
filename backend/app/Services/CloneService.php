@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\Redirect;
 use App\Models\Site;
 use App\Models\TopOffer;
+use Illuminate\Support\Facades\Log;
 
 class CloneService
 {
@@ -20,7 +21,57 @@ class CloneService
      */
     public function cloneSite(Site $source, string $domain): Site
     {
-        // Create new site record with source config
+        // Read source content once
+        $sourceContent = $this->readSourceContent($source);
+
+        return $this->createTargetSite($source, $domain, $sourceContent);
+    }
+
+    /**
+     * Batch clone a source site to multiple domains.
+     * Reads source content once, then creates all targets.
+     *
+     * @return array{succeeded: Site[], failed: array{domain: string, error: string}[]}
+     */
+    public function batchClone(Site $source, array $domains): array
+    {
+        $sourceContent = $this->readSourceContent($source);
+
+        $succeeded = [];
+        $failed = [];
+
+        foreach ($domains as $domain) {
+            try {
+                $succeeded[] = $this->createTargetSite($source, $domain, $sourceContent);
+            } catch (\Exception $e) {
+                Log::error("Batch clone failed for {$domain}", ['error' => $e->getMessage()]);
+                $failed[] = ['domain' => $domain, 'error' => $e->getMessage()];
+            }
+        }
+
+        return ['succeeded' => $succeeded, 'failed' => $failed];
+    }
+
+    /**
+     * Read all content from a source site.
+     */
+    private function readSourceContent(Site $source): array
+    {
+        $this->tenantManager->setTenant($source);
+
+        return [
+            'pages' => Page::all()->toArray(),
+            'posts' => Post::all()->toArray(),
+            'topOffers' => TopOffer::all()->toArray(),
+            'redirects' => Redirect::all()->toArray(),
+        ];
+    }
+
+    /**
+     * Create a target site and copy source content into it.
+     */
+    private function createTargetSite(Site $source, string $domain, array $content): Site
+    {
         $dbName = 'tenant_' . preg_replace('/[^a-z0-9_]/', '_', strtolower($domain));
 
         $target = Site::create([
@@ -38,20 +89,10 @@ class CloneService
             'show_sponsors' => $source->show_sponsors,
         ]);
 
-        // Create tenant database and run migrations
         $this->tenantManager->createTenantDatabase($target);
-
-        // Read all content from source
-        $this->tenantManager->setTenant($source);
-        $pages = Page::all()->toArray();
-        $posts = Post::all()->toArray();
-        $topOffers = TopOffer::all()->toArray();
-        $redirects = Redirect::all()->toArray();
-
-        // Switch to target and write content
         $this->tenantManager->setTenant($target);
 
-        foreach ($pages as $page) {
+        foreach ($content['pages'] as $page) {
             Page::create([
                 'slug' => $page['slug'],
                 'title' => $page['title'],
@@ -64,7 +105,7 @@ class CloneService
             ]);
         }
 
-        foreach ($posts as $post) {
+        foreach ($content['posts'] as $post) {
             Post::create([
                 'slug' => $post['slug'],
                 'title' => $post['title'],
@@ -78,7 +119,7 @@ class CloneService
             ]);
         }
 
-        foreach ($topOffers as $offer) {
+        foreach ($content['topOffers'] as $offer) {
             TopOffer::create([
                 'logo_url' => $offer['logo_url'],
                 'bonus_text' => $offer['bonus_text'],
@@ -89,7 +130,7 @@ class CloneService
             ]);
         }
 
-        foreach ($redirects as $redirect) {
+        foreach ($content['redirects'] as $redirect) {
             Redirect::create([
                 'slug' => $redirect['slug'],
                 'target_url' => $redirect['target_url'],

@@ -10,7 +10,7 @@ async function fetchApi<T>(
   const url = `${API_URL}${endpoint}`;
 
   const res = await fetch(url, {
-    next: { revalidate: 120 },
+    next: { revalidate: 300 },
     ...options,
     headers: {
       'Content-Type': 'application/json',
