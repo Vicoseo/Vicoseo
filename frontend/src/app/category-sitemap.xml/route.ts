@@ -42,7 +42,6 @@ export async function GET() {
     status: 200,
     headers: {
       'Content-Type': 'application/xml; charset=UTF-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   });
 }
