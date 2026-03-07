@@ -43,46 +43,63 @@ class NamesiloService
         $reply = $response['reply'] ?? [];
 
         // Available domains
+        // API returns either:
+        //   Old format: {"available": {"domain": [...]}} or {"available": {"domain": {...}}}
+        //   New format: {"available": [{"domain":"x.com","price":17.29,...}, ...]}
         if (isset($reply['available'])) {
             $available = $reply['available'];
-            // Namesilo returns single domain as object, multiple as array
+            $items = [];
+
             if (isset($available['domain'])) {
-                $items = is_array($available['domain']) && !isset($available['domain']['domain'])
-                    ? $available['domain']
-                    : [$available['domain']];
-                foreach ($items as $item) {
-                    if (is_array($item)) {
-                        $results[] = [
-                            'domain' => $item['domain'],
-                            'available' => true,
-                            'price' => (float) ($item['price'] ?? 0),
-                        ];
-                    } else {
-                        $results[] = [
-                            'domain' => (string) $item,
-                            'available' => true,
-                            'price' => 0,
-                        ];
-                    }
+                // Old nested format
+                $raw = $available['domain'];
+                $items = is_array($raw) && !isset($raw['domain']) ? $raw : [$raw];
+            } elseif (is_array($available) && isset($available[0])) {
+                // New flat array format
+                $items = $available;
+            }
+
+            foreach ($items as $item) {
+                if (is_array($item)) {
+                    $results[] = [
+                        'domain' => $item['domain'] ?? '',
+                        'available' => true,
+                        'price' => (float) ($item['price'] ?? 0),
+                    ];
+                } else {
+                    $results[] = [
+                        'domain' => (string) $item,
+                        'available' => true,
+                        'price' => 0,
+                    ];
                 }
             }
         }
 
         // Unavailable domains
+        // API returns either:
+        //   Old format: {"unavailable": {"domain": [...]}}
+        //   New format: {"unavailable": ["domain1.com", "domain2.com"]}
         if (isset($reply['unavailable'])) {
             $unavailable = $reply['unavailable'];
+            $items = [];
+
             if (isset($unavailable['domain'])) {
-                $items = is_array($unavailable['domain']) && !isset($unavailable['domain']['domain'])
-                    ? $unavailable['domain']
-                    : [$unavailable['domain']];
-                foreach ($items as $item) {
-                    $domain = is_array($item) ? ($item['domain'] ?? $item) : (string) $item;
-                    $results[] = [
-                        'domain' => $domain,
-                        'available' => false,
-                        'price' => null,
-                    ];
-                }
+                // Old nested format
+                $raw = $unavailable['domain'];
+                $items = is_array($raw) && !isset($raw['domain']) ? $raw : [$raw];
+            } elseif (is_array($unavailable) && isset($unavailable[0])) {
+                // New flat array format
+                $items = $unavailable;
+            }
+
+            foreach ($items as $item) {
+                $domain = is_array($item) ? ($item['domain'] ?? '') : (string) $item;
+                $results[] = [
+                    'domain' => $domain,
+                    'available' => false,
+                    'price' => null,
+                ];
             }
         }
 
