@@ -44,9 +44,9 @@ if ($existingSite) {
         'name' => $siteName,
         'db_name' => $dbName,
         'is_active' => true,
-        'primary_color' => '#10B981',
-        'secondary_color' => '#F59E0B',
-        'header_bg_color' => '#064E3B',
+        'primary_color' => '#3B82F6',
+        'secondary_color' => '#D946EF',
+        'header_bg_color' => '#0B1426',
         'noindex_mode' => false,
     ]);
 
@@ -61,181 +61,182 @@ if ($existingSite) {
 // ─── EMERALD THEME CUSTOM CSS ───
 
 $customCss = <<<'CSS'
-/* ===== KAYA CASINO — EMERALD THEME ===== */
+/* ===== KAYA CASINO — BLUE-PURPLE THEME ===== */
 
 body {
-  background: #021a0f !important;
-  color: #d4e8dc !important;
+  background: #0B1426 !important;
+  color: #CBD5E1 !important;
 }
 
 /* CTA Bar */
 .action-bar {
-  background: linear-gradient(135deg, #021a0f 0%, #064E3B 50%, #021a0f 100%) !important;
-  border-bottom-color: #10B981 !important;
+  background: linear-gradient(135deg, #0B1426 0%, #1E1B4B 50%, #0B1426 100%) !important;
+  border-bottom-color: #D946EF !important;
 }
 
-@keyframes ctaPulseEmerald {
+@keyframes ctaPulseKaya {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6), 0 0 20px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 8px rgba(217, 70, 239, 0.6), 0 0 20px rgba(217, 70, 239, 0.3);
   }
   50% {
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.9), 0 0 40px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 16px rgba(217, 70, 239, 0.9), 0 0 40px rgba(59, 130, 246, 0.5), 0 0 60px rgba(217, 70, 239, 0.2);
   }
 }
 
 .action-btn {
-  background: linear-gradient(135deg, #10B981, #059669) !important;
+  background: linear-gradient(135deg, #D946EF, #A855F7, #7C3AED) !important;
   color: #fff !important;
-  animation: ctaPulseEmerald 2s ease-in-out infinite !important;
+  animation: ctaPulseKaya 2s ease-in-out infinite !important;
 }
 
 .action-btn:hover {
-  box-shadow: 0 0 24px rgba(16, 185, 129, 1), 0 0 50px rgba(16, 185, 129, 0.7), 0 0 80px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 24px rgba(217, 70, 239, 1), 0 0 50px rgba(168, 85, 247, 0.7), 0 0 80px rgba(124, 58, 237, 0.3) !important;
 }
 
 /* Top Offers */
 .top-offers-section {
-  background: #051f14 !important;
-  border-bottom-color: #0d3b28 !important;
+  background: #0F172A !important;
+  border-bottom-color: #1E293B !important;
 }
 
 .top-offers-marquee::before {
-  background: linear-gradient(to right, #051f14, transparent) !important;
+  background: linear-gradient(to right, #0F172A, transparent) !important;
 }
 
 .top-offers-marquee::after {
-  background: linear-gradient(to left, #051f14, transparent) !important;
+  background: linear-gradient(to left, #0F172A, transparent) !important;
 }
 
 .offer-card {
-  background: #0d3b28 !important;
+  background: #1E293B !important;
 }
 
 .offer-card:hover {
-  background: #126b4a !important;
+  background: #334155 !important;
 }
 
 /* Partners/Sponsors */
 .partners-section {
-  background: #072e1d !important;
-  border-bottom-color: #0d3b28 !important;
+  background: #0F172A !important;
+  border-bottom-color: #1E293B !important;
 }
 
 .partners-cat-btn.active {
-  background: #10B981 !important;
-  border-color: #10B981 !important;
-  color: #021a0f !important;
+  background: linear-gradient(135deg, #3B82F6, #A855F7) !important;
+  border-color: #3B82F6 !important;
+  color: #fff !important;
 }
 
 .partner-card {
-  background: #0d3b28 !important;
+  background: #1E293B !important;
 }
 
 .partner-card:hover {
-  background: #126b4a !important;
+  background: #334155 !important;
 }
 
 .partner-card__promo {
-  color: #34D399 !important;
+  color: #A78BFA !important;
 }
 
 .partner-card__rating {
-  color: #34D399 !important;
+  color: #60A5FA !important;
 }
 
 .partners-contact {
-  background: rgba(16, 185, 129, 0.1) !important;
+  background: rgba(59, 130, 246, 0.1) !important;
 }
 
 .partners-contact a {
-  color: #34D399 !important;
+  color: #60A5FA !important;
 }
 
 /* Feature Cards */
 .feature-cards-section {
-  background: #051f14 !important;
-  border-top-color: #0d3b28 !important;
+  background: #0F172A !important;
+  border-top-color: #1E293B !important;
 }
 
 .offer-grid-card {
-  background: #0d3b28 !important;
-  border-color: rgba(16, 185, 129, 0.1) !important;
+  background: #1E293B !important;
+  border-color: rgba(59, 130, 246, 0.1) !important;
 }
 
 .offer-grid-card:hover {
-  background: #126b4a !important;
+  background: #334155 !important;
 }
 
 .feature-cards-contact {
-  background: rgba(16, 185, 129, 0.08) !important;
+  background: rgba(59, 130, 246, 0.08) !important;
 }
 
 .feature-cards-contact a {
-  color: #34D399 !important;
+  color: #60A5FA !important;
 }
 
 /* Recent Posts */
 .recent-posts-title {
-  color: #e8f5ee !important;
+  color: #E2E8F0 !important;
 }
 
 .recent-post-card {
-  background: rgba(13, 59, 40, 0.85) !important;
-  border-color: rgba(16, 185, 129, 0.12) !important;
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(59, 130, 246, 0.12) !important;
 }
 
 .recent-post-card:hover {
-  background: rgba(18, 107, 74, 0.95) !important;
+  background: rgba(51, 65, 85, 0.95) !important;
 }
 
 .recent-post-card:hover .recent-post-card__title {
-  color: #34D399 !important;
+  color: #60A5FA !important;
 }
 
 .recent-posts-more-link {
-  border-color: #10B981 !important;
-  color: #10B981 !important;
+  border-color: #A855F7 !important;
+  color: #A855F7 !important;
 }
 
 .recent-posts-more-link:hover {
-  background: #10B981 !important;
-  color: #021a0f !important;
+  background: linear-gradient(135deg, #A855F7, #D946EF) !important;
+  border-color: #D946EF !important;
+  color: #fff !important;
 }
 
 /* Footer */
 .site-footer {
-  background: #072e1d !important;
+  background: #0F172A !important;
 }
 
 /* Service Cards */
 .service-card {
-  border-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.12) !important;
 }
 
 .service-card:hover {
-  border-color: #10B981 !important;
-  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #3B82F6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
 }
 
 /* Contact Form */
 .contact-form {
-  border-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 .contact-form-field input:focus,
 .contact-form-field select:focus,
 .contact-form-field textarea:focus {
-  border-color: #10B981 !important;
+  border-color: #3B82F6 !important;
 }
 
 .contact-form-field select option {
-  background: #072e1d !important;
+  background: #0F172A !important;
 }
 
 /* Info boxes in content */
 .page-content .info-box {
-  background: rgba(16, 185, 129, 0.08);
-  border-left: 4px solid #10B981;
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 4px solid #3B82F6;
   padding: 16px;
   border-radius: 6px;
   margin: 16px 0;
@@ -256,9 +257,11 @@ $contentPrompt = 'Sen Kaya Casino editörüsün. Lüks, sofistike ve profesyonel
 // ─── UPDATE SITE SETTINGS ───
 
 $site->update([
-    'primary_color' => '#10B981',
-    'secondary_color' => '#F59E0B',
-    'header_bg_color' => '#064E3B',
+    'primary_color' => '#3B82F6',
+    'secondary_color' => '#D946EF',
+    'header_bg_color' => '#0B1426',
+    'logo_url' => '/storage/logos/kayacasino/logo.png',
+    'favicon_url' => '/storage/favicons/kayacasino/favicon.ico',
     'content_identity' => $contentIdentity,
     'content_prompt_template' => $contentPrompt,
     'meta_title' => 'Kaya Casino 2026 – Premium Casino Deneyimi ve Güncel Giriş',
