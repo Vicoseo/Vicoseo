@@ -229,7 +229,7 @@ export default async function RootLayout({
         {site?.custom_css && (
           <style
             dangerouslySetInnerHTML={{
-              __html: `.page-content { ${site.custom_css.replace(/<\/?script[^>]*>/gi, '')} }`,
+              __html: site.custom_css.replace(/<\/?script[^>]*>/gi, ''),
             }}
           />
         )}
