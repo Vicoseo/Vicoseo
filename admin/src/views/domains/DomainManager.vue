@@ -49,24 +49,27 @@
             {{ row.available && row.price ? '$' + row.price.toFixed(2) : '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="İşlem" width="200">
+        <el-table-column label="İşlem" width="280">
           <template slot-scope="{ row }">
-            <el-button
-              v-if="row.available"
-              size="small"
-              type="success"
-              @click="buyDomain(row)"
-              :loading="row._buying"
-            >
-              Sat&#305;n Al
-            </el-button>
-            <el-button
-              size="small"
-              type="primary"
-              @click="startSetup(row.domain)"
-            >
-              H&#305;zl&#305; Kurulum
-            </el-button>
+            <div class="action-buttons">
+              <el-button
+                v-if="row.available"
+                size="small"
+                type="success"
+                @click="buyDomain(row)"
+                :loading="row._buying"
+              >
+                Satın Al
+              </el-button>
+              <el-button
+                v-if="row.available"
+                size="small"
+                type="primary"
+                @click="startSetup(row.domain)"
+              >
+                Hızlı Kurulum
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -569,5 +572,10 @@ export default {
   padding: 20px;
   background: #fafafa;
   border-radius: 4px;
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 </style>
