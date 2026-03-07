@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Jobs\DifferentiateContentJob;
+use App\Models\BotTask;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Redirect;
@@ -139,6 +141,85 @@ class CloneService
             ]);
         }
 
+        // Immediate meta differentiation: replace source brand with target brand in titles/descriptions
+        $this->quickMetaDifferentiate($target, $source);
+
+        // Dispatch background job for full AI-powered content differentiation
+        $this->dispatchDifferentiationJob($target);
+
         return $target;
+    }
+
+    /**
+     * Quick string-replace differentiation for meta fields right after clone.
+     * This ensures the cloned site immediately has unique-looking meta even before the AI job runs.
+     */
+    private function quickMetaDifferentiate(Site $target, Site $source): void
+    {
+        $sourceName = $source->name;
+        $targetName = $target->name;
+
+        if ($sourceName === $targetName) {
+            // Names are the same (clone didn't change it), use domain-based name
+            $targetName = ucfirst(explode('.', $target->domain)[0]);
+            $target->update(['name' => $targetName]);
+        }
+
+        // Update page meta with target site name
+        foreach (Page::all() as $page) {
+            $updates = [];
+            if ($page->meta_title) {
+                $updates['meta_title'] = str_replace($sourceName, $targetName, $page->meta_title);
+            }
+            if ($page->meta_description) {
+                $updates['meta_description'] = str_replace($sourceName, $targetName, $page->meta_description);
+            }
+            if (!empty($updates)) {
+                $page->update($updates);
+            }
+        }
+
+        // Update post meta with target site name
+        foreach (Post::all() as $post) {
+            $updates = [];
+            if ($post->meta_title) {
+                $updates['meta_title'] = str_replace($sourceName, $targetName, $post->meta_title);
+            }
+            if ($post->meta_description) {
+                $updates['meta_description'] = str_replace($sourceName, $targetName, $post->meta_description);
+            }
+            if (!empty($updates)) {
+                $post->update($updates);
+            }
+        }
+    }
+
+    /**
+     * Dispatch a background job for full AI content differentiation.
+     */
+    private function dispatchDifferentiationJob(Site $target): void
+    {
+        try {
+            $botTask = BotTask::create([
+                'type' => 'ai_spin',
+                'status' => 'pending',
+                'target_site_id' => $target->id,
+                'payload' => [
+                    'action' => 'auto_differentiate_after_clone',
+                    'domain' => $target->domain,
+                ],
+                'progress' => 0,
+            ]);
+
+            DifferentiateContentJob::dispatch(
+                $target->id,
+                $botTask->id,
+                'all',
+            );
+
+            Log::info("Dispatched differentiation job for cloned site: {$target->domain}");
+        } catch (\Throwable $e) {
+            Log::warning("Could not dispatch differentiation job for {$target->domain}: {$e->getMessage()}");
+        }
     }
 }

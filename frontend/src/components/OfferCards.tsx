@@ -20,9 +20,9 @@ export default function OfferCards({ offers, contactUrl, contactText }: OfferCar
   if (active.length === 0) return null;
 
   return (
-    <section className="offer-cards-section">
-      <div className="offer-cards-container">
-        <div className="offer-cards-grid">
+    <section className="feature-cards-section">
+      <div className="feature-cards-container">
+        <div className="feature-cards-grid">
           {active.map((offer) => (
             <a
               key={offer.id}
@@ -49,7 +49,7 @@ export default function OfferCards({ offers, contactUrl, contactText }: OfferCar
         </div>
 
         {contactText && contactUrl && (
-          <div className="offer-cards-contact">
+          <div className="feature-cards-contact">
             <span>{contactText}: </span>
             <a href={contactUrl} target="_blank" rel="noopener noreferrer">
               Tıklayın

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Site;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -150,6 +151,114 @@ class AIContentService
         $prompt = $this->buildSpinPrompt($original, $instructions);
 
         return $this->callAI($prompt);
+    }
+
+    /**
+     * Spin content for a specific site using its identity profile.
+     * Produces a fully unique rewrite tailored to the site's tone and audience.
+     */
+    public function spinForSite(array $original, Site $site): array
+    {
+        $identity = $site->content_identity ?? [];
+        $tone = $identity['tone'] ?? 'profesyonel';
+        $audience = $identity['audience'] ?? 'genel kullanıcılar';
+        $slogan = $identity['slogan'] ?? '';
+        $keywords = implode(', ', $identity['keywords'] ?? []);
+        $brandName = $site->name;
+        $domain = $site->domain;
+
+        $instructions = <<<INST
+Bu içeriği {$brandName} ({$domain}) sitesi için tamamen benzersiz hale getir.
+
+YAZIM PROFİLİ:
+- Ton: {$tone}
+- Hedef kitle: {$audience}
+- Marka sloganı: {$slogan}
+- Anahtar kavramlar: {$keywords}
+
+ÖNEMLİ KURALLAR:
+- İçeriği aynı konuda ama tamamen farklı kelimelerle, farklı cümle yapılarıyla yeniden yaz
+- {$brandName} markasını doğal şekilde entegre et (paragraf başına max 1 kez)
+- Heading yapısını ve sırasını değiştir
+- Paragraf sayıları ve uzunlukları orijinalden farklı olsun
+- Tablo ve liste yapılarını koru ama içeriklerini yeniden yaz
+- FAQ sorularını tamamen farklı kelimelerle yaz
+- meta_title içinde mutlaka "{$brandName}" geçsin
+- meta_description içinde mutlaka "{$brandName}" geçsin
+- Orijinal içeriğin birebir kopyası olan hiçbir cümle kalmasın
+INST;
+
+        $siteInfo = [
+            'domain' => $domain,
+            'name' => $brandName,
+            'brand_name' => $brandName,
+            'content_prompt_template' => $site->content_prompt_template,
+            'social_links' => $site->social_links ?? [],
+            'login_url' => $site->login_url ?? '',
+            'entry_url' => $site->entry_url ?? '',
+        ];
+
+        $prompt = $this->buildSpinPrompt($original, $instructions);
+        $prompt = $this->appendSiteTemplate($prompt, $siteInfo);
+
+        return $this->callAI($prompt, 16384);
+    }
+
+    /**
+     * Rewrite only meta fields (meta_title, meta_description, excerpt) for a site.
+     * Much cheaper than full content rewrite — ~200 tokens per call.
+     */
+    public function rewriteMeta(array $original, Site $site): array
+    {
+        $identity = $site->content_identity ?? [];
+        $tone = $identity['tone'] ?? 'profesyonel';
+        $brandName = $site->name;
+
+        $title = $original['title'] ?? '';
+        $metaTitle = $original['meta_title'] ?? $title;
+        $metaDesc = $original['meta_description'] ?? '';
+        $excerpt = $original['excerpt'] ?? '';
+
+        $prompt = <<<PROMPT
+Aşağıdaki meta verilerini {$brandName} markası için benzersiz hale getir.
+Aynı konuyu farklı kelimelerle ifade et.
+
+Yazım tonu: {$tone}
+
+Orijinal Başlık: {$title}
+Orijinal Meta Title: {$metaTitle}
+Orijinal Meta Description: {$metaDesc}
+Orijinal Excerpt: {$excerpt}
+
+KURALLAR:
+- meta_title: 50-60 karakter, "{$brandName}" markası mutlaka geçmeli, orijinalden farklı kelimeler kullan
+- meta_description: 140-160 karakter, "{$brandName}" markası mutlaka geçmeli, orijinalden farklı cümle yapısı
+- excerpt: max 200 karakter, orijinalden farklı anlatım
+- title: Orijinal başlığı {$brandName} markasıyla uyumlu şekilde yeniden yaz
+
+FORMAT: JSON olarak yanıt ver.
+{
+  "title": "Yeni başlık",
+  "meta_title": "Yeni meta title",
+  "meta_description": "Yeni meta description",
+  "excerpt": "Yeni excerpt"
+}
+PROMPT;
+
+        $provider = config('ai.provider', 'openai');
+        $rawResponse = match ($provider) {
+            'anthropic' => $this->callAnthropic($prompt, 1024),
+            default => $this->callOpenAI($prompt, 1024),
+        };
+
+        $response = $this->parseMetaResponse($rawResponse);
+
+        return [
+            'title' => $response['title'] ?? $title,
+            'meta_title' => $response['meta_title'] ?? $metaTitle,
+            'meta_description' => $response['meta_description'] ?? $metaDesc,
+            'excerpt' => $response['excerpt'] ?? $excerpt,
+        ];
     }
 
     /**
@@ -479,10 +588,16 @@ TALİMATLAR: {$articleInstructions}
 2. **Sıralı Liste**: Adım adım işlem veya öneriler (<ol> ile)
 3. **Bilgi Kutusu**: Önemli bir ipucu veya uyarı (<div class="info-box"><strong>Bilgi:</strong> ...</div>)
 
-## İÇ LİNK YAPISI (2-3 iç link zorunlu):
-İçerikte doğal anchor text ile şu sayfalara link ver:
+## İÇ LİNK YAPISI (3-5 iç link ZORUNLU):
+İçerikte doğal anchor text ile minimum 3, ideal olarak 5 iç link kullan:
+- 1 link anasayfaya: <a href="/">Ana Sayfa</a>
+- 1 link ilgili kategoriye: <a href="/kategori/erisim">Erişim Rehberi</a> veya benzeri
+- 1-2 link ilgili blog postlarına: <a href="/blog/{$slug}-giris-yapamiyor-cozum">ilgili yazı</a>
+- 1 link cluster sayfaya
+
+Kullanılabilecek link hedefleri:
 {$linksList}
-Linkleri <a href="/slug">anchor text</a> formatında ekle.
+Linkleri <a href="/slug">doğal anchor text</a> formatında ekle. Anchor text'leri çeşitlendir, aynı anchor text'i tekrarlama.
 
 ## FAQ SECTION (8-10 soru-cevap):
 Kısa ve net cevaplı. Her cevap 2-3 cümle.
@@ -564,9 +679,16 @@ TALİMATLAR: {$instructionsWithBrand}
 1. **Bilgi Kutusu**: <div class="info-box"><strong>Bilgi:</strong> ...</div>
 2. **Sıralı Liste veya Tablo**: Konuya uygun HTML <table> veya <ol>
 
-## İÇ LİNK YAPISI (2-3 iç link zorunlu):
+## İÇ LİNK YAPISI (3-5 iç link ZORUNLU):
+Her yazıda minimum 3, ideal 5 iç link olmalı:
+- 1 link anasayfaya
+- 1 link ilgili kategoriye (örn: /kategori/erisim, /kategori/bonus)
+- 1-2 link ilgili blog postlarına
+- 1 link cluster sayfaya
+
+Hedef linkler:
 {$internalLinks}
-Linkleri <a href="/slug">doğal anchor text</a> formatında ekle.
+Linkleri <a href="/slug">doğal anchor text</a> formatında ekle. Her linkin anchor text'i farklı olsun.
 
 ## FAQ SECTION (6-8 soru-cevap):
 Kısa ve net cevaplı. Gerçekçi sorular.
@@ -795,6 +917,27 @@ PROMPT;
         }
 
         throw new \RuntimeException('AI response could not be parsed as JSON: ' . substr($response, 0, 500));
+    }
+
+    /**
+     * Parse a meta-only AI response (no content field required).
+     */
+    private function parseMetaResponse(string $response): array
+    {
+        $decoded = json_decode($response, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        if (preg_match('/\{[\s\S]*\}/', $response, $matches)) {
+            $decoded = json_decode($matches[0], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new \RuntimeException('AI meta response could not be parsed as JSON: ' . substr($response, 0, 500));
     }
 
     private function validateContentStructure(array $data): array

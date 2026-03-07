@@ -342,7 +342,7 @@ p {
   display: none;
 }
 
-/* ===== LOGIN CTA BAR ===== */
+/* ===== ACTION BAR ===== */
 @keyframes ctaPulse {
   0%, 100% {
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
@@ -352,14 +352,14 @@ p {
   }
 }
 
-.login-cta-bar {
+.action-bar {
   background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
   padding: 12px 16px;
   text-align: center;
   border-bottom: 2px solid #ffd700;
 }
 
-.login-cta-btn {
+.action-btn {
   display: inline-block;
   padding: 11px 36px;
   background: linear-gradient(135deg, #ffd700, #ffaa00);
@@ -374,13 +374,13 @@ p {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.login-cta-btn:hover {
+.action-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 0 24px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 215, 0, 0.7), 0 0 80px rgba(255, 215, 0, 0.3);
   opacity: 1;
 }
 
-/* ===== SPONSORS BLOCK (Marquee) ===== */
+/* ===== TOP OFFERS (Marquee) ===== */
 .top-offers-section {
   background: #0f0f23;
   padding: 14px 0;
@@ -472,27 +472,27 @@ p {
   letter-spacing: 0.5px;
 }
 
-/* ===== SPONSORS SLIDER ===== */
-.sponsors-section {
+/* ===== PARTNERS SLIDER ===== */
+.partners-section {
   background: #1a1a2e;
   padding: 12px 0;
   border-bottom: 2px solid #16213e;
 }
 
-.sponsors-container {
+.partners-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
 }
 
-.sponsors-categories {
+.partners-categories {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
-.sponsors-cat-btn {
+.partners-cat-btn {
   padding: 4px 14px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
@@ -503,36 +503,36 @@ p {
   transition: all 0.2s;
 }
 
-.sponsors-cat-btn:hover {
+.partners-cat-btn:hover {
   border-color: rgba(255, 255, 255, 0.5);
   color: #fff;
 }
 
-.sponsors-cat-btn.active {
+.partners-cat-btn.active {
   background: #ffd700;
   border-color: #ffd700;
   color: #0a0a1a;
   font-weight: 700;
 }
 
-.sponsors-slider-wrapper {
+.partners-slider-wrapper {
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.sponsors-slider-viewport {
+.partners-slider-viewport {
   flex: 1;
   overflow: hidden;
 }
 
-.sponsors-slider-track {
+.partners-slider-track {
   display: flex;
   gap: 12px;
 }
 
-.sponsors-arrow {
+.partners-arrow {
   flex-shrink: 0;
   width: 32px;
   height: 32px;
@@ -549,11 +549,11 @@ p {
   line-height: 1;
 }
 
-.sponsors-arrow:hover {
+.partners-arrow:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.sponsor-card {
+.partner-card {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -568,12 +568,12 @@ p {
   transition: background 0.2s;
 }
 
-.sponsor-card:hover {
+.partner-card:hover {
   background: #1c2a4a;
   opacity: 1;
 }
 
-.sponsor-card__logo {
+.partner-card__logo {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
@@ -582,7 +582,7 @@ p {
   justify-content: center;
 }
 
-.sponsor-card__content {
+.partner-card__content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -590,32 +590,32 @@ p {
   min-width: 0;
 }
 
-.sponsor-card__name {
+.partner-card__name {
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-.sponsor-card__promo {
+.partner-card__promo {
   font-size: 12px;
   color: #ffd700;
   font-weight: 600;
 }
 
-.sponsor-card__rating {
+.partner-card__rating {
   font-size: 12px;
   color: #ffd700;
   flex-shrink: 0;
 }
 
-.sponsors-empty {
+.partners-empty {
   text-align: center;
   padding: 20px;
   color: #666;
   font-size: 14px;
 }
 
-.sponsors-contact {
+.partners-contact {
   margin-top: 10px;
   padding: 8px 16px;
   background: rgba(255, 215, 0, 0.1);
@@ -625,31 +625,31 @@ p {
   color: #ccc;
 }
 
-.sponsors-contact a {
+.partners-contact a {
   color: #ffd700;
   font-weight: 600;
   text-decoration: none;
   margin-left: 4px;
 }
 
-.sponsors-contact a:hover {
+.partners-contact a:hover {
   text-decoration: underline;
 }
 
-/* ===== OFFER CARDS GRID ===== */
-.offer-cards-section {
+/* ===== FEATURE CARDS GRID ===== */
+.feature-cards-section {
   background: #0f0f23;
   padding: 18px 0;
   border-top: 1px solid #1a1a3e;
 }
 
-.offer-cards-container {
+.feature-cards-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
 }
 
-.offer-cards-grid {
+.feature-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
@@ -721,7 +721,7 @@ p {
   opacity: 0.9;
 }
 
-.offer-cards-contact {
+.feature-cards-contact {
   margin-top: 12px;
   padding: 8px 16px;
   background: rgba(255, 215, 0, 0.08);
@@ -731,14 +731,14 @@ p {
   color: #999;
 }
 
-.offer-cards-contact a {
+.feature-cards-contact a {
   color: #ffd700;
   font-weight: 600;
   text-decoration: none;
   margin-left: 4px;
 }
 
-.offer-cards-contact a:hover {
+.feature-cards-contact a:hover {
   text-decoration: underline;
 }
 
@@ -1301,10 +1301,10 @@ p {
   }
 
   /* CTA bar */
-  .login-cta-bar {
+  .action-bar {
     padding: 10px 12px;
   }
-  .login-cta-btn {
+  .action-btn {
     padding: 9px 24px;
     font-size: 13px;
     letter-spacing: 0.3px;
@@ -1328,27 +1328,27 @@ p {
   }
 
   /* Sponsors */
-  .sponsors-categories {
+  .partners-categories {
     justify-content: center;
   }
-  .sponsors-arrow {
+  .partners-arrow {
     display: none;
   }
   .top-offers-marquee::before,
   .top-offers-marquee::after {
     width: 20px;
   }
-  .sponsor-card {
+  .partner-card {
     min-width: 170px;
     padding: 8px 12px;
   }
-  .sponsor-card__logo {
+  .partner-card__logo {
     width: 38px;
     height: 38px;
   }
 
   /* Offer cards */
-  .offer-cards-grid {
+  .feature-cards-grid {
     grid-template-columns: 1fr;
     gap: 10px;
   }
@@ -1415,10 +1415,10 @@ p {
 /* ----- MOBILE (max-width: 480px) ----- */
 @media (max-width: 480px) {
   /* CTA bar - compact */
-  .login-cta-bar {
+  .action-bar {
     padding: 8px 10px;
   }
-  .login-cta-btn {
+  .action-btn {
     padding: 8px 20px;
     font-size: 12px;
     border-radius: 6px;

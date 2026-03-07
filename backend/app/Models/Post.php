@@ -28,6 +28,7 @@ class Post extends Model
         'is_published',
         'published_at',
         'category_id',
+        'content_differentiated_at',
     ];
 
     public function category(): BelongsTo
@@ -40,6 +41,7 @@ class Post extends Model
         return [
             'is_published' => 'boolean',
             'published_at' => 'datetime',
+            'content_differentiated_at' => 'datetime',
         ];
     }
 

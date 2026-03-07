@@ -42,6 +42,7 @@ class Site extends Model
         'earnings_video_url',
         'earnings_title',
         'earnings_content',
+        'content_identity',
     ];
 
     protected function casts(): array
@@ -52,6 +53,7 @@ class Site extends Model
             'sponsor_page_visible' => 'boolean',
             'noindex_mode' => 'boolean',
             'social_links' => 'array',
+            'content_identity' => 'array',
         ];
     }
 }

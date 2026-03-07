@@ -128,6 +128,26 @@ function calculateReadingTime(html: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
+function extractHowToSteps(html: string): { name: string; text: string }[] {
+  const steps: { name: string; text: string }[] = [];
+  // Extract from ordered lists
+  const olRegex = /<ol[^>]*>([\s\S]*?)<\/ol>/gi;
+  let olMatch;
+  while ((olMatch = olRegex.exec(html)) !== null) {
+    const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+    let liMatch;
+    while ((liMatch = liRegex.exec(olMatch[1])) !== null) {
+      const text = liMatch[1].replace(/<[^>]*>/g, '').trim();
+      if (text.length > 10) {
+        const name = text.length > 80 ? text.substring(0, 80) + '...' : text;
+        steps.push({ name, text });
+      }
+    }
+    if (steps.length >= 3) break;
+  }
+  return steps.slice(0, 10);
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const domain = await getCurrentDomain();
@@ -224,6 +244,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     })),
   } : null;
 
+  // HowTo schema for guide-type posts (kayit, giris, para-yatirma)
+  const isGuidePost = /(-kayit|-giris|-uyelik|-para-yatirma|-kurulum|-nasil)/i.test(slug);
+  const howToSteps = isGuidePost ? extractHowToSteps(post.content) : [];
+  const howToSchema = isGuidePost && howToSteps.length >= 2 ? {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: post.title,
+    description: post.meta_description || post.excerpt || '',
+    step: howToSteps.map((step, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: step.name,
+      text: step.text,
+    })),
+  } : null;
+
   return (
     <article className="page-content">
       <script
@@ -238,6 +274,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
+      {howToSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
         />
       )}
 

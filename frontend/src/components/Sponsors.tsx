@@ -69,14 +69,14 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
   if (!sponsors || sponsors.length === 0) return null;
 
   return (
-    <section className="sponsors-section">
-      <div className="sponsors-container">
+    <section className="partners-section">
+      <div className="partners-container">
         {/* Category Buttons */}
-        <div className="sponsors-categories">
+        <div className="partners-categories">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.key ?? 'all'}
-              className={`sponsors-cat-btn ${activeCategory === cat.key ? 'active' : ''}`}
+              className={`partners-cat-btn ${activeCategory === cat.key ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat.key)}
             >
               {cat.label}
@@ -87,18 +87,18 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
         {/* Marquee/Slider */}
         {filtered.length > 0 ? (
           <div
-            className="sponsors-slider-wrapper"
+            className="partners-slider-wrapper"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
-            <button className="sponsors-arrow sponsors-arrow--left" onClick={scrollLeft} aria-label="Sola kaydır">
+            <button className="partners-arrow partners-arrow--left" onClick={scrollLeft} aria-label="Sola kaydır">
               &#8249;
             </button>
 
-            <div className="sponsors-slider-viewport">
+            <div className="partners-slider-viewport">
               <div
                 ref={scrollRef}
-                className="sponsors-slider-track"
+                className="partners-slider-track"
                 style={{ display: 'flex', gap: 12, willChange: 'transform' }}
               >
                 {displayItems.map((sponsor, idx) => (
@@ -107,11 +107,11 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
                     href={sponsor.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="sponsor-card"
+                    className="partner-card"
                     style={{ borderLeftColor: sponsor.primary_color }}
                   >
                     {sponsor.logo && (
-                      <div className="sponsor-card__logo">
+                      <div className="partner-card__logo">
                         <img
                           src={sponsor.logo}
                           alt={sponsor.name}
@@ -121,13 +121,13 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
                         />
                       </div>
                     )}
-                    <div className="sponsor-card__content">
-                      <span className="sponsor-card__name">{sponsor.name}</span>
+                    <div className="partner-card__content">
+                      <span className="partner-card__name">{sponsor.name}</span>
                       {sponsor.promotions && sponsor.promotions.length > 0 && (
-                        <span className="sponsor-card__promo">{sponsor.promotions[0].highlight}</span>
+                        <span className="partner-card__promo">{sponsor.promotions[0].highlight}</span>
                       )}
                     </div>
-                    <div className="sponsor-card__rating">
+                    <div className="partner-card__rating">
                       {'★'.repeat(sponsor.rating)}{'☆'.repeat(5 - sponsor.rating)}
                     </div>
                   </a>
@@ -135,17 +135,17 @@ export default function Sponsors({ sponsors, contactUrl, contactText }: Sponsors
               </div>
             </div>
 
-            <button className="sponsors-arrow sponsors-arrow--right" onClick={scrollRight} aria-label="Sağa kaydır">
+            <button className="partners-arrow partners-arrow--right" onClick={scrollRight} aria-label="Sağa kaydır">
               &#8250;
             </button>
           </div>
         ) : (
-          <div className="sponsors-empty">Bu kategoride sponsor bulunmuyor</div>
+          <div className="partners-empty">Bu kategoride sponsor bulunmuyor</div>
         )}
 
         {/* Contact Section */}
         {contactText && contactUrl && (
-          <div className="sponsors-contact">
+          <div className="partners-contact">
             <span>{contactText}: </span>
             <a href={contactUrl} target="_blank" rel="noopener noreferrer">
               Tıklayın

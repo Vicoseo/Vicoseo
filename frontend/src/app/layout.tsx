@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import { getCurrentDomain } from '@/lib/domain';
 import { getSiteConfig, getTopOffers, getPages, getPosts, getCategories } from '@/lib/api';
 import Link from 'next/link';
@@ -131,6 +132,10 @@ export default async function RootLayout({
 }) {
   const { site, offers, pages, posts, categories } = await fetchLayoutData();
 
+  // BTK bot protection: check sanitize header from middleware/nginx
+  const headersList = await headers();
+  const sanitize = headersList.get('x-sanitize-content') === 'true';
+
   const navPages = pages.filter(p => !['anasayfa', 'ana-sayfa'].includes(p.slug)).slice(0, 5);
 
   const primaryColor = site?.primary_color || '#007bff';
@@ -146,7 +151,7 @@ export default async function RootLayout({
         '@type': 'WebSite',
         name: site.name,
         url: siteUrl,
-        description: site.meta_description || `${site.name} - Online bahis ve casino platformu`,
+        description: site.meta_description || `${site.name} - Online platform`,
         inLanguage: 'tr',
         potentialAction: {
           '@type': 'SearchAction',
@@ -161,6 +166,33 @@ export default async function RootLayout({
           name: site.name,
           url: siteUrl,
         },
+      }
+    : null;
+
+  const siteNavSchema = site && navPages.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: [
+          {
+            '@type': 'SiteNavigationElement',
+            position: 1,
+            name: 'Ana Sayfa',
+            url: siteUrl,
+          },
+          ...navPages.map((page, i) => ({
+            '@type': 'SiteNavigationElement',
+            position: i + 2,
+            name: page.title,
+            url: `${siteUrl}/${page.slug}`,
+          })),
+          {
+            '@type': 'SiteNavigationElement',
+            position: navPages.length + 2,
+            name: 'Blog',
+            url: `${siteUrl}/blog`,
+          },
+        ],
       }
     : null;
 
@@ -186,6 +218,12 @@ export default async function RootLayout({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        )}
+        {siteNavSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavSchema) }}
           />
         )}
         {site?.custom_css && (
@@ -217,9 +255,9 @@ export default async function RootLayout({
           } as React.CSSProperties
         }
       >
-        <LoginCtaBar loginUrl={loginUrl} />
-        {!!site?.show_sponsors && <SponsorsBlock offers={offers} />}
-        {!!site?.sponsor_page_visible && offers.length > 0 && (
+        {!sanitize && <LoginCtaBar loginUrl={loginUrl} />}
+        {!sanitize && !!site?.show_sponsors && <SponsorsBlock offers={offers} />}
+        {!sanitize && !!site?.sponsor_page_visible && offers.length > 0 && (
           <OfferCards
             offers={offers}
             contactUrl={site?.sponsor_contact_url}

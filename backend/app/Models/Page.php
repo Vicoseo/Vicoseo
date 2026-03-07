@@ -25,6 +25,7 @@ class Page extends Model
         'meta_keywords',
         'is_published',
         'sort_order',
+        'content_differentiated_at',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class Page extends Model
         return [
             'is_published' => 'boolean',
             'sort_order' => 'integer',
+            'content_differentiated_at' => 'datetime',
         ];
     }
 
