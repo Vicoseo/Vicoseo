@@ -41,7 +41,7 @@ class GenerateMissingContent extends Command
             $this->warn('DRY RUN MODE - no content will be created.');
         }
 
-        $query = Site::where('is_active', true);
+        $query = Site::where('is_active', true)->whereNull('fallback_domain');
         if ($siteFilter) {
             $query->where('domain', $siteFilter);
         }

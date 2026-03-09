@@ -154,8 +154,8 @@ class GenerateRamadanContent extends Command
             $this->warn('DRY RUN MODE - no content will be created.');
         }
 
-        // Get active sites
-        $query = Site::where('is_active', true);
+        // Get active sites (skip redirected domains)
+        $query = Site::where('is_active', true)->whereNull('fallback_domain');
         if ($siteFilter) {
             $query->where('domain', $siteFilter);
         }

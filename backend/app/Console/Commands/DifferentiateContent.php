@@ -119,7 +119,7 @@ class DifferentiateContent extends Command
 
     private function getSites(?string $domain): \Illuminate\Database\Eloquent\Collection
     {
-        $query = Site::where('is_active', true);
+        $query = Site::where('is_active', true)->whereNull('fallback_domain');
 
         if ($domain) {
             $query->where('domain', $domain);

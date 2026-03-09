@@ -40,8 +40,8 @@ class ProcessContentSchedules extends Command
         foreach ($schedules as $schedule) {
             $site = $schedule->site;
 
-            if (!$site || !$site->is_active) {
-                $this->warn("Skipping schedule #{$schedule->id} — site inactive or missing.");
+            if (!$site || !$site->is_active || $site->fallback_domain) {
+                $this->warn("Skipping schedule #{$schedule->id} — site inactive, missing or redirected.");
                 continue;
             }
 

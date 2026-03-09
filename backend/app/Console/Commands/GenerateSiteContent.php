@@ -44,7 +44,7 @@ class GenerateSiteContent extends Command
             $this->warn('FRESH MODE - existing pages will be deleted before regeneration.');
         }
 
-        $query = Site::where('is_active', true);
+        $query = Site::where('is_active', true)->whereNull('fallback_domain');
         if ($siteFilter) {
             $query->where('domain', $siteFilter);
         }

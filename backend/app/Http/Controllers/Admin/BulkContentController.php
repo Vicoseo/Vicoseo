@@ -44,8 +44,8 @@ class BulkContentController extends Controller
             ], 422);
         }
 
-        // Get target sites
-        $query = Site::where('is_active', true);
+        // Get target sites (skip redirected domains)
+        $query = Site::where('is_active', true)->whereNull('fallback_domain');
         if ($request->has('site_ids')) {
             $query->whereIn('id', $request->input('site_ids'));
         }
