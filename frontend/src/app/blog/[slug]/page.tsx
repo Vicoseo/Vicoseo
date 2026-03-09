@@ -303,22 +303,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <PostHero
           title={post.title}
           hero={post.hero}
-          publishedAt={post.published_at}
-          readingTime={readingTime}
           siteUrl={siteUrl}
-          ctaUrl={ctaUrl || undefined}
           logoUrl={logoUrl || undefined}
         />
       ) : (
         <>
           <header className="post-header">
             <h1 className="post-header__title">{post.title}</h1>
-            <div className="post-meta">
-              <time className="post-header__date" dateTime={post.published_at}>
-                {formattedDate}
-              </time>
-              <span className="post-reading-time">{readingTime} dk okuma</span>
-            </div>
           </header>
 
           {post.featured_image && (
@@ -334,6 +325,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           )}
         </>
       )}
+
+      {/* Meta her zaman hero dışında */}
+      <div className="post-meta">
+        <time className="post-header__date" dateTime={post.published_at}>
+          {formattedDate}
+        </time>
+        <span className="post-reading-time">{readingTime} dk okuma</span>
+      </div>
 
       {/* Table of Contents */}
       {headings.length >= 3 && (
