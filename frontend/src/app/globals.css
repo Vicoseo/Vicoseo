@@ -1758,6 +1758,12 @@ p {
   margin-bottom: 28px;
 }
 
+.post-hero__link {
+  display: block;
+  position: relative;
+  text-decoration: none;
+}
+
 .post-hero__bg {
   display: block;
   width: 100%;

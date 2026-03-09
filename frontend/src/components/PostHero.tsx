@@ -20,15 +20,18 @@ export default function PostHero({
 
   return (
     <section className="post-hero">
-      <img
-        src={imageUrl}
-        alt={title}
-        className="post-hero__bg"
-        loading="eager"
-      />
-      <div className="post-hero__inner">
-        <h1 className="post-hero__title">{title}</h1>
-      </div>
+      <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="post-hero__link">
+        <img
+          src={imageUrl}
+          alt={title}
+          title={title}
+          className="post-hero__bg"
+          loading="eager"
+        />
+        <div className="post-hero__inner">
+          <h1 className="post-hero__title">{title}</h1>
+        </div>
+      </a>
     </section>
   );
 }
