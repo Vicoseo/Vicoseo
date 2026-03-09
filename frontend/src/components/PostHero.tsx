@@ -20,16 +20,12 @@ export default function PostHero({
 
   return (
     <section className="post-hero">
-      <Image
+      <img
         src={imageUrl}
         alt={title}
-        width={800}
-        height={445}
         className="post-hero__bg"
-        priority
-        sizes="100vw"
+        loading="eager"
       />
-      <div className="post-hero__overlay" />
       <div className="post-hero__inner">
         <h1 className="post-hero__title">{title}</h1>
       </div>
