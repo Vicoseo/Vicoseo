@@ -108,6 +108,10 @@ export default function PromotionSlider({ promotions, domain, loginUrl }: Props)
         </div>
       )}
 
+      {item.title && (
+        <div className="promo-slider__caption">{item.title}</div>
+      )}
+
       {promotions.length > 1 && (
         <>
           <button

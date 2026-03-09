@@ -213,6 +213,11 @@ export default async function HomePage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
+      <div className="page-content">
+        <h1>{firstPage.title}</h1>
+        <div dangerouslySetInnerHTML={{ __html: firstPage.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
+      </div>
+
       {site && site.promotions && site.promotions.length > 0 && (
         <div style={{ maxWidth: 1200, margin: '12px auto', padding: '0 16px' }}>
           <PromotionSlider
@@ -231,11 +236,6 @@ export default async function HomePage() {
           />
         </div>
       )}
-
-      <div className="page-content">
-        <h1>{firstPage.title}</h1>
-        <div dangerouslySetInnerHTML={{ __html: firstPage.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
-      </div>
 
       <ServiceCards />
 

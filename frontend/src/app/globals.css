@@ -298,6 +298,14 @@ p {
   right: 8px;
 }
 
+.promo-slider__caption {
+  text-align: center;
+  padding: 8px 4px 0;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* ===== PROMOTION CARDS ===== */
 .promo-cards {
   display: grid;
@@ -321,7 +329,6 @@ p {
 }
 
 .promo-cards__figure {
-  position: relative;
   margin: 0;
 }
 
@@ -329,19 +336,15 @@ p {
   display: block;
   width: 100%;
   height: auto;
+  border-radius: 10px;
 }
 
 .promo-cards__caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 24px 12px 8px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
-  color: #fff;
-  font-size: 13px;
+  padding: 8px 4px 0;
+  color: #e0e0e0;
+  font-size: 14px;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
 }
 
 @media (max-width: 768px) {
