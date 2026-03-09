@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -121,6 +122,21 @@ class AuthController extends Controller
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
         ]);
+
+        try {
+            AdminLog::create([
+                'user_id' => $user->id,
+                'action' => 'auth.login',
+                'resource_type' => 'user',
+                'resource_id' => $user->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => substr((string) $request->userAgent(), 0, 500),
+                'details' => [
+                    'email' => $user->email,
+                    'two_factor' => $user->two_factor_enabled,
+                ],
+            ]);
+        } catch (\Throwable) {}
 
         $token = $user->createToken('admin-api')->plainTextToken;
 
