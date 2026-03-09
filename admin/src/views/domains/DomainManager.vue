@@ -16,15 +16,10 @@
 
     <!-- Domain Search -->
     <el-card shadow="hover" style="margin-top: 20px">
-      <div slot="header"><span>Domain Arama &amp; Sat&#305;n Alma</span></div>
+      <div slot="header"><span>Domain Arama &amp; Satın Alma</span></div>
       <el-form :inline="true" @submit.native.prevent="searchDomains">
         <el-form-item>
-          <el-input
-            v-model="searchQuery"
-            placeholder="orneksite.com"
-            clearable
-            style="width: 320px"
-          >
+          <el-input v-model="searchQuery" placeholder="orneksite.com" clearable style="width: 320px">
             <template slot="prepend">www.</template>
           </el-input>
         </el-form-item>
@@ -40,7 +35,7 @@
         <el-table-column label="Durum" width="120">
           <template slot-scope="{ row }">
             <el-tag :type="row.available ? 'success' : 'danger'" size="small">
-              {{ row.available ? 'M\u00fcsait' : 'Al\u0131nm\u0131\u015f' }}
+              {{ row.available ? 'Müsait' : 'Alınmış' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -52,21 +47,10 @@
         <el-table-column label="İşlem" width="280">
           <template slot-scope="{ row }">
             <div class="action-buttons">
-              <el-button
-                v-if="row.available"
-                size="small"
-                type="success"
-                @click="buyDomain(row)"
-                :loading="row._buying"
-              >
+              <el-button v-if="row.available" size="small" type="success" @click="buyDomain(row)" :loading="row._buying">
                 Satın Al
               </el-button>
-              <el-button
-                v-if="row.available"
-                size="small"
-                type="primary"
-                @click="startSetup(row.domain)"
-              >
+              <el-button v-if="row.available" size="small" type="primary" @click="startSetup(row.domain)">
                 Hızlı Kurulum
               </el-button>
             </div>
@@ -77,12 +61,12 @@
 
     <!-- Quick Setup -->
     <el-card shadow="hover" style="margin-top: 20px">
-      <div slot="header"><span>H&#305;zl&#305; Kurulum (Full Setup)</span></div>
+      <div slot="header"><span>Hızlı Kurulum (Full Setup)</span></div>
       <el-form :model="setupForm" label-width="120px" style="max-width: 600px">
         <el-form-item label="Domain">
           <el-input v-model="setupForm.domain" placeholder="orneksite.com" />
         </el-form-item>
-        <el-form-item label="Site Ad&#305;">
+        <el-form-item label="Site Adı">
           <el-input v-model="setupForm.site_name" placeholder="Örnek Site" />
         </el-form-item>
         <el-form-item label="Sunucu IP">
@@ -96,12 +80,10 @@
             :disabled="!setupForm.domain || !setupForm.site_name"
             icon="el-icon-s-promotion"
           >
-            Kurulumu Ba&#351;lat
+            Kurulumu Başlat
           </el-button>
         </el-form-item>
       </el-form>
-
-      <!-- Setup Progress -->
       <div v-if="setupSteps.length" class="setup-progress">
         <el-steps :active="activeSetupStep" finish-status="success" align-center>
           <el-step
@@ -114,7 +96,7 @@
         </el-steps>
         <div v-if="setupResult" class="setup-result" style="margin-top: 20px">
           <el-alert
-            :title="setupResult.success ? 'Kurulum Tamamland\u0131!' : 'Kurulum Hatas\u0131'"
+            :title="setupResult.success ? 'Kurulum Tamamlandı!' : 'Kurulum Hatası'"
             :type="setupResult.success ? 'success' : 'error'"
             :description="setupResult.message"
             show-icon
@@ -128,10 +110,10 @@
       </div>
     </el-card>
 
-    <!-- Cloudflare Zones -->
+    <!-- Domain Listesi -->
     <el-card shadow="hover" style="margin-top: 20px">
       <div slot="header" class="card-header">
-        <span>Cloudflare Zone'lar&#305;</span>
+        <span>Domainler ({{ zones.length }})</span>
         <div>
           <el-button
             v-if="pendingZones.length > 0"
@@ -141,7 +123,7 @@
             @click="fixAllPending"
             :loading="fixAllLoading"
           >
-            T&#252;m Pending'leri D&#252;zelt ({{ pendingZones.length }})
+            Tüm Pending'leri Düzelt ({{ pendingZones.length }})
           </el-button>
           <el-button size="small" icon="el-icon-refresh" @click="fetchZones" :loading="zonesLoading">
             Yenile
@@ -149,143 +131,172 @@
         </div>
       </div>
 
-      <el-table :data="zones" v-loading="zonesLoading">
-        <el-table-column prop="name" label="Domain" />
-        <el-table-column label="Durum" width="120">
+      <el-table
+        :data="zones"
+        v-loading="zonesLoading"
+        highlight-current-row
+        @row-click="openDrawer"
+        class="domain-table"
+      >
+        <el-table-column label="Domain" min-width="200">
           <template slot-scope="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'warning'" size="small">
-              {{ row.status }}
-            </el-tag>
+            <span class="domain-name">{{ row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Nameserver'lar">
+        <el-table-column label="CF" width="80" align="center">
           <template slot-scope="{ row }">
-            <span v-for="(ns, i) in row.name_servers" :key="ns">
-              {{ ns }}<span v-if="i < row.name_servers.length - 1">, </span>
-            </span>
+            <span :class="['status-dot', row.status === 'active' ? 'dot-green' : 'dot-orange']" />
+          </template>
+        </el-table-column>
+        <el-table-column label="DNS" width="80" align="center">
+          <template slot-scope="{ row }">
+            <span :class="['status-dot', getDomainDnsStatus(row.name) === true ? 'dot-green' : getDomainDnsStatus(row.name) === false ? 'dot-red' : 'dot-gray']" />
           </template>
         </el-table-column>
         <el-table-column label="301 Redirect" width="200">
           <template slot-scope="{ row }">
-            <template v-if="getSiteRedirect(row.name)">
-              <el-tag size="small" type="warning" style="cursor: pointer" @click.native="openRedirectDialog(row.name)">
-                → {{ getSiteRedirect(row.name) }}
-              </el-tag>
-            </template>
-            <el-button v-else size="mini" type="text" @click="openRedirectDialog(row.name)">
-              Ayarla
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="İşlemler" width="380">
-          <template slot-scope="{ row }">
-            <el-button size="mini" type="primary" @click="openDnsCheckDialog(row)">DNS Kontrol</el-button>
-            <el-button size="mini" @click="openDnsDialog(row)">DNS Ekle</el-button>
-            <el-button size="mini" type="info" @click="checkZoneStatus(row)">Durum</el-button>
-            <el-button
-              v-if="row.status !== 'active'"
-              size="mini"
-              type="warning"
-              @click="fixPending(row)"
-              :loading="row._fixing"
-            >
-              Aktifleştir
-            </el-button>
+            <span v-if="getSiteRedirect(row.name)" class="redirect-badge">
+              → {{ getSiteRedirect(row.name) }}
+            </span>
+            <span v-else class="no-redirect">—</span>
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="table-legend">
+        <span><span class="status-dot dot-green" /> Aktif</span>
+        <span><span class="status-dot dot-orange" /> Pending</span>
+        <span><span class="status-dot dot-red" /> Hata</span>
+        <span><span class="status-dot dot-gray" /> Bilinmiyor</span>
+        <span style="margin-left: auto; color: #909399; font-size: 12px">Satıra tıklayarak detay panelini aç</span>
+      </div>
     </el-card>
 
-    <!-- DNS Kontrol Dialog -->
-    <el-dialog :visible.sync="dnsCheckDialogVisible" width="700px" top="5vh">
-      <template slot="title">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding-right: 20px">
-          <span style="font-size: 16px; font-weight: 600">DNS Kontrol — {{ dnsCheckDomain }}</span>
-          <div>
+    <!-- Domain Detail Drawer -->
+    <el-drawer
+      :visible.sync="drawerVisible"
+      :title="drawerDomain"
+      direction="rtl"
+      size="520px"
+      :before-close="closeDrawer"
+    >
+      <div class="drawer-content" v-loading="drawerLoading">
+        <!-- Navigation -->
+        <div class="drawer-nav">
+          <el-button size="small" icon="el-icon-arrow-left" :disabled="drawerIndex <= 0" @click="navigateDomain(-1)">
+            Önceki
+          </el-button>
+          <span class="drawer-counter">{{ drawerIndex + 1 }} / {{ zones.length }}</span>
+          <el-button size="small" :disabled="drawerIndex >= zones.length - 1" @click="navigateDomain(1)">
+            Sonraki
+            <i class="el-icon-arrow-right" />
+          </el-button>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="drawer-status">
+          <el-tag :type="drawerZoneStatus === 'active' ? 'success' : 'warning'" size="small" effect="dark">
+            CF: {{ drawerZoneStatus }}
+          </el-tag>
+          <el-tag :type="drawerDnsResolved ? 'success' : 'danger'" size="small" effect="dark">
+            DNS: {{ drawerDnsResolved ? 'OK' : 'FAIL' }}
+          </el-tag>
+          <el-tag v-if="drawerHasCmsSite" size="small" type="info" effect="dark">
+            CMS: Aktif
+          </el-tag>
+          <el-tag v-else size="small" type="danger" effect="dark">
+            CMS: Yok
+          </el-tag>
+        </div>
+
+        <!-- 301 Redirect Section -->
+        <div class="drawer-section">
+          <div class="section-title">301 Domain Redirect</div>
+          <div class="redirect-row">
+            <el-input
+              v-model="drawerRedirect"
+              placeholder="yenidomain.com"
+              size="small"
+              clearable
+              style="flex: 1"
+            />
             <el-button
               size="small"
-              icon="el-icon-arrow-left"
-              :disabled="dnsCheckIndex <= 0"
-              @click="navigateDomain(-1)"
+              type="primary"
+              @click="saveDrawerRedirect"
+              :loading="drawerRedirectSaving"
+              :disabled="drawerRedirect === drawerRedirectOriginal"
             >
-              Önceki
+              Kaydet
             </el-button>
-            <el-tag size="small" style="margin: 0 8px">{{ dnsCheckIndex + 1 }} / {{ zones.length }}</el-tag>
+          </div>
+          <div class="section-hint">
+            BTK engellemesinde yeni domain yaz. Tüm trafik 301 ile yönlendirilir (path korunur).
+          </div>
+        </div>
+
+        <!-- DNS Records -->
+        <div class="drawer-section">
+          <div class="section-title" style="display: flex; justify-content: space-between; align-items: center">
+            <span>DNS Kayıtları ({{ drawerDnsRecords.length }})</span>
+            <el-button size="mini" icon="el-icon-plus" @click="openDnsDialog(zones[drawerIndex])">
+              Ekle
+            </el-button>
+          </div>
+          <el-table :data="drawerDnsRecords" size="mini" border stripe empty-text="DNS kaydı yok" style="margin-top: 8px">
+            <el-table-column prop="type" label="Tip" width="60" />
+            <el-table-column prop="name" label="Ad" show-overflow-tooltip>
+              <template slot-scope="{ row }">
+                <span style="font-family: monospace; font-size: 12px">{{ row.name }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="content" label="Değer" show-overflow-tooltip>
+              <template slot-scope="{ row }">
+                <span style="font-family: monospace; font-size: 12px">{{ row.content }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="P" width="40" align="center">
+              <template slot-scope="{ row }">
+                <i :class="row.proxied ? 'el-icon-check' : 'el-icon-close'" :style="{ color: row.proxied ? '#67c23a' : '#c0c4cc' }" />
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="drawer-section">
+          <div class="section-title">Hızlı İşlemler</div>
+          <div class="quick-actions">
+            <el-button size="small" icon="el-icon-refresh" @click="refreshDrawer">
+              Yenile
+            </el-button>
+            <el-button size="small" type="info" icon="el-icon-view" @click="checkZoneStatus(zones[drawerIndex])">
+              CF Durum Kontrol
+            </el-button>
             <el-button
+              v-if="drawerZoneStatus !== 'active'"
               size="small"
-              icon="el-icon-arrow-right"
-              :disabled="dnsCheckIndex >= zones.length - 1"
-              @click="navigateDomain(1)"
+              type="warning"
+              icon="el-icon-s-promotion"
+              @click="fixPending(zones[drawerIndex])"
+              :loading="zones[drawerIndex] && zones[drawerIndex]._fixing"
             >
-              Sonraki
+              Aktifleştir
             </el-button>
           </div>
         </div>
-      </template>
 
-      <div v-loading="dnsCheckLoading">
-        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px">
-          <el-tag :type="dnsCheckZoneStatus === 'active' ? 'success' : 'warning'" size="small">
-            CF: {{ dnsCheckZoneStatus }}
-          </el-tag>
-          <el-tag :type="dnsCheckDnsResolved ? 'success' : 'danger'" size="small">
-            DNS: {{ dnsCheckDnsResolved ? 'Çözümleniyor' : 'Çözümlenemiyor' }}
-          </el-tag>
-          <el-tag v-if="getSiteRedirect(dnsCheckDomain)" type="warning" size="small">
-            301 → {{ getSiteRedirect(dnsCheckDomain) }}
-          </el-tag>
+        <!-- Next Domain Button -->
+        <div class="drawer-next" v-if="drawerIndex < zones.length - 1">
+          <el-button type="primary" style="width: 100%" @click="navigateDomain(1)">
+            Sonraki Domain: {{ zones[drawerIndex + 1] && zones[drawerIndex + 1].name }} →
+          </el-button>
         </div>
-
-        <el-table :data="dnsCheckRecords" size="small" border stripe empty-text="DNS kaydı bulunamadı">
-          <el-table-column prop="type" label="Tip" width="70" />
-          <el-table-column prop="name" label="Ad" show-overflow-tooltip />
-          <el-table-column prop="content" label="İçerik" show-overflow-tooltip />
-          <el-table-column label="Proxy" width="70" align="center">
-            <template slot-scope="{ row }">
-              <el-tag :type="row.proxied ? 'success' : 'info'" size="mini">
-                {{ row.proxied ? 'ON' : 'OFF' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
       </div>
-
-      <span slot="footer">
-        <el-button size="small" @click="openRedirectDialog(dnsCheckDomain)">301 Redirect</el-button>
-        <el-button size="small" @click="openDnsDialogFromCheck()">DNS Ekle</el-button>
-        <el-button
-          size="small"
-          :disabled="dnsCheckIndex >= zones.length - 1"
-          type="primary"
-          @click="navigateDomain(1)"
-        >
-          Sonraki Domain →
-        </el-button>
-      </span>
-    </el-dialog>
-
-    <!-- 301 Redirect Dialog -->
-    <el-dialog title="301 Domain Redirect" :visible.sync="redirectDialogVisible" width="480px">
-      <p style="color: #909399; font-size: 13px; margin-top: 0">
-        Bu alana domain yazılırsa, <strong>{{ redirectForm.domain }}</strong> sitesine gelen TÜM trafik 301 ile yeni domain'e yönlendirilir (path korunur).
-        BTK engellemesi durumunda yeni domain'i buraya girin. Boş bırakılırsa redirect yapılmaz.
-      </p>
-      <el-input
-        v-model="redirectForm.fallback_domain"
-        placeholder="yenidomain.com"
-        clearable
-        style="margin-top: 12px"
-      >
-        <template slot="prepend">→</template>
-      </el-input>
-      <span slot="footer">
-        <el-button @click="redirectDialogVisible = false">İptal</el-button>
-        <el-button type="primary" @click="saveRedirect" :loading="redirectSaving">Kaydet</el-button>
-      </span>
-    </el-dialog>
+    </el-drawer>
 
     <!-- DNS Add Dialog -->
-    <el-dialog title="DNS Kaydı Ekle" :visible.sync="dnsDialogVisible" width="500px">
+    <el-dialog title="DNS Kaydı Ekle" :visible.sync="dnsDialogVisible" width="500px" append-to-body>
       <el-form :model="dnsForm" label-width="100px">
         <el-form-item label="Zone">
           <el-input :value="dnsForm.zoneName" disabled />
@@ -334,11 +345,11 @@ import { getSites, updateSite } from '../../api/sites'
 
 const SETUP_STEP_LABELS = [
   { key: 'cloudflare_zone', label: "Cloudflare'e ekleniyor" },
-  { key: 'nameservers', label: 'NS g\u00fcncelleniyor' },
-  { key: 'dns_records', label: 'DNS kay\u0131tlar\u0131' },
-  { key: 'ssl', label: 'SSL ayarlan\u0131yor' },
-  { key: 'cms_site', label: 'CMS site olu\u015fturuluyor' },
-  { key: 'nginx', label: 'Nginx yap\u0131land\u0131r\u0131l\u0131yor' },
+  { key: 'nameservers', label: 'NS güncelleniyor' },
+  { key: 'dns_records', label: 'DNS kayıtları' },
+  { key: 'ssl', label: 'SSL ayarlanıyor' },
+  { key: 'cms_site', label: 'CMS site oluşturuluyor' },
+  { key: 'nginx', label: 'Nginx yapılandırılıyor' },
 ]
 
 export default {
@@ -356,11 +367,7 @@ export default {
       searchLoading: false,
 
       // Setup
-      setupForm: {
-        domain: '',
-        site_name: '',
-        server_ip: '',
-      },
+      setupForm: { domain: '', site_name: '', server_ip: '' },
       setupLoading: false,
       setupSteps: [],
       setupResult: null,
@@ -369,42 +376,29 @@ export default {
       // Zones
       zones: [],
       zonesLoading: false,
-
-      // Fix pending
       fixAllLoading: false,
-
-      // DNS Check dialog
-      dnsCheckDialogVisible: false,
-      dnsCheckLoading: false,
-      dnsCheckDomain: '',
-      dnsCheckIndex: 0,
-      dnsCheckRecords: [],
-      dnsCheckZoneStatus: '',
-      dnsCheckDnsResolved: false,
 
       // Sites (for redirect mapping)
       sites: [],
+      dnsStatusCache: {},
 
-      // Redirect dialog
-      redirectDialogVisible: false,
-      redirectSaving: false,
-      redirectForm: {
-        domain: '',
-        siteId: null,
-        fallback_domain: '',
-      },
+      // Drawer
+      drawerVisible: false,
+      drawerLoading: false,
+      drawerIndex: 0,
+      drawerDomain: '',
+      drawerZoneStatus: '',
+      drawerDnsResolved: false,
+      drawerHasCmsSite: false,
+      drawerDnsRecords: [],
+      drawerRedirect: '',
+      drawerRedirectOriginal: '',
+      drawerRedirectSaving: false,
 
       // DNS dialog
       dnsDialogVisible: false,
       dnsLoading: false,
-      dnsForm: {
-        zoneId: '',
-        zoneName: '',
-        type: 'A',
-        name: '',
-        content: '',
-        proxied: true,
-      },
+      dnsForm: { zoneId: '', zoneName: '', type: 'A', name: '', content: '', proxied: true },
     }
   },
 
@@ -428,12 +422,13 @@ export default {
   },
 
   methods: {
+    // ─── Sites & Redirect helpers ───
     async fetchSites() {
       try {
         const { data } = await getSites({ per_page: 100 })
         this.sites = data.data || []
       } catch {
-        // silent — non-critical
+        // silent
       }
     },
 
@@ -446,94 +441,105 @@ export default {
       return site?.fallback_domain || ''
     },
 
-    openRedirectDialog(domain) {
-      const site = this.getSiteByDomain(domain)
-      this.redirectForm = {
-        domain,
-        siteId: site?.id || null,
-        fallback_domain: site?.fallback_domain || '',
-      }
-      this.redirectDialogVisible = true
+    getDomainDnsStatus(domain) {
+      if (domain in this.dnsStatusCache) return this.dnsStatusCache[domain]
+      return null // unknown
     },
 
-    async openDnsCheckDialog(zone) {
+    // ─── Drawer ───
+    async openDrawer(zone) {
       const idx = this.zones.findIndex((z) => z.zone_id === zone.zone_id)
-      this.dnsCheckIndex = idx >= 0 ? idx : 0
-      this.dnsCheckDialogVisible = true
-      await this.loadDnsCheck(zone)
+      this.drawerIndex = idx >= 0 ? idx : 0
+      this.drawerVisible = true
+      await this.loadDrawerData(zone)
+    },
+
+    closeDrawer(done) {
+      done()
     },
 
     async navigateDomain(direction) {
-      const newIdx = this.dnsCheckIndex + direction
+      const newIdx = this.drawerIndex + direction
       if (newIdx < 0 || newIdx >= this.zones.length) return
-      this.dnsCheckIndex = newIdx
-      await this.loadDnsCheck(this.zones[newIdx])
+      this.drawerIndex = newIdx
+      await this.loadDrawerData(this.zones[newIdx])
     },
 
-    async loadDnsCheck(zone) {
-      this.dnsCheckDomain = zone.name
-      this.dnsCheckZoneStatus = zone.status
-      this.dnsCheckRecords = []
-      this.dnsCheckDnsResolved = false
-      this.dnsCheckLoading = true
+    async loadDrawerData(zone) {
+      this.drawerDomain = zone.name
+      this.drawerZoneStatus = zone.status
+      this.drawerDnsRecords = []
+      this.drawerDnsResolved = false
+      this.drawerHasCmsSite = false
+      this.drawerLoading = true
+
+      const site = this.getSiteByDomain(zone.name)
+      this.drawerHasCmsSite = !!site
+      this.drawerRedirect = site?.fallback_domain || ''
+      this.drawerRedirectOriginal = this.drawerRedirect
+
       try {
         const [dnsRes, statusRes] = await Promise.all([
           listDnsRecords(zone.zone_id),
           getDomainStatus(zone.name),
         ])
-        this.dnsCheckRecords = dnsRes.data?.data || []
-        this.dnsCheckDnsResolved = statusRes.data?.dns_resolved || false
+        this.drawerDnsRecords = dnsRes.data?.data || []
+        this.drawerDnsResolved = statusRes.data?.dns_resolved || false
+        this.$set(this.dnsStatusCache, zone.name, this.drawerDnsResolved)
         if (statusRes.data?.cloudflare?.status) {
-          this.dnsCheckZoneStatus = statusRes.data.cloudflare.status
+          this.drawerZoneStatus = statusRes.data.cloudflare.status
+        }
+        if (statusRes.data?.cms_site) {
+          this.drawerHasCmsSite = true
         }
       } catch {
-        this.$message.error('DNS bilgileri alınamadı.')
+        this.$message.error('Bilgiler yüklenemedi.')
       } finally {
-        this.dnsCheckLoading = false
+        this.drawerLoading = false
       }
     },
 
-    openDnsDialogFromCheck() {
-      const zone = this.zones[this.dnsCheckIndex]
-      if (zone) this.openDnsDialog(zone)
+    async refreshDrawer() {
+      if (!this.zones[this.drawerIndex]) return
+      await this.loadDrawerData(this.zones[this.drawerIndex])
+      this.$message.success('Yenilendi')
     },
 
-    async saveRedirect() {
-      if (!this.redirectForm.siteId) {
+    async saveDrawerRedirect() {
+      const site = this.getSiteByDomain(this.drawerDomain)
+      if (!site) {
         this.$message.warning('Bu domain için CMS sitesi bulunamadı.')
         return
       }
-      this.redirectSaving = true
+      this.drawerRedirectSaving = true
       try {
-        await updateSite(this.redirectForm.siteId, {
-          fallback_domain: this.redirectForm.fallback_domain || null,
-        })
+        await updateSite(site.id, { fallback_domain: this.drawerRedirect || null })
+        this.drawerRedirectOriginal = this.drawerRedirect
         this.$message.success(
-          this.redirectForm.fallback_domain
-            ? `301 redirect → ${this.redirectForm.fallback_domain} ayarlandı`
-            : 'Redirect kaldırıldı',
+          this.drawerRedirect ? `301 → ${this.drawerRedirect} ayarlandı` : 'Redirect kaldırıldı',
         )
-        this.redirectDialogVisible = false
         this.fetchSites()
       } catch (e) {
-        this.$message.error(e.response?.data?.message || 'Redirect kaydedilemedi.')
+        this.$message.error(e.response?.data?.message || 'Kaydedilemedi.')
       } finally {
-        this.redirectSaving = false
+        this.drawerRedirectSaving = false
       }
     },
 
+    // ─── Balance ───
     async fetchBalance() {
       this.balanceLoading = true
       try {
         const { data } = await getBalance()
         this.balance = data.balance
-      } catch (e) {
-        this.$message.error('Bakiye al\u0131namad\u0131.')
+      } catch {
+        this.$message.error('Bakiye alınamadı.')
       } finally {
         this.balanceLoading = false
       }
     },
 
+    // ─── Search & Buy ───
     async searchDomains() {
       if (!this.searchQuery.trim()) return
       this.searchLoading = true
@@ -541,8 +547,8 @@ export default {
       try {
         const { data } = await searchDomain(this.searchQuery.trim())
         this.searchResults = (data.data || []).map((r) => ({ ...r, _buying: false }))
-      } catch (e) {
-        this.$message.error('Arama ba\u015far\u0131s\u0131z.')
+      } catch {
+        this.$message.error('Arama başarısız.')
       } finally {
         this.searchLoading = false
       }
@@ -551,27 +557,25 @@ export default {
     async buyDomain(row) {
       try {
         await this.$confirm(
-          `${row.domain} domaini $${row.price?.toFixed(2) || '?'} \u00fccretine sat\u0131n al\u0131nacak. Onayl\u0131yor musunuz?`,
-          'Sat\u0131n Alma Onay\u0131',
+          `${row.domain} domaini $${row.price?.toFixed(2) || '?'} ücretine satın alınacak. Onaylıyor musunuz?`,
+          'Satın Alma Onayı',
           { type: 'warning' },
         )
       } catch {
         return
       }
-
       row._buying = true
       try {
         const { data } = await purchaseDomain({ domain: row.domain })
         if (data.success) {
-          this.$message.success(data.message || 'Domain sat\u0131n al\u0131nd\u0131!')
+          this.$message.success(data.message || 'Domain satın alındı!')
           row.available = false
           this.fetchBalance()
         } else {
-          this.$message.error(data.message || 'Sat\u0131n alma ba\u015far\u0131s\u0131z.')
+          this.$message.error(data.message || 'Satın alma başarısız.')
         }
       } catch (e) {
-        const msg = e.response?.data?.message || 'Sat\u0131n alma hatas\u0131.'
-        this.$message.error(msg)
+        this.$message.error(e.response?.data?.message || 'Satın alma hatası.')
       } finally {
         row._buying = false
       }
@@ -580,49 +584,35 @@ export default {
     startSetup(domain) {
       this.setupForm.domain = domain
       this.setupForm.site_name = domain.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]/g, ' ')
-      // Scroll to setup section
       this.$nextTick(() => {
         const el = document.querySelector('.setup-progress')
         if (el) el.scrollIntoView({ behavior: 'smooth' })
       })
     },
 
+    // ─── Setup ───
     async runSetup() {
       if (!this.setupForm.domain || !this.setupForm.site_name) return
-
       this.setupLoading = true
       this.setupResult = null
-      // Simulate initial running steps
       this.setupSteps = SETUP_STEP_LABELS.map((s) => ({ step: s.key, status: 'pending' }))
-
       try {
-        const payload = {
-          domain: this.setupForm.domain,
-          site_name: this.setupForm.site_name,
-        }
-        if (this.setupForm.server_ip) {
-          payload.server_ip = this.setupForm.server_ip
-        }
-
+        const payload = { domain: this.setupForm.domain, site_name: this.setupForm.site_name }
+        if (this.setupForm.server_ip) payload.server_ip = this.setupForm.server_ip
         const { data } = await fullSetup(payload)
         this.setupSteps = data.steps || []
         this.setupResult = data
         if (data.success) {
-          this.$message.success('Kurulum tamamland\u0131!')
+          this.$message.success('Kurulum tamamlandı!')
           this.fetchZones()
         } else {
-          this.$message.warning(data.message || 'Kurulum k\u0131smen ba\u015far\u0131s\u0131z.')
+          this.$message.warning(data.message || 'Kurulum kısmen başarısız.')
         }
       } catch (e) {
         const errData = e.response?.data
-        if (errData?.steps) {
-          this.setupSteps = errData.steps
-        }
-        this.setupResult = {
-          success: false,
-          message: errData?.message || 'Kurulum hatas\u0131.',
-        }
-        this.$message.error(errData?.message || 'Kurulum hatas\u0131.')
+        if (errData?.steps) this.setupSteps = errData.steps
+        this.setupResult = { success: false, message: errData?.message || 'Kurulum hatası.' }
+        this.$message.error(errData?.message || 'Kurulum hatası.')
       } finally {
         this.setupLoading = false
       }
@@ -643,13 +633,14 @@ export default {
       return step?.message || ''
     },
 
+    // ─── Zones ───
     async fetchZones() {
       this.zonesLoading = true
       try {
         const { data } = await getCfZones()
         this.zones = (data.data || []).map((z) => ({ ...z, _fixing: false }))
-      } catch (e) {
-        this.$message.error('Zone listesi al\u0131namad\u0131.')
+      } catch {
+        this.$message.error('Zone listesi alınamadı.')
       } finally {
         this.zonesLoading = false
       }
@@ -664,26 +655,24 @@ export default {
           if (data.nameservers && data.nameservers.length) {
             this.$notify({
               title: 'Nameserver Bilgisi',
-              message: `${zone.name} i\u00e7in NS: ${data.nameservers.join(', ')}`,
+              message: `${zone.name} için NS: ${data.nameservers.join(', ')}`,
               type: 'info',
               duration: 10000,
             })
           }
-          // Re-fetch zones after a short delay
           setTimeout(() => this.fetchZones(), 3000)
         } else {
-          this.$message.warning(data.message || 'D\u00fczeltme k\u0131smen ba\u015far\u0131s\u0131z.')
+          this.$message.warning(data.message || 'Düzeltme kısmen başarısız.')
           if (data.nameservers && data.nameservers.length) {
             this.$alert(
-              `Nameserver'lar\u0131 registrar panelinizden manuel olarak g\u00fcncelleyin:\n\n${data.nameservers.join('\n')}`,
-              'Manuel NS G\u00fcncelleme Gerekli',
+              `Nameserver'ları registrar panelinizden manuel olarak güncelleyin:\n\n${data.nameservers.join('\n')}`,
+              'Manuel NS Güncelleme Gerekli',
               { type: 'warning' },
             )
           }
         }
       } catch (e) {
-        const msg = e.response?.data?.message || 'Aktivasyon hatası.'
-        this.$message.error(msg)
+        this.$message.error(e.response?.data?.message || 'Aktivasyon hatası.')
       } finally {
         zone._fixing = false
       }
@@ -694,22 +683,16 @@ export default {
       this.fixAllLoading = true
       let successCount = 0
       let failCount = 0
-
       for (const zone of this.pendingZones) {
         try {
           const { data } = await fixPendingZone(zone.zone_id, zone.name)
-          if (data.success) {
-            successCount++
-          } else {
-            failCount++
-          }
+          data.success ? successCount++ : failCount++
         } catch {
           failCount++
         }
       }
-
       this.fixAllLoading = false
-      this.$message.info(`${successCount} zone i\u00e7in aktivasyon tetiklendi, ${failCount} hata.`)
+      this.$message.info(`${successCount} zone için aktivasyon tetiklendi, ${failCount} hata.`)
       setTimeout(() => this.fetchZones(), 5000)
     },
 
@@ -718,20 +701,24 @@ export default {
         const { data } = await getCfZoneDetail(zone.zone_id)
         if (data.success) {
           this.$message.info(`${zone.name}: ${data.status}`)
-          // Update local data
           const idx = this.zones.findIndex((z) => z.zone_id === zone.zone_id)
           if (idx !== -1) {
             this.$set(this.zones, idx, { ...this.zones[idx], status: data.status })
           }
+          if (this.drawerVisible) {
+            this.drawerZoneStatus = data.status
+          }
         } else {
-          this.$message.warning(data.message || 'Durum al\u0131namad\u0131.')
+          this.$message.warning(data.message || 'Durum alınamadı.')
         }
-      } catch (e) {
-        this.$message.error('Durum kontrol\u00fc ba\u015far\u0131s\u0131z.')
+      } catch {
+        this.$message.error('Durum kontrolü başarısız.')
       }
     },
 
+    // ─── DNS Dialog ───
     openDnsDialog(zone) {
+      if (!zone) return
       this.dnsForm = {
         zoneId: zone.zone_id,
         zoneName: zone.name,
@@ -745,7 +732,7 @@ export default {
 
     async submitDns() {
       if (!this.dnsForm.name || !this.dnsForm.content) {
-        this.$message.warning('Ad ve i\u00e7erik alanlar\u0131 zorunludur.')
+        this.$message.warning('Ad ve içerik alanları zorunludur.')
         return
       }
       this.dnsLoading = true
@@ -757,14 +744,14 @@ export default {
           proxied: this.dnsForm.proxied,
         })
         if (data.success) {
-          this.$message.success('DNS kayd\u0131 eklendi.')
+          this.$message.success('DNS kaydı eklendi.')
           this.dnsDialogVisible = false
+          if (this.drawerVisible) this.refreshDrawer()
         } else {
-          this.$message.error(data.message || 'DNS kayd\u0131 eklenemedi.')
+          this.$message.error(data.message || 'DNS kaydı eklenemedi.')
         }
       } catch (e) {
-        const msg = e.response?.data?.message || 'DNS kayd\u0131 eklenemedi.'
-        this.$message.error(msg)
+        this.$message.error(e.response?.data?.message || 'DNS kaydı eklenemedi.')
       } finally {
         this.dnsLoading = false
       }
@@ -797,5 +784,106 @@ export default {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+/* Domain Table */
+.domain-table >>> .el-table__row {
+  cursor: pointer;
+}
+.domain-name {
+  font-weight: 600;
+  color: #303133;
+}
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot-green { background: #67c23a; }
+.dot-orange { background: #e6a23c; }
+.dot-red { background: #f56c6c; }
+.dot-gray { background: #c0c4cc; }
+.redirect-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fdf6ec;
+  color: #e6a23c;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.no-redirect {
+  color: #c0c4cc;
+}
+.table-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0 0;
+  font-size: 12px;
+  color: #606266;
+}
+.table-legend .status-dot {
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Drawer */
+.drawer-content {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.drawer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f5f7fa;
+  border-radius: 6px;
+}
+.drawer-counter {
+  font-size: 14px;
+  font-weight: 600;
+  color: #606266;
+}
+.drawer-status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.drawer-section {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 16px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.section-hint {
+  font-size: 11px;
+  color: #909399;
+  margin-top: 6px;
+}
+.redirect-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.drawer-next {
+  margin-top: auto;
+  padding-top: 8px;
 }
 </style>
