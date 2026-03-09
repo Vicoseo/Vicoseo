@@ -304,7 +304,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           title={post.title}
           hero={post.hero}
           siteUrl={siteUrl}
-          logoUrl={logoUrl || undefined}
         />
       ) : (
         <>
