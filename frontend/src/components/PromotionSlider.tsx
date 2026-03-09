@@ -8,6 +8,7 @@ interface Props {
   promotions: SitePromotion[];
   domain: string;
   loginUrl?: string;
+  startIndex?: number;
 }
 
 function resolveUrl(url: string, domain: string) {
@@ -16,8 +17,8 @@ function resolveUrl(url: string, domain: string) {
   return `https://${domain}${url}`;
 }
 
-export default function PromotionSlider({ promotions, domain, loginUrl }: Props) {
-  const [current, setCurrent] = useState(0);
+export default function PromotionSlider({ promotions, domain, loginUrl, startIndex = 0 }: Props) {
+  const [current, setCurrent] = useState(startIndex % promotions.length);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 

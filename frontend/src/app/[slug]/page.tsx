@@ -167,6 +167,7 @@ export default async function DynamicPage({ params }: PageProps) {
             promotions={site.promotions}
             domain={site.domain}
             loginUrl={site.login_url || site.entry_url || undefined}
+            startIndex={slug.split('').reduce((a, c) => a + c.charCodeAt(0), 0)}
           />
         </div>
       )}
