@@ -44,6 +44,7 @@ class SiteController extends Controller
                 'sponsor_page_visible' => (bool) $site->sponsor_page_visible,
                 'sponsor_contact_url' => $site->sponsor_contact_url,
                 'sponsor_contact_text' => $site->sponsor_contact_text,
+                'fallback_domain' => $site->fallback_domain,
                 'earnings' => SiteEarning::where('site_id', $site->id)
                     ->where('is_active', true)
                     ->orderBy('sort_order')

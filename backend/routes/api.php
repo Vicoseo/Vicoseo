@@ -102,6 +102,7 @@ Route::prefix('admin')->group(function () {
             Route::post('setup', [Admin\DomainController::class, 'setup']);
             Route::get('cloudflare/zones', [Admin\DomainController::class, 'cfZones']);
             Route::get('cloudflare/zones/{zoneId}', [Admin\DomainController::class, 'cfZoneDetail']);
+            Route::get('cloudflare/zones/{zoneId}/dns', [Admin\DomainController::class, 'cfListDns']);
             Route::post('cloudflare/zones/{zoneId}/dns', [Admin\DomainController::class, 'cfAddDns']);
             Route::post('retry-activation', [Admin\DomainController::class, 'retryActivation']);
             Route::post('fix-pending', [Admin\DomainController::class, 'fixPendingZone']);

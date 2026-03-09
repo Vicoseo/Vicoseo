@@ -258,6 +258,23 @@ class DomainController extends Controller
     }
 
     /**
+     * List DNS records for a Cloudflare zone.
+     */
+    public function cfListDns(string $zoneId): JsonResponse
+    {
+        try {
+            $records = $this->cloudflare->listDnsRecords($zoneId);
+
+            return response()->json(['success' => true, 'data' => $records]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'DNS kayıtları alınamadı: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Add a DNS record to a Cloudflare zone.
      */
     public function cfAddDns(Request $request, string $zoneId): JsonResponse

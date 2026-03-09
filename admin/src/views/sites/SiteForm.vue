@@ -80,10 +80,11 @@
 
         <el-divider content-position="left">SEO Ayarları</el-divider>
 
-        <el-form-item label="Fallback Domain">
-          <el-input v-model="form.fallback_domain" placeholder="fallback-site.com" />
+        <el-form-item label="301 Domain Redirect">
+          <el-input v-model="form.fallback_domain" placeholder="yenidomain.com" />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">
-            Redirect bulunamazsa kullanıcının yönlendirileceği domain
+            Bu alana domain yazılırsa, siteye gelen TÜM trafik 301 ile bu domain'e yönlendirilir (path korunur).
+            BTK engellemesi durumunda yeni domain'i buraya girin. Boş bırakılırsa redirect yapılmaz.
           </div>
         </el-form-item>
         <el-form-item label="Noindex Modu">

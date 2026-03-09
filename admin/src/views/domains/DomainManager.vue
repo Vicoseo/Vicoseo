@@ -165,8 +165,21 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="İşlemler" width="320">
+        <el-table-column label="301 Redirect" width="200">
           <template slot-scope="{ row }">
+            <template v-if="getSiteRedirect(row.name)">
+              <el-tag size="small" type="warning" style="cursor: pointer" @click.native="openRedirectDialog(row.name)">
+                → {{ getSiteRedirect(row.name) }}
+              </el-tag>
+            </template>
+            <el-button v-else size="mini" type="text" @click="openRedirectDialog(row.name)">
+              Ayarla
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="İşlemler" width="380">
+          <template slot-scope="{ row }">
+            <el-button size="mini" type="primary" @click="openDnsCheckDialog(row)">DNS Kontrol</el-button>
             <el-button size="mini" @click="openDnsDialog(row)">DNS Ekle</el-button>
             <el-button size="mini" type="info" @click="checkZoneStatus(row)">Durum</el-button>
             <el-button
@@ -176,15 +189,103 @@
               @click="fixPending(row)"
               :loading="row._fixing"
             >
-              Aktifle&#351;tir
+              Aktifleştir
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
+    <!-- DNS Kontrol Dialog -->
+    <el-dialog :visible.sync="dnsCheckDialogVisible" width="700px" top="5vh">
+      <template slot="title">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-right: 20px">
+          <span style="font-size: 16px; font-weight: 600">DNS Kontrol — {{ dnsCheckDomain }}</span>
+          <div>
+            <el-button
+              size="small"
+              icon="el-icon-arrow-left"
+              :disabled="dnsCheckIndex <= 0"
+              @click="navigateDomain(-1)"
+            >
+              Önceki
+            </el-button>
+            <el-tag size="small" style="margin: 0 8px">{{ dnsCheckIndex + 1 }} / {{ zones.length }}</el-tag>
+            <el-button
+              size="small"
+              icon="el-icon-arrow-right"
+              :disabled="dnsCheckIndex >= zones.length - 1"
+              @click="navigateDomain(1)"
+            >
+              Sonraki
+            </el-button>
+          </div>
+        </div>
+      </template>
+
+      <div v-loading="dnsCheckLoading">
+        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px">
+          <el-tag :type="dnsCheckZoneStatus === 'active' ? 'success' : 'warning'" size="small">
+            CF: {{ dnsCheckZoneStatus }}
+          </el-tag>
+          <el-tag :type="dnsCheckDnsResolved ? 'success' : 'danger'" size="small">
+            DNS: {{ dnsCheckDnsResolved ? 'Çözümleniyor' : 'Çözümlenemiyor' }}
+          </el-tag>
+          <el-tag v-if="getSiteRedirect(dnsCheckDomain)" type="warning" size="small">
+            301 → {{ getSiteRedirect(dnsCheckDomain) }}
+          </el-tag>
+        </div>
+
+        <el-table :data="dnsCheckRecords" size="small" border stripe empty-text="DNS kaydı bulunamadı">
+          <el-table-column prop="type" label="Tip" width="70" />
+          <el-table-column prop="name" label="Ad" show-overflow-tooltip />
+          <el-table-column prop="content" label="İçerik" show-overflow-tooltip />
+          <el-table-column label="Proxy" width="70" align="center">
+            <template slot-scope="{ row }">
+              <el-tag :type="row.proxied ? 'success' : 'info'" size="mini">
+                {{ row.proxied ? 'ON' : 'OFF' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <span slot="footer">
+        <el-button size="small" @click="openRedirectDialog(dnsCheckDomain)">301 Redirect</el-button>
+        <el-button size="small" @click="openDnsDialogFromCheck()">DNS Ekle</el-button>
+        <el-button
+          size="small"
+          :disabled="dnsCheckIndex >= zones.length - 1"
+          type="primary"
+          @click="navigateDomain(1)"
+        >
+          Sonraki Domain →
+        </el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 301 Redirect Dialog -->
+    <el-dialog title="301 Domain Redirect" :visible.sync="redirectDialogVisible" width="480px">
+      <p style="color: #909399; font-size: 13px; margin-top: 0">
+        Bu alana domain yazılırsa, <strong>{{ redirectForm.domain }}</strong> sitesine gelen TÜM trafik 301 ile yeni domain'e yönlendirilir (path korunur).
+        BTK engellemesi durumunda yeni domain'i buraya girin. Boş bırakılırsa redirect yapılmaz.
+      </p>
+      <el-input
+        v-model="redirectForm.fallback_domain"
+        placeholder="yenidomain.com"
+        clearable
+        style="margin-top: 12px"
+      >
+        <template slot="prepend">→</template>
+      </el-input>
+      <span slot="footer">
+        <el-button @click="redirectDialogVisible = false">İptal</el-button>
+        <el-button type="primary" @click="saveRedirect" :loading="redirectSaving">Kaydet</el-button>
+      </span>
+    </el-dialog>
+
     <!-- DNS Add Dialog -->
-    <el-dialog title="DNS Kayd&#305; Ekle" :visible.sync="dnsDialogVisible" width="500px">
+    <el-dialog title="DNS Kaydı Ekle" :visible.sync="dnsDialogVisible" width="500px">
       <el-form :model="dnsForm" label-width="100px">
         <el-form-item label="Zone">
           <el-input :value="dnsForm.zoneName" disabled />
@@ -224,9 +325,12 @@ import {
   fullSetup,
   getCfZones,
   getCfZoneDetail,
+  listDnsRecords,
   addDnsRecord,
   fixPendingZone,
+  getDomainStatus,
 } from '../../api/domains'
+import { getSites, updateSite } from '../../api/sites'
 
 const SETUP_STEP_LABELS = [
   { key: 'cloudflare_zone', label: "Cloudflare'e ekleniyor" },
@@ -269,6 +373,27 @@ export default {
       // Fix pending
       fixAllLoading: false,
 
+      // DNS Check dialog
+      dnsCheckDialogVisible: false,
+      dnsCheckLoading: false,
+      dnsCheckDomain: '',
+      dnsCheckIndex: 0,
+      dnsCheckRecords: [],
+      dnsCheckZoneStatus: '',
+      dnsCheckDnsResolved: false,
+
+      // Sites (for redirect mapping)
+      sites: [],
+
+      // Redirect dialog
+      redirectDialogVisible: false,
+      redirectSaving: false,
+      redirectForm: {
+        domain: '',
+        siteId: null,
+        fallback_domain: '',
+      },
+
       // DNS dialog
       dnsDialogVisible: false,
       dnsLoading: false,
@@ -299,9 +424,104 @@ export default {
   created() {
     this.fetchBalance()
     this.fetchZones()
+    this.fetchSites()
   },
 
   methods: {
+    async fetchSites() {
+      try {
+        const { data } = await getSites({ per_page: 100 })
+        this.sites = data.data || []
+      } catch {
+        // silent — non-critical
+      }
+    },
+
+    getSiteByDomain(domain) {
+      return this.sites.find((s) => s.domain === domain)
+    },
+
+    getSiteRedirect(domain) {
+      const site = this.getSiteByDomain(domain)
+      return site?.fallback_domain || ''
+    },
+
+    openRedirectDialog(domain) {
+      const site = this.getSiteByDomain(domain)
+      this.redirectForm = {
+        domain,
+        siteId: site?.id || null,
+        fallback_domain: site?.fallback_domain || '',
+      }
+      this.redirectDialogVisible = true
+    },
+
+    async openDnsCheckDialog(zone) {
+      const idx = this.zones.findIndex((z) => z.zone_id === zone.zone_id)
+      this.dnsCheckIndex = idx >= 0 ? idx : 0
+      this.dnsCheckDialogVisible = true
+      await this.loadDnsCheck(zone)
+    },
+
+    async navigateDomain(direction) {
+      const newIdx = this.dnsCheckIndex + direction
+      if (newIdx < 0 || newIdx >= this.zones.length) return
+      this.dnsCheckIndex = newIdx
+      await this.loadDnsCheck(this.zones[newIdx])
+    },
+
+    async loadDnsCheck(zone) {
+      this.dnsCheckDomain = zone.name
+      this.dnsCheckZoneStatus = zone.status
+      this.dnsCheckRecords = []
+      this.dnsCheckDnsResolved = false
+      this.dnsCheckLoading = true
+      try {
+        const [dnsRes, statusRes] = await Promise.all([
+          listDnsRecords(zone.zone_id),
+          getDomainStatus(zone.name),
+        ])
+        this.dnsCheckRecords = dnsRes.data?.data || []
+        this.dnsCheckDnsResolved = statusRes.data?.dns_resolved || false
+        if (statusRes.data?.cloudflare?.status) {
+          this.dnsCheckZoneStatus = statusRes.data.cloudflare.status
+        }
+      } catch {
+        this.$message.error('DNS bilgileri alınamadı.')
+      } finally {
+        this.dnsCheckLoading = false
+      }
+    },
+
+    openDnsDialogFromCheck() {
+      const zone = this.zones[this.dnsCheckIndex]
+      if (zone) this.openDnsDialog(zone)
+    },
+
+    async saveRedirect() {
+      if (!this.redirectForm.siteId) {
+        this.$message.warning('Bu domain için CMS sitesi bulunamadı.')
+        return
+      }
+      this.redirectSaving = true
+      try {
+        await updateSite(this.redirectForm.siteId, {
+          fallback_domain: this.redirectForm.fallback_domain || null,
+        })
+        this.$message.success(
+          this.redirectForm.fallback_domain
+            ? `301 redirect → ${this.redirectForm.fallback_domain} ayarlandı`
+            : 'Redirect kaldırıldı',
+        )
+        this.redirectDialogVisible = false
+        this.fetchSites()
+      } catch (e) {
+        this.$message.error(e.response?.data?.message || 'Redirect kaydedilemedi.')
+      } finally {
+        this.redirectSaving = false
+      }
+    },
+
     async fetchBalance() {
       this.balanceLoading = true
       try {

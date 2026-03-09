@@ -242,6 +242,32 @@ class CloudflareService
     }
 
     /**
+     * List DNS records for a zone.
+     */
+    public function listDnsRecords(string $zoneId): array
+    {
+        $response = $this->get("/zones/{$zoneId}/dns_records", [
+            'per_page' => 100,
+            'order' => 'type',
+        ]);
+
+        if (!$response['success']) {
+            return [];
+        }
+
+        return array_map(function ($record) {
+            return [
+                'id' => $record['id'],
+                'type' => $record['type'],
+                'name' => $record['name'],
+                'content' => $record['content'],
+                'proxied' => $record['proxied'] ?? false,
+                'ttl' => $record['ttl'] ?? 1,
+            ];
+        }, $response['result'] ?? []);
+    }
+
+    /**
      * List all zones.
      */
     public function listZones(int $page = 1, int $perPage = 50): array

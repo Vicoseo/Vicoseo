@@ -24,6 +24,10 @@ export function getCfZoneDetail(zoneId) {
   return client.get(`/admin/domains/cloudflare/zones/${zoneId}`)
 }
 
+export function listDnsRecords(zoneId) {
+  return client.get(`/admin/domains/cloudflare/zones/${zoneId}/dns`)
+}
+
 export function addDnsRecord(zoneId, data) {
   return client.post(`/admin/domains/cloudflare/zones/${zoneId}/dns`, data)
 }
