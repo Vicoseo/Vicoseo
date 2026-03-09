@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BackgroundPackage extends Model
 {
@@ -14,22 +15,21 @@ class BackgroundPackage extends Model
 
     protected $fillable = [
         'name',
-        'slug',
-        'description',
         'image_url',
-        'thumbnail_url',
+        'site_id',
         'overlay_color',
-        'overlay_blend',
-        'tags',
-        'sort_order',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'tags' => 'array',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
     }
 }

@@ -13,7 +13,7 @@ class BackgroundPackageController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $packages = BackgroundPackage::orderBy('sort_order', 'asc')
+        $packages = BackgroundPackage::with('site:id,name,domain')
             ->orderBy('created_at', 'desc')
             ->paginate($request->integer('per_page', 50));
 
@@ -24,29 +24,23 @@ class BackgroundPackageController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'slug' => ['required', 'string', 'max:100', 'unique:landlord.background_packages,slug'],
-            'description' => ['nullable', 'string'],
             'image_url' => ['required', 'string', 'max:500'],
-            'thumbnail_url' => ['nullable', 'string', 'max:500'],
+            'site_id' => ['nullable', 'integer', 'exists:landlord.sites,id'],
             'overlay_color' => ['sometimes', 'string', 'max:100'],
-            'overlay_blend' => ['sometimes', 'string', 'in:multiply,overlay,screen,normal'],
-            'tags' => ['nullable', 'array'],
-            'tags.*' => ['string', 'max:50'],
-            'sort_order' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
         $package = BackgroundPackage::create($validated);
 
         return response()->json([
-            'data' => $package,
+            'data' => $package->load('site:id,name,domain'),
             'message' => 'Background package created successfully.',
         ], 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $package = BackgroundPackage::findOrFail($id);
+        $package = BackgroundPackage::with('site:id,name,domain')->findOrFail($id);
 
         return response()->json([
             'data' => $package,
@@ -59,22 +53,16 @@ class BackgroundPackageController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:100'],
-            'slug' => ['sometimes', 'string', 'max:100', 'unique:landlord.background_packages,slug,' . $package->id],
-            'description' => ['nullable', 'string'],
             'image_url' => ['sometimes', 'string', 'max:500'],
-            'thumbnail_url' => ['nullable', 'string', 'max:500'],
+            'site_id' => ['nullable', 'integer', 'exists:landlord.sites,id'],
             'overlay_color' => ['sometimes', 'string', 'max:100'],
-            'overlay_blend' => ['sometimes', 'string', 'in:multiply,overlay,screen,normal'],
-            'tags' => ['nullable', 'array'],
-            'tags.*' => ['string', 'max:50'],
-            'sort_order' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
         $package->update($validated);
 
         return response()->json([
-            'data' => $package->fresh(),
+            'data' => $package->fresh()->load('site:id,name,domain'),
             'message' => 'Background package updated successfully.',
         ]);
     }

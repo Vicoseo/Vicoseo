@@ -87,18 +87,8 @@ export interface Category {
 }
 
 export interface HeroData {
-  background: { image_url: string; thumbnail_url: string | null } | null;
+  background: { image_url: string } | null;
   overlay_color: string;
-  overlay_blend: string;
-  accent_color: string;
-  badge: { show: boolean; text: string };
-  cta: { show: boolean; text: string; url: string };
-  show_date: boolean;
-  show_reading_time: boolean;
-  show_category: boolean;
-  slogan: string | null;
-  featured_image_in_hero: boolean;
-  layout: 'centered' | 'left';
 }
 
 export interface Post {

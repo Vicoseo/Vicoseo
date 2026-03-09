@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BackgroundPackage;
 use App\Models\Post;
-use App\Services\HeroService;
 use App\Services\TenantManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,12 +44,18 @@ class PostController extends Controller
 
         $data = $post->toArray();
 
-        // Inject merged hero data if site has hero settings configured
+        // Inject hero data from background package assigned to this site
         $site = app(TenantManager::class)->getCurrentSite();
         if ($site) {
-            $hero = app(HeroService::class)->mergeHeroSettings($site, $post);
-            if ($hero) {
-                $data['hero'] = $hero;
+            $bg = BackgroundPackage::where('site_id', $site->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($bg) {
+                $data['hero'] = [
+                    'background' => ['image_url' => $bg->image_url],
+                    'overlay_color' => $bg->overlay_color,
+                ];
             }
         }
 

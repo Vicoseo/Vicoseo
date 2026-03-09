@@ -156,6 +156,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   let post;
   let siteName = '';
   let siteUrl = '';
+  let ctaUrl = '';
   let relatedPosts: { slug: string; title: string; excerpt?: string; published_at: string }[] = [];
 
   try {
@@ -167,6 +168,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     post = res.data;
     siteName = siteRes.data.name;
     siteUrl = `https://${siteRes.data.domain}`;
+    ctaUrl = siteRes.data.login_url || siteRes.data.entry_url || '';
 
     // Get related posts (excluding current post, max 6)
     const allPosts = postsRes.data || [];
@@ -299,9 +301,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           hero={post.hero}
           publishedAt={post.published_at}
           readingTime={readingTime}
-          categoryName={post.category?.name}
-          featuredImage={post.featured_image}
           siteUrl={siteUrl}
+          ctaUrl={ctaUrl || undefined}
         />
       ) : (
         <>

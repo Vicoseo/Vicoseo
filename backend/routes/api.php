@@ -120,13 +120,6 @@ Route::prefix('admin')->group(function () {
         Route::prefix('sites/{siteId}')->group(function () {
             Route::post('ai-generate', [Admin\AiGenerateController::class, 'generate']);
 
-            // Hero settings
-            Route::get('hero-settings', [Admin\HeroSettingsController::class, 'getSiteHero']);
-            Route::put('hero-settings', [Admin\HeroSettingsController::class, 'updateSiteHero']);
-            Route::get('posts/{id}/hero', [Admin\HeroSettingsController::class, 'getPostHero']);
-            Route::put('posts/{id}/hero', [Admin\HeroSettingsController::class, 'updatePostHero']);
-            Route::get('posts/{id}/hero/preview', [Admin\HeroSettingsController::class, 'previewMerged']);
-
             Route::apiResource('pages', Admin\PageController::class);
             Route::get('pages/{id}/revisions', [Admin\PageController::class, 'revisions']);
             Route::post('pages/{id}/revisions/{revisionId}/revert', [Admin\PageController::class, 'revert']);

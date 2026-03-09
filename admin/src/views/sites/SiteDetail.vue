@@ -195,9 +195,6 @@
         <el-tab-pane label="Icerik Plani" name="contentSchedules">
           <ContentScheduleForm :site-id="siteId" />
         </el-tab-pane>
-        <el-tab-pane label="Hero Ayarlari" name="hero">
-          <SiteHeroSettings v-if="activeTab === 'hero'" :site-id="siteId" />
-        </el-tab-pane>
         <el-tab-pane label="Analytics" name="analytics">
           <div v-if="activeTab === 'analytics'">
             <div v-loading="analyticsLoading">
@@ -387,14 +384,13 @@ import OfferList from './OfferList.vue'
 import RedirectList from '../redirects/RedirectList.vue'
 import FooterLinkList from '../footerLinks/FooterLinkList.vue'
 import ContentScheduleForm from '../content/ContentScheduleForm.vue'
-import SiteHeroSettings from '../hero-media/SiteHeroSettings.vue'
 import ImageUpload from '../../components/ImageUpload.vue'
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler)
 
 export default {
   name: 'SiteDetail',
-  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList, ContentScheduleForm, ImageUpload, SiteHeroSettings },
+  components: { PageList, PostList, OfferList, RedirectList, FooterLinkList, ContentScheduleForm, ImageUpload },
   data() {
     return {
       site: null,
