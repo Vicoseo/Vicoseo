@@ -157,6 +157,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   let siteName = '';
   let siteUrl = '';
   let ctaUrl = '';
+  let logoUrl = '';
   let relatedPosts: { slug: string; title: string; excerpt?: string; published_at: string }[] = [];
 
   try {
@@ -169,6 +170,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     siteName = siteRes.data.name;
     siteUrl = `https://${siteRes.data.domain}`;
     ctaUrl = siteRes.data.login_url || siteRes.data.entry_url || '';
+    if (siteRes.data.logo_url) {
+      logoUrl = siteRes.data.logo_url.startsWith('/') ? `${siteUrl}${siteRes.data.logo_url}` : siteRes.data.logo_url;
+    }
 
     // Get related posts (excluding current post, max 6)
     const allPosts = postsRes.data || [];
@@ -303,6 +307,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           readingTime={readingTime}
           siteUrl={siteUrl}
           ctaUrl={ctaUrl || undefined}
+          logoUrl={logoUrl || undefined}
         />
       ) : (
         <>

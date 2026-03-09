@@ -8,6 +8,7 @@ interface PostHeroProps {
   readingTime: number;
   siteUrl: string;
   ctaUrl?: string;
+  logoUrl?: string;
 }
 
 export default function PostHero({
@@ -17,6 +18,7 @@ export default function PostHero({
   readingTime,
   siteUrl,
   ctaUrl,
+  logoUrl,
 }: PostHeroProps) {
   if (!hero.background) return null;
 
@@ -31,37 +33,39 @@ export default function PostHero({
       <Image
         src={hero.background.image_url.startsWith('/') ? `${siteUrl}${hero.background.image_url}` : hero.background.image_url}
         alt=""
-        width={1920}
-        height={600}
+        fill
         className="post-hero__bg"
         priority
         sizes="100vw"
       />
-      <div
-        className="post-hero__overlay"
-        style={{ backgroundColor: hero.overlay_color }}
-      />
+      <div className="post-hero__overlay" />
+      {logoUrl && (
+        <img
+          src={logoUrl}
+          alt=""
+          className="post-hero__watermark"
+          aria-hidden="true"
+        />
+      )}
 
       <div className="post-hero__inner">
-        <div className="post-hero__text">
-          <h1 className="post-hero__title">{title}</h1>
+        <h1 className="post-hero__title">{title}</h1>
 
-          <div className="post-hero__meta">
-            <time dateTime={publishedAt}>{formattedDate}</time>
-            <span>{readingTime} dk okuma</span>
-          </div>
-
-          {ctaUrl && (
-            <a
-              href={ctaUrl}
-              className="post-hero__cta"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-            >
-              Hemen Giriş Yap <span className="post-hero__cta-arrow">&rarr;</span>
-            </a>
-          )}
+        <div className="post-hero__meta">
+          <time dateTime={publishedAt}>{formattedDate}</time>
+          <span>{readingTime} dk okuma</span>
         </div>
+
+        {ctaUrl && (
+          <a
+            href={ctaUrl}
+            className="post-hero__cta"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            Hemen Giriş Yap <span className="post-hero__cta-arrow">&rarr;</span>
+          </a>
+        )}
       </div>
     </section>
   );
