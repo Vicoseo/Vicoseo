@@ -20,7 +20,7 @@ export default function PostHero({
     <section className="post-hero">
       <Image
         src={hero.background.image_url.startsWith('/') ? `${siteUrl}${hero.background.image_url}` : hero.background.image_url}
-        alt=""
+        alt={title}
         fill
         className="post-hero__bg"
         priority
