@@ -479,6 +479,10 @@ class DomainController extends Controller
                 'status' => $zone['status'],
                 'name_servers' => $zone['name_servers'],
             ];
+            try {
+                $zoneDetail = $this->cloudflare->getZone($zone['zone_id']);
+                $status['cloudflare']['ssl'] = $zoneDetail['ssl'] ?? null;
+            } catch (\Throwable) {}
         }
 
         // Check CMS site

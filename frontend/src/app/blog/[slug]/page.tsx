@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getCurrentDomain } from '@/lib/domain';
 import { getPost, getPosts, getSiteConfig } from '@/lib/api';
+import PostHero from '@/components/PostHero';
 
 export const revalidate = 60;
 
@@ -292,26 +293,40 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </ol>
       </nav>
 
-      <header className="post-header">
-        <h1 className="post-header__title">{post.title}</h1>
-        <div className="post-meta">
-          <time className="post-header__date" dateTime={post.published_at}>
-            {formattedDate}
-          </time>
-          <span className="post-reading-time">{readingTime} dk okuma</span>
-        </div>
-      </header>
-
-      {post.featured_image && (
-        <Image
-          src={post.featured_image.startsWith('/') ? `${siteUrl}${post.featured_image}` : post.featured_image}
-          alt={post.title}
-          width={1200}
-          height={630}
-          className="post-featured-image"
-          style={{ width: '100%', height: 'auto' }}
-          priority
+      {post.hero?.background ? (
+        <PostHero
+          title={post.title}
+          hero={post.hero}
+          publishedAt={post.published_at}
+          readingTime={readingTime}
+          categoryName={post.category?.name}
+          featuredImage={post.featured_image}
+          siteUrl={siteUrl}
         />
+      ) : (
+        <>
+          <header className="post-header">
+            <h1 className="post-header__title">{post.title}</h1>
+            <div className="post-meta">
+              <time className="post-header__date" dateTime={post.published_at}>
+                {formattedDate}
+              </time>
+              <span className="post-reading-time">{readingTime} dk okuma</span>
+            </div>
+          </header>
+
+          {post.featured_image && (
+            <Image
+              src={post.featured_image.startsWith('/') ? `${siteUrl}${post.featured_image}` : post.featured_image}
+              alt={post.title}
+              width={1200}
+              height={630}
+              className="post-featured-image"
+              style={{ width: '100%', height: 'auto' }}
+              priority
+            />
+          )}
+        </>
       )}
 
       {/* Table of Contents */}

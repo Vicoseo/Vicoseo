@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Services\HeroService;
+use App\Services\TenantManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,8 +42,19 @@ class PostController extends Controller
             ], 404);
         }
 
+        $data = $post->toArray();
+
+        // Inject merged hero data if site has hero settings configured
+        $site = app(TenantManager::class)->getCurrentSite();
+        if ($site) {
+            $hero = app(HeroService::class)->mergeHeroSettings($site, $post);
+            if ($hero) {
+                $data['hero'] = $hero;
+            }
+        }
+
         return response()->json([
-            'data' => $post,
+            'data' => $data,
         ]);
     }
 }

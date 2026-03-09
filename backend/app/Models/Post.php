@@ -29,6 +29,7 @@ class Post extends Model
         'published_at',
         'category_id',
         'content_differentiated_at',
+        'hero_settings',
     ];
 
     public function category(): BelongsTo
@@ -42,6 +43,7 @@ class Post extends Model
             'is_published' => 'boolean',
             'published_at' => 'datetime',
             'content_differentiated_at' => 'datetime',
+            'hero_settings' => 'array',
         ];
     }
 

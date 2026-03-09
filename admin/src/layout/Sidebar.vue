@@ -44,6 +44,10 @@
       <i class="el-icon-lock"></i>
       <span slot="title">2FA Ayarları</span>
     </el-menu-item>
+    <el-menu-item index="/hero-media">
+      <i class="el-icon-picture-outline"></i>
+      <span slot="title">Medya Alanı</span>
+    </el-menu-item>
   </el-menu>
 </template>
 
@@ -56,6 +60,7 @@ export default {
   computed: {
     activeMenu() {
       const path = this.$route.path
+      if (path.startsWith('/hero-media')) return '/hero-media'
       if (path.startsWith('/sites')) return '/sites'
       if (path.startsWith('/domains')) return '/domains'
       if (path.startsWith('/global-offers')) return '/global-offers'

@@ -140,12 +140,45 @@
                 <div class="expand-title">301 Domain Redirect</div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px">
                   <el-input v-model="row._redirectInput" placeholder="yenidomain.com" size="small" clearable style="max-width: 300px" @click.native.stop />
+                  <el-button size="small" type="warning" @click.stop="checkRedirectTarget(row)" :loading="row._targetChecking" :disabled="!row._redirectInput">
+                    Kontrol Et
+                  </el-button>
                   <el-button size="small" type="primary" @click.stop="saveRowRedirect(row)" :loading="row._redirectSaving" :disabled="row._redirectInput === (getSiteRedirect(row.name) || '')">
                     Kaydet
                   </el-button>
                 </div>
                 <div style="font-size: 11px; color: #909399; margin-top: 4px">
                   BTK engellemesinde yeni domain yaz. Tüm trafik 301 ile yönlendirilir (path korunur). Boş = redirect yok.
+                </div>
+                <div v-if="row._targetStatus" style="margin-top: 8px; padding: 10px; background: #f4f4f5; border-radius: 4px; font-size: 12px">
+                  <div style="font-weight: 600; margin-bottom: 6px">{{ row._targetStatus.domain }} Durumu:</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 12px">
+                    <span>
+                      <i :class="row._targetStatus.cloudflare ? 'el-icon-success' : 'el-icon-error'" :style="{ color: row._targetStatus.cloudflare ? '#67c23a' : '#f56c6c' }" />
+                      CF Zone: {{ row._targetStatus.cloudflare ? row._targetStatus.cloudflare.status : 'Yok' }}
+                    </span>
+                    <span v-if="row._targetStatus.cloudflare">
+                      <i class="el-icon-info" style="color: #409eff" />
+                      NS: {{ row._targetStatus.cloudflare.name_servers.join(', ') }}
+                    </span>
+                    <span>
+                      <i :class="row._targetStatus.dns_resolved ? 'el-icon-success' : 'el-icon-error'" :style="{ color: row._targetStatus.dns_resolved ? '#67c23a' : '#f56c6c' }" />
+                      DNS: {{ row._targetStatus.dns_resolved ? 'Çözülüyor' : 'Çözülmüyor' }}
+                    </span>
+                    <span>
+                      <i :class="row._targetStatus.cms_site ? 'el-icon-success' : 'el-icon-warning'" :style="{ color: row._targetStatus.cms_site ? '#67c23a' : '#e6a23c' }" />
+                      CMS: {{ row._targetStatus.cms_site ? row._targetStatus.cms_site.name : 'Site yok' }}
+                    </span>
+                  </div>
+                  <div v-if="!row._targetStatus.cloudflare" style="color: #f56c6c; margin-top: 6px">
+                    ⚠ Bu domain Cloudflare'da yok! Önce "Tam Kurulum" yapılmalı.
+                  </div>
+                  <div v-else-if="row._targetStatus.cloudflare.status !== 'active'" style="color: #e6a23c; margin-top: 6px">
+                    ⚠ CF zone aktif değil ({{ row._targetStatus.cloudflare.status }}). NS ayarları kontrol edilmeli.
+                  </div>
+                  <div v-if="!row._targetStatus.dns_resolved" style="color: #f56c6c; margin-top: 6px">
+                    ⚠ Domain DNS'te çözülmüyor! DNS kaydı eklenmeli.
+                  </div>
                 </div>
               </div>
             </div>
@@ -246,6 +279,7 @@ import {
   listDnsRecords,
   addDnsRecord,
   fixPendingZone,
+  getDomainStatus,
 } from '../../api/domains'
 import { getSites, updateSite } from '../../api/sites'
 
@@ -339,6 +373,8 @@ export default {
         this.$set(row, '_dnsRecords', [])
         this.$set(row, '_redirectInput', this.getSiteRedirect(row.name) || '')
         this.$set(row, '_redirectSaving', false)
+        this.$set(row, '_targetChecking', false)
+        this.$set(row, '_targetStatus', null)
         try {
           const { data } = await listDnsRecords(row.zone_id)
           this.$set(row, '_dnsRecords', data?.data || [])
@@ -347,6 +383,21 @@ export default {
         } finally {
           this.$set(row, '_dnsLoading', false)
         }
+      }
+    },
+
+    async checkRedirectTarget(row) {
+      const domain = row._redirectInput?.trim()
+      if (!domain) return
+      this.$set(row, '_targetChecking', true)
+      this.$set(row, '_targetStatus', null)
+      try {
+        const { data } = await getDomainStatus(domain)
+        this.$set(row, '_targetStatus', data)
+      } catch {
+        this.$message.error('Domain durumu kontrol edilemedi')
+      } finally {
+        this.$set(row, '_targetChecking', false)
       }
     },
 

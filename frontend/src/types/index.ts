@@ -86,6 +86,21 @@ export interface Category {
   updated_at?: string;
 }
 
+export interface HeroData {
+  background: { image_url: string; thumbnail_url: string | null } | null;
+  overlay_color: string;
+  overlay_blend: string;
+  accent_color: string;
+  badge: { show: boolean; text: string };
+  cta: { show: boolean; text: string; url: string };
+  show_date: boolean;
+  show_reading_time: boolean;
+  show_category: boolean;
+  slogan: string | null;
+  featured_image_in_hero: boolean;
+  layout: 'centered' | 'left';
+}
+
 export interface Post {
   id: number;
   slug: string;
@@ -96,9 +111,11 @@ export interface Post {
   meta_title: string | null;
   meta_description: string | null;
   category_id: number | null;
+  category?: { id: number; slug: string; name: string } | null;
   published_at: string;
   created_at?: string;
   updated_at?: string;
+  hero?: HeroData;
 }
 
 export interface TopOffer {

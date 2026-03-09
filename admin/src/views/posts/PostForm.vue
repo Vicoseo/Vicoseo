@@ -51,6 +51,19 @@
       </el-form>
     </el-card>
 
+    <el-card v-if="isEdit" style="margin-top: 20px">
+      <div slot="header" style="display: flex; justify-content: space-between; align-items: center">
+        <span>Hero Medya Ayarları</span>
+        <el-button size="small" type="primary"
+          @click="$router.push(`/sites/${siteId}/posts/${postId}/hero`)">
+          Hero Düzenle
+        </el-button>
+      </div>
+      <p style="color: #909399; font-size: 13px; margin: 0">
+        Bu yazının hero bölümünü özelleştirebilirsiniz. Boş bırakırsanız site varsayılanları kullanılır.
+      </p>
+    </el-card>
+
     <el-card v-if="isEdit && revisions.length" style="margin-top: 20px">
       <div slot="header">Revizyon Geçmişi</div>
       <el-table :data="revisions" size="small" border>

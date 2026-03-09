@@ -17,7 +17,7 @@ class UploadController extends Controller
     {
         $request->validate([
             'file' => ['required', 'file', 'max:2048', 'mimes:jpg,jpeg,png,gif,webp,svg'],
-            'directory' => ['sometimes', 'string', 'in:sponsors,logos,backgrounds,site-logos,earnings,promotions'],
+            'directory' => ['sometimes', 'string', 'in:sponsors,logos,backgrounds,site-logos,earnings,promotions,hero-backgrounds'],
         ]);
 
         $file = $request->file('file');

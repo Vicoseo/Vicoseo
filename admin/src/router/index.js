@@ -16,6 +16,9 @@ import UserForm from '../views/users/UserForm.vue'
 import TwoFactorSetup from '../views/settings/TwoFactorSetup.vue'
 import AdminLogList from '../views/logs/AdminLogList.vue'
 import SystemLogList from '../views/logs/SystemLogList.vue'
+import BackgroundPackageList from '../views/hero-media/BackgroundPackageList.vue'
+import SiteHeroSettings from '../views/hero-media/SiteHeroSettings.vue'
+import PostHeroEditor from '../views/hero-media/PostHeroEditor.vue'
 
 Vue.use(VueRouter)
 
@@ -46,6 +49,9 @@ const routes = [
       { path: 'users/create', name: 'UserCreate', component: UserForm, meta: { masterOnly: true } },
       { path: 'users/:id/edit', name: 'UserEdit', component: UserForm, props: true, meta: { masterOnly: true } },
       { path: 'settings/2fa', name: 'TwoFactorSetup', component: TwoFactorSetup },
+      { path: 'hero-media', name: 'HeroMedia', component: BackgroundPackageList },
+      { path: 'sites/:siteId/hero-settings', name: 'SiteHeroSettings', component: SiteHeroSettings, props: true },
+      { path: 'sites/:siteId/posts/:postId/hero', name: 'PostHeroEditor', component: PostHeroEditor, props: true },
       { path: 'logs', name: 'AdminLogs', component: AdminLogList },
       { path: 'logs/system', name: 'SystemLogs', component: SystemLogList },
     ],

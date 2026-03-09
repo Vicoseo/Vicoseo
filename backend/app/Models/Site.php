@@ -43,6 +43,7 @@ class Site extends Model
         'earnings_title',
         'earnings_content',
         'content_identity',
+        'hero_settings',
     ];
 
     protected function casts(): array
@@ -54,6 +55,7 @@ class Site extends Model
             'noindex_mode' => 'boolean',
             'social_links' => 'array',
             'content_identity' => 'array',
+            'hero_settings' => 'array',
         ];
     }
 }
