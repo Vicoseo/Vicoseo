@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { HeroData } from '@/types';
 
 interface PostHeroProps {
@@ -19,19 +18,17 @@ export default function PostHero({
     : hero.background.image_url;
 
   return (
-    <section className="post-hero">
-      <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="post-hero__link">
-        <img
-          src={imageUrl}
-          alt={title}
-          title={title}
-          className="post-hero__bg"
-          loading="eager"
-        />
-        <div className="post-hero__inner">
-          <h1 className="post-hero__title">{title}</h1>
-        </div>
-      </a>
-    </section>
+    <figure className="post-hero">
+      <img
+        src={imageUrl}
+        alt={title}
+        title={title}
+        className="post-hero__bg"
+        loading="eager"
+      />
+      <figcaption className="post-hero__caption">
+        <span className="post-hero__title">{title}</span>
+      </figcaption>
+    </figure>
   );
 }

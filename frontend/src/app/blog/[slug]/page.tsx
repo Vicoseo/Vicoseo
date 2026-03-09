@@ -300,11 +300,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </nav>
 
       {post.hero?.background ? (
-        <PostHero
-          title={post.title}
-          hero={post.hero}
-          siteUrl={siteUrl}
-        />
+        <>
+          <PostHero
+            title={post.title}
+            hero={post.hero}
+            siteUrl={siteUrl}
+          />
+          <h1 className="sr-only">{post.title}</h1>
+        </>
       ) : (
         <>
           <header className="post-header">
