@@ -7,6 +7,82 @@
       </el-button>
     </div>
 
+    <!-- Kullanım Kılavuzu -->
+    <el-card shadow="never" class="guide-card">
+      <div slot="header" class="guide-header" @click="guideOpen = !guideOpen" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center">
+        <span><i class="el-icon-info" style="margin-right: 6px; color: #409EFF"></i>Medya Alanı Kullanım Kılavuzu</span>
+        <i :class="guideOpen ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" style="color: #909399"></i>
+      </div>
+      <div v-show="guideOpen">
+        <el-steps :active="0" direction="vertical" finish-status="wait" class="guide-steps">
+          <el-step title="1. Arkaplan Paketi Oluşturun" description='Yukarıdaki "Paket Ekle" butonuna tıklayın. 1920x600px boyutunda, koyu tonlu, soyut/atmosferik bir JPG görsel yükleyin. Overlay rengi ve blend modu seçerek hero bölümünün karanlık tonunu ayarlayın. Casino siteleri için koyu lacivert/altın, spor siteleri için stadyum temalı görseller önerilir.' />
+          <el-step title="2. Site Varsayılanlarını Belirleyin">
+            <template slot="description">
+              <span>
+                <strong>Siteler</strong> sayfasından herhangi bir sitenin detay sayfasına gidin ve <strong>"Hero Ayarları"</strong> tab'ına tıklayın.
+                Burada sitenin tüm yazılarında kullanılacak varsayılan hero ayarlarını belirleyin:
+              </span>
+              <ul class="guide-list">
+                <li><strong>Arkaplan Paketi:</strong> Oluşturduğunuz paketlerden birini seçin</li>
+                <li><strong>Vurgu Rengi:</strong> Rozet ve CTA butonunda kullanılır (boş bırakırsanız sitenin ana rengi kullanılır)</li>
+                <li><strong>Rozet:</strong> "Güncel 2026" gibi bir etiket göstermek için açın</li>
+                <li><strong>CTA Butonu:</strong> "Hemen Giriş Yap" gibi bir aksiyon butonu (URL boş bırakılırsa sitenin giriş adresi kullanılır)</li>
+                <li><strong>Slogan:</strong> Başlığın altında görünen kısa tanıtım metni</li>
+                <li><strong>Düzen:</strong> Ortalanmış veya sola hizalı (sola hizalıda öne çıkan görsel hero içinde gösterilir)</li>
+              </ul>
+              <span>Sağ taraftaki <strong>canlı önizleme</strong> panelinden değişiklikleri anında görebilirsiniz.</span>
+            </template>
+          </el-step>
+          <el-step title="3. Yazı Bazında Özelleştirin (Opsiyonel)">
+            <template slot="description">
+              <span>
+                Belirli bir yazı için farklı hero ayarları kullanmak isterseniz, yazının düzenleme sayfasındaki
+                <strong>"Hero Düzenle"</strong> butonuna tıklayın. Her alan için "Özel değer kullan" kutusunu işaretleyerek
+                sadece değiştirmek istediğiniz alanları override edin. İşaretlemediğiniz alanlar site varsayılanlarını kullanır.
+                <strong>"Site Varsayılanlarını Kullan"</strong> butonu tüm post-level override'ları temizler.
+              </span>
+            </template>
+          </el-step>
+          <el-step title="4. Sonucu Görüntüleyin">
+            <template slot="description">
+              <span>
+                Hero ayarları kaydedildikten sonra sitenin blog yazı sayfalarını ziyaret edin.
+                Hero bölümü otomatik olarak görünecektir: koyu arkaplan, overlay, başlık, rozet, CTA butonu ve meta bilgileri.
+                <strong>Hero ayarlanmamış sitelerde</strong> eski düzen korunur — hiçbir şey bozulmaz.
+              </span>
+            </template>
+          </el-step>
+        </el-steps>
+
+        <el-alert
+          title="Görsel Özellikleri"
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-top: 12px"
+        >
+          <span>
+            Arkaplan görselleri <strong>1920x600px, JPG, 200KB altı</strong> olmalıdır.
+            Soyut/atmosferik görseller kullanın (metin veya marka logosu içermeyen).
+            Overlay katmanı (%65-80 opaklık) görseli karartarak metnin okunabilirliğini sağlar.
+          </span>
+        </el-alert>
+
+        <div class="guide-pack-suggestions">
+          <h4 style="margin: 16px 0 10px; font-size: 14px; color: #303133">Önerilen Paket Temaları</h4>
+          <el-row :gutter="12">
+            <el-col :span="8" v-for="pack in suggestedPacks" :key="pack.name">
+              <div class="guide-pack-card" :style="{ borderLeftColor: pack.color }">
+                <strong>{{ pack.name }}</strong>
+                <p>{{ pack.desc }}</p>
+                <code style="font-size: 11px">{{ pack.overlay }}</code>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
+    </el-card>
+
     <el-card shadow="never">
       <el-table :data="packages" v-loading="loading" stripe style="width: 100%">
         <el-table-column label="Önizleme" width="140" align="center">
@@ -107,6 +183,12 @@ export default {
   components: { ImageUpload },
   data() {
     return {
+      guideOpen: true,
+      suggestedPacks: [
+        { name: 'Royal Navy', desc: 'Casino, VIP siteleri icin koyu lacivert + altin tonlari', overlay: 'rgba(10,10,26,0.75)', color: '#ffd700' },
+        { name: 'Midnight Stadium', desc: 'Spor bahis siteleri icin stadyum bokeh isiklari', overlay: 'rgba(10,15,30,0.72)', color: '#4dabf7' },
+        { name: 'Velvet Cards', desc: 'Klasik casino siteleri icin koyu kirmizi/siyah', overlay: 'rgba(20,5,10,0.78)', color: '#e03131' },
+      ],
       packages: [],
       loading: false,
       saving: false,
@@ -306,5 +388,55 @@ export default {
   font-weight: 700;
   text-shadow: 0 2px 8px rgba(0,0,0,0.5);
   z-index: 1;
+}
+.guide-card {
+  margin-bottom: 20px;
+}
+.guide-card >>> .el-card__header {
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.guide-card >>> .el-card__body {
+  padding: 16px 20px 20px;
+}
+.guide-steps {
+  margin-bottom: 0;
+}
+.guide-steps >>> .el-step__description {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #606266;
+  padding-right: 20px;
+}
+.guide-list {
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 2;
+}
+.guide-list li {
+  color: #606266;
+}
+.guide-pack-suggestions {
+  border-top: 1px solid #ebeef5;
+  padding-top: 4px;
+}
+.guide-pack-card {
+  background: #f5f7fa;
+  border-left: 3px solid;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.guide-pack-card strong {
+  font-size: 13px;
+  color: #303133;
+}
+.guide-pack-card p {
+  font-size: 12px;
+  color: #909399;
+  margin: 4px 0 2px;
+  line-height: 1.4;
 }
 </style>
