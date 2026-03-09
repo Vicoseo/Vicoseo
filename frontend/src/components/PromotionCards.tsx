@@ -18,28 +18,24 @@ export default function PromotionCards({ cards, domain, loginUrl }: Props) {
   if (!cards || cards.length === 0) return null;
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: '10px',
-      maxWidth: 1200,
-      margin: '0 auto',
-    }} className="promo-cards-grid">
+    <div className="promo-cards">
       {cards.map((card) => {
-        const href = card.link_url || null;
+        const href = card.link_url || loginUrl || null;
         const imgEl = (
-          <img
-            src={resolveUrl(card.image, domain)}
-            alt={card.title || 'Promosyon'}
-            loading="lazy"
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'block',
-              aspectRatio: '5/3',
-              objectFit: 'cover',
-            }}
-          />
+          <figure className="promo-cards__figure">
+            <img
+              src={resolveUrl(card.image, domain)}
+              alt={card.title || 'Promosyon'}
+              title={card.title || undefined}
+              loading="lazy"
+              className="promo-cards__img"
+            />
+            {card.title && (
+              <figcaption className="promo-cards__caption">
+                {card.title}
+              </figcaption>
+            )}
+          </figure>
         );
         return href ? (
           <a
@@ -47,26 +43,12 @@ export default function PromotionCards({ cards, domain, loginUrl }: Props) {
             href={href}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            style={{
-              display: 'block',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            className="promo-card-item"
+            className="promo-cards__item"
           >
             {imgEl}
           </a>
         ) : (
-          <div
-            key={card.id}
-            style={{
-              display: 'block',
-              borderRadius: '10px',
-              overflow: 'hidden',
-            }}
-            className="promo-card-item"
-          >
+          <div key={card.id} className="promo-cards__item">
             {imgEl}
           </div>
         );
