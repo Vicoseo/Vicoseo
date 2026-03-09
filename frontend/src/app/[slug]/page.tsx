@@ -4,6 +4,7 @@ import { getCurrentDomain } from '@/lib/domain';
 import { getPage, getPost, getSiteConfig } from '@/lib/api';
 import { Page, Post } from '@/types';
 import ContactForm from '@/components/ContactForm';
+import PromotionSlider from '@/components/PromotionSlider';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -98,11 +99,13 @@ export default async function DynamicPage({ params }: PageProps) {
   let content: ContentResult | null = null;
   let siteName = '';
   let siteUrl = '';
+  let site: import('@/types').SiteConfig | null = null;
 
   try {
     const siteRes = await getSiteConfig(domain);
-    siteName = siteRes.data.name;
-    siteUrl = `https://${siteRes.data.domain}`;
+    site = siteRes.data;
+    siteName = site.name;
+    siteUrl = `https://${site.domain}`;
     content = await findContent(domain, slug);
   } catch {
     notFound();
@@ -158,6 +161,15 @@ export default async function DynamicPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
       />
+      {site && site.promotions && site.promotions.length > 0 && (
+        <div style={{ maxWidth: 1200, margin: '12px auto', padding: '0 16px' }}>
+          <PromotionSlider
+            promotions={site.promotions}
+            domain={site.domain}
+            loginUrl={site.login_url || site.entry_url || undefined}
+          />
+        </div>
+      )}
       <div className="page-content">
         <h1>{item.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: item.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
