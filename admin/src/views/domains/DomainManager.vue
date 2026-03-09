@@ -166,6 +166,14 @@
           </template>
         </el-table-column>
 
+        <el-table-column label="Nameserver'lar" min-width="200">
+          <template slot-scope="{ row }">
+            <span v-for="(ns, i) in row.name_servers" :key="ns" style="font-size: 12px">
+              {{ ns }}<span v-if="i < row.name_servers.length - 1">, </span>
+            </span>
+          </template>
+        </el-table-column>
+
         <el-table-column label="301" width="160">
           <template slot-scope="{ row }">
             <span v-if="getSiteRedirect(row.name)" class="redirect-badge">→ {{ getSiteRedirect(row.name) }}</span>
