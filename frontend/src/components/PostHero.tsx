@@ -31,7 +31,8 @@ export default function PostHero({
       <Image
         src={hero.background.image_url.startsWith('/') ? `${siteUrl}${hero.background.image_url}` : hero.background.image_url}
         alt=""
-        fill
+        width={1920}
+        height={600}
         className="post-hero__bg"
         priority
         sizes="100vw"

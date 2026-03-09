@@ -1753,7 +1753,6 @@ p {
 .post-hero {
   position: relative;
   width: 100%;
-  min-height: 340px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -1762,7 +1761,9 @@ p {
 }
 
 .post-hero__bg {
-  object-fit: cover;
+  width: 100%;
+  height: auto;
+  display: block;
   z-index: 0;
 }
 
@@ -1773,7 +1774,8 @@ p {
 }
 
 .post-hero__inner {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 2;
   width: 100%;
   max-width: 1200px;
