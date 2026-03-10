@@ -945,9 +945,28 @@ p {
 
 .featured-post-link {
   display: block;
-  padding: 14px;
   text-decoration: none;
   color: inherit;
+}
+
+.featured-post-card__image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  display: block;
+}
+
+.featured-post-link:not(:has(.featured-post-card__image)) .featured-post-card__title {
+  padding-top: 14px;
+}
+
+.featured-post-link:not(:has(.featured-post-card__image)) .featured-post-card__badge {
+  margin-top: 14px;
+}
+
+.recent-post-link:not(:has(.recent-post-card__image)) .recent-post-card__title {
+  padding-top: 14px;
 }
 
 .featured-post-card__badge {
@@ -960,13 +979,14 @@ p {
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin: 12px 14px 8px;
 }
 
 .featured-post-card__title {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
+  padding: 0 14px;
   line-height: 1.4;
   color: #e0e0e0;
   display: -webkit-box;
@@ -983,6 +1003,7 @@ p {
   font-size: 13px;
   color: #9aa5b4;
   margin-bottom: 8px;
+  padding: 0 14px;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -993,6 +1014,8 @@ p {
 .featured-post-card__date {
   font-size: 12px;
   color: #6b7a8d;
+  padding: 0 14px 14px;
+  display: block;
 }
 
 /* ===== RECENT POSTS (Homepage) ===== */
@@ -1035,15 +1058,23 @@ p {
 
 .recent-post-link {
   display: block;
-  padding: 14px;
   text-decoration: none;
   color: inherit;
+}
+
+.recent-post-card__image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  display: block;
 }
 
 .recent-post-card__title {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
+  padding: 12px 14px 0;
   line-height: 1.4;
   color: #e0e0e0;
   display: -webkit-box;
@@ -1060,6 +1091,7 @@ p {
   font-size: 13px;
   color: #9aa5b4;
   margin-bottom: 8px;
+  padding: 0 14px;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1070,6 +1102,8 @@ p {
 .recent-post-card__date {
   font-size: 12px;
   color: #6b7a8d;
+  padding: 0 14px 14px;
+  display: block;
 }
 
 .recent-posts-more {

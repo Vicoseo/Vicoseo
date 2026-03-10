@@ -276,6 +276,16 @@ export default async function RootLayout({
               {popularPosts.map((post) => (
                 <article key={post.id} className="featured-post-card">
                   <Link href={`/blog/${post.slug}`} className="featured-post-link">
+                    {post.featured_image && (
+                      <img
+                        src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
+                        alt={post.title}
+                        className="featured-post-card__image"
+                        width={768}
+                        height={400}
+                        loading="lazy"
+                      />
+                    )}
                     {(post.popularity_score ?? 0) > 0 && (
                       <span className="featured-post-card__badge">Popüler</span>
                     )}
@@ -303,6 +313,16 @@ export default async function RootLayout({
               {posts.map((post) => (
                 <article key={post.id} className="recent-post-card">
                   <Link href={`/blog/${post.slug}`} className="recent-post-link">
+                    {post.featured_image && (
+                      <img
+                        src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
+                        alt={post.title}
+                        className="recent-post-card__image"
+                        width={768}
+                        height={400}
+                        loading="lazy"
+                      />
+                    )}
                     <h3 className="recent-post-card__title">{post.title}</h3>
                     {post.excerpt && (
                       <p className="recent-post-card__excerpt">{post.excerpt}</p>
