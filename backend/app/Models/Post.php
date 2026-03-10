@@ -30,6 +30,11 @@ class Post extends Model
         'category_id',
         'content_differentiated_at',
         'hero_settings',
+        'popularity_score',
+        'gsc_clicks',
+        'gsc_impressions',
+        'ga_page_views',
+        'popularity_scored_at',
     ];
 
     public function category(): BelongsTo
@@ -44,6 +49,7 @@ class Post extends Model
             'published_at' => 'datetime',
             'content_differentiated_at' => 'datetime',
             'hero_settings' => 'array',
+            'popularity_scored_at' => 'datetime',
         ];
     }
 
@@ -62,5 +68,21 @@ class Post extends Model
     public function scopeLatest(Builder $query): Builder
     {
         return $query->orderBy('published_at', 'desc');
+    }
+
+    /**
+     * Scope to order posts by popularity_score descending.
+     */
+    public function scopePopular(Builder $query): Builder
+    {
+        return $query->orderBy('popularity_score', 'desc');
+    }
+
+    /**
+     * Scope to only include posts that have popularity data.
+     */
+    public function scopeHasPopularityData(Builder $query): Builder
+    {
+        return $query->where('popularity_score', '>', 0);
     }
 }

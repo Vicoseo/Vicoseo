@@ -68,6 +68,10 @@ export function getSponsors(category?: string): Promise<ApiResponse<Sponsor[]>> 
   }).then((res) => res.json());
 }
 
+export function getPopularPosts(domain: string, limit = 6): Promise<{ data: Post[]; has_analytics_data: boolean }> {
+  return fetchApi<{ data: Post[]; has_analytics_data: boolean }>(`/posts/popular?limit=${limit}`, domain);
+}
+
 export function getRedirect(domain: string, slug: string): Promise<ApiResponse<RedirectResponse>> {
   return fetchApi<ApiResponse<RedirectResponse>>(`/go/${slug}`, domain);
 }

@@ -27,6 +27,55 @@ class PostController extends Controller
     }
 
     /**
+     * List popular posts based on analytics popularity score.
+     * Falls back to latest posts if insufficient analytics data.
+     */
+    public function popular(Request $request): JsonResponse
+    {
+        $limit = min($request->integer('limit', 6), 20);
+
+        try {
+            $posts = Post::published()
+                ->hasPopularityData()
+                ->popular()
+                ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'popularity_score', 'created_at', 'updated_at'])
+                ->limit($limit)
+                ->get();
+        } catch (\Throwable) {
+            // popularity_score column may not exist yet (pre-migration)
+            $posts = collect();
+        }
+
+        // Fallback: fill remaining slots with latest posts
+        if ($posts->count() < $limit) {
+            $existingIds = $posts->pluck('id')->toArray();
+
+            try {
+                $fill = Post::published()
+                    ->latest()
+                    ->whereNotIn('id', $existingIds)
+                    ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'popularity_score', 'created_at', 'updated_at'])
+                    ->limit($limit - $posts->count())
+                    ->get();
+            } catch (\Throwable) {
+                // popularity_score column missing — select without it
+                $fill = Post::published()
+                    ->latest()
+                    ->whereNotIn('id', $existingIds)
+                    ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'created_at', 'updated_at'])
+                    ->limit($limit - $posts->count())
+                    ->get();
+            }
+
+            $posts = $posts->concat($fill);
+        }
+
+        return response()->json([
+            'data' => $posts->values(),
+        ]);
+    }
+
+    /**
      * Get a single published post by slug.
      */
     public function show(string $slug): JsonResponse

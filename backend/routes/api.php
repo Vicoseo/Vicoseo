@@ -17,6 +17,7 @@ Route::middleware(['tenant', 'rate.limit:public'])->prefix('v1')->group(function
     Route::get('/pages', [Api\PageController::class, 'index']);
     Route::get('/pages/{slug}', [Api\PageController::class, 'show']);
     Route::get('/posts', [Api\PostController::class, 'index']);
+    Route::get('/posts/popular', [Api\PostController::class, 'popular']);
     Route::get('/posts/{slug}', [Api\PostController::class, 'show']);
     Route::get('/categories', [Api\CategoryController::class, 'index']);
     Route::get('/categories/{slug}', [Api\CategoryController::class, 'show']);

@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('content:generate-daily --count=2')->dailyAt('06:00');
 Schedule::command('content:process-schedules')->hourly();
 Schedule::command('health:check')->hourly();
+Schedule::command('posts:update-popularity --period=28d')->twiceDaily(2, 14);

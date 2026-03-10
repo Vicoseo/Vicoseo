@@ -9,6 +9,7 @@ use Google\Service\SearchConsole;
 use Google\Service\Webmasters;
 use Google\Service\Webmasters\SearchAnalyticsQueryRequest;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class GoogleSearchConsoleService
 {
@@ -177,6 +178,45 @@ class GoogleSearchConsoleService
                 ];
             } catch (\Exception $e) {
                 return ['clicks' => 0, 'impressions' => 0, 'ctr' => 0, 'position' => 0, 'error' => $e->getMessage()];
+            }
+        });
+    }
+
+    /**
+     * Get page-level performance data (clicks, impressions, CTR, position per page).
+     */
+    public function getPagePerformance(string $siteUrl, string $startDate, string $endDate, int $rowLimit = 200): array
+    {
+        $cacheKey = "gsc:page_performance:{$siteUrl}:{$startDate}:{$endDate}:{$rowLimit}";
+
+        return Cache::remember($cacheKey, config('google.search_console.cache_ttl', 3600), function () use ($siteUrl, $startDate, $endDate, $rowLimit) {
+            $service = new Webmasters($this->getClient());
+
+            $request = new SearchAnalyticsQueryRequest();
+            $request->setStartDate($startDate);
+            $request->setEndDate($endDate);
+            $request->setDimensions(['page']);
+            $request->setRowLimit($rowLimit);
+
+            try {
+                $response = $service->searchanalytics->query($siteUrl, $request);
+                $pages = [];
+
+                foreach ($response->getRows() ?? [] as $row) {
+                    $pages[] = [
+                        'page' => $row->getKeys()[0] ?? '',
+                        'clicks' => (int) $row->getClicks(),
+                        'impressions' => (int) $row->getImpressions(),
+                        'ctr' => round($row->getCtr() * 100, 2),
+                        'position' => round($row->getPosition(), 1),
+                    ];
+                }
+
+                return $pages;
+            } catch (\Exception $e) {
+                Log::warning("GSC getPagePerformance failed for {$siteUrl}: " . $e->getMessage());
+
+                return [];
             }
         });
     }

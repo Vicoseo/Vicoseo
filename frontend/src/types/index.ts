@@ -102,6 +102,7 @@ export interface Post {
   meta_description: string | null;
   category_id: number | null;
   category?: { id: number; slug: string; name: string } | null;
+  popularity_score?: number;
   published_at: string;
   created_at?: string;
   updated_at?: string;

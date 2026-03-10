@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import { getCurrentDomain } from '@/lib/domain';
-import { getSiteConfig, getTopOffers, getPages, getPosts, getCategories } from '@/lib/api';
+import { getSiteConfig, getTopOffers, getPages, getPosts, getPopularPosts, getCategories } from '@/lib/api';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -16,16 +16,18 @@ async function fetchLayoutData(): Promise<{
   offers: TopOffer[];
   pages: Page[];
   posts: Post[];
+  popularPosts: Post[];
   categories: Category[];
 }> {
   const domain = await getCurrentDomain();
 
   try {
-    const [siteRes, offersRes, pagesRes, postsRes, catRes] = await Promise.all([
+    const [siteRes, offersRes, pagesRes, postsRes, popularRes, catRes] = await Promise.all([
       getSiteConfig(domain),
       getTopOffers(domain),
       getPages(domain, 1, 50),
       getPosts(domain, 1, 50),
+      getPopularPosts(domain, 6).catch(() => ({ data: [], has_analytics_data: false })),
       getCategories(domain).catch(() => ({ data: [] })),
     ]);
     return {
@@ -33,10 +35,11 @@ async function fetchLayoutData(): Promise<{
       offers: Array.isArray(offersRes.data) ? offersRes.data : [],
       pages: pagesRes.data || [],
       posts: postsRes.data || [],
+      popularPosts: popularRes.data || [],
       categories: Array.isArray(catRes.data) ? catRes.data : [],
     };
   } catch {
-    return { site: null, offers: [], pages: [], posts: [], categories: [] };
+    return { site: null, offers: [], pages: [], posts: [], popularPosts: [], categories: [] };
   }
 }
 
@@ -130,7 +133,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { site, offers, pages, posts, categories } = await fetchLayoutData();
+  const { site, offers, pages, posts, popularPosts, categories } = await fetchLayoutData();
 
   // BTK bot protection: check sanitize header from middleware/nginx
   const headersList = await headers();
@@ -266,6 +269,33 @@ export default async function RootLayout({
         )}
         {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
         <main style={{ flex: 1 }}>{children}</main>
+        {popularPosts.length > 0 && (
+          <section className="featured-posts-section">
+            <h2 className="featured-posts-title">Öne Çıkan Yazılar</h2>
+            <div className="featured-posts-grid">
+              {popularPosts.map((post) => (
+                <article key={post.id} className="featured-post-card">
+                  <Link href={`/blog/${post.slug}`} className="featured-post-link">
+                    {(post.popularity_score ?? 0) > 0 && (
+                      <span className="featured-post-card__badge">Popüler</span>
+                    )}
+                    <h3 className="featured-post-card__title">{post.title}</h3>
+                    {post.excerpt && (
+                      <p className="featured-post-card__excerpt">{post.excerpt}</p>
+                    )}
+                    <time className="featured-post-card__date" dateTime={post.published_at}>
+                      {new Date(post.published_at).toLocaleDateString('tr-TR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
         {posts.length > 0 && (
           <section className="recent-posts-section">
             <h2 className="recent-posts-title">Son Yazılar</h2>
