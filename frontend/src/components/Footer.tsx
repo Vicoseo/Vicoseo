@@ -37,8 +37,12 @@ export default function Footer({ site, pages = [], posts = [], categories = [] }
     ([, url]) => url && url.trim().length > 0
   ) as [keyof SocialLinks, string][];
 
+  const footerBg = !site.custom_css
+    ? (site.header_bg_color || site.primary_color || '#1a1a2e')
+    : undefined;
+
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" style={footerBg ? { background: footerBg } : undefined}>
       <div className="site-footer__inner">
         {activeSocials.length > 0 && (
           <nav className="site-footer__social" aria-label="Sosyal medya">

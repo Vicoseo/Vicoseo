@@ -66,6 +66,7 @@ export async function GET() {
         xml += '    <image:image>\n';
         xml += `      <image:loc>${escapeXml(img.loc)}</image:loc>\n`;
         xml += `      <image:title>${escapeXml(img.title)}</image:title>\n`;
+        xml += `      <image:caption>${escapeXml(img.title)}</image:caption>\n`;
         xml += '    </image:image>\n';
       }
 

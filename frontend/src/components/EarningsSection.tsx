@@ -66,6 +66,7 @@ export default function EarningsSection({ earnings, domain }: Props) {
                 <img
                   src={resolveUrl(item.image, domain)}
                   alt={item.title || 'Kazanç'}
+                  title={item.title || 'Kazanç'}
                   loading="lazy"
                   style={{
                     width: '100%',

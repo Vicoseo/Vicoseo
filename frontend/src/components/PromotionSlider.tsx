@@ -90,6 +90,7 @@ export default function PromotionSlider({ promotions, domain, loginUrl, startInd
           <Image
             src={resolveUrl(item.image, domain)}
             alt={item.title || 'Promosyon'}
+            title={item.title || 'Promosyon'}
             fill
             sizes="(max-width: 768px) 100vw, 1200px"
             style={{ objectFit: 'cover' }}
@@ -101,6 +102,7 @@ export default function PromotionSlider({ promotions, domain, loginUrl, startInd
           <Image
             src={resolveUrl(item.image, domain)}
             alt={item.title || 'Promosyon'}
+            title={item.title || 'Promosyon'}
             fill
             sizes="(max-width: 768px) 100vw, 1200px"
             style={{ objectFit: 'cover' }}

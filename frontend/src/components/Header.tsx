@@ -20,16 +20,25 @@ const NAV_LABELS: Record<string, string> = {
   'cerez-politikasi': 'Çerez Politikası',
 };
 
+function isColorDark(hex: string): boolean {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+}
+
 export default function Header({ site, pages = [] }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const isDark = !!site.header_bg_color;
+  const headerBg = site.header_bg_color || site.primary_color || '#1a1a2e';
+  const isDark = isColorDark(headerBg);
   const textColor = isDark ? '#fff' : '#555';
   const hamburgerColor = isDark ? '#fff' : '#333';
 
   return (
     <header
       style={{
-        background: site.header_bg_color || '#fff',
+        background: headerBg,
         borderBottom: `3px solid ${site.primary_color}`,
         padding: '0 16px',
         position: 'relative',
@@ -123,7 +132,7 @@ export default function Header({ site, pages = [] }: HeaderProps) {
           className="header-nav-mobile"
           aria-label="Mobil menü"
           onClick={() => setMenuOpen(false)}
-          style={isDark ? { background: site.header_bg_color! } : undefined}
+          style={isDark ? { background: headerBg } : undefined}
         >
           <Link href="/" className="header-nav-mobile-link" style={isDark ? { color: textColor } : undefined}>Ana Sayfa</Link>
           {pages.slice(0, 5).map((page) => (

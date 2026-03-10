@@ -318,10 +318,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <Image
               src={post.featured_image.startsWith('/') ? `${siteUrl}${post.featured_image}` : post.featured_image}
               alt={post.title}
+              title={post.title}
               width={1200}
               height={630}
               className="post-featured-image"
               style={{ width: '100%', height: 'auto' }}
+              sizes="(max-width: 768px) 100vw, 800px"
               priority
             />
           )}

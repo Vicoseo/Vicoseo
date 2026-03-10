@@ -35,6 +35,12 @@
         <el-form-item label="İkincil Renk">
           <el-color-picker v-model="form.secondary_color" />
         </el-form-item>
+        <el-form-item label="Header Arka Plan">
+          <el-color-picker v-model="form.header_bg_color" />
+          <span style="color: #909399; font-size: 12px; margin-left: 8px">
+            Boşsa Ana Renk kullanılır
+          </span>
+        </el-form-item>
         <el-form-item label="Meta Başlık">
           <el-input v-model="form.meta_title" placeholder="SEO Başlık" />
         </el-form-item>
@@ -192,6 +198,7 @@ export default {
         favicon_url: '',
         primary_color: '#000000',
         secondary_color: '#ffffff',
+        header_bg_color: '',
         meta_title: '',
         meta_description: '',
         entry_url: '',
