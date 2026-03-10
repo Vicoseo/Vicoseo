@@ -249,13 +249,13 @@ export default async function RootLayout({
                   backgroundSize: 'cover',
                   backgroundPosition: 'center top',
                   backgroundRepeat: 'no-repeat',
-                  backgroundAttachment: 'fixed',
+                  backgroundAttachment: 'scroll',
                 }
               : {}),
           } as React.CSSProperties
         }
       >
-        {!sanitize && <LoginCtaBar loginUrl={loginUrl} />}
+        {!sanitize && <div className="login-cta-desktop-only"><LoginCtaBar loginUrl={loginUrl} /></div>}
         {!sanitize && !!site?.show_sponsors && <SponsorsBlock offers={offers} />}
         {!sanitize && !!site?.sponsor_page_visible && offers.length > 0 && (
           <OfferCards
@@ -264,7 +264,7 @@ export default async function RootLayout({
             contactText={site?.sponsor_contact_text}
           />
         )}
-        {site && <Header site={site} pages={navPages} />}
+        {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
         <main style={{ flex: 1 }}>{children}</main>
         {posts.length > 0 && (
           <section className="recent-posts-section">

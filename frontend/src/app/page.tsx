@@ -225,7 +225,12 @@ export default async function HomePage() {
 
       <div className="page-content">
         <h1>{firstPage.title}</h1>
-        <div dangerouslySetInnerHTML={{ __html: firstPage.content.replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"') }} />
+        <div dangerouslySetInnerHTML={{ __html: firstPage.content
+          .replace(/<h1([^>]*)>/gi, '<h2$1>')
+          .replace(/<\/h1>/gi, '</h2>')
+          .replace(/<img(?![^>]*loading=)/gi, '<img loading="lazy"')
+          .replace(/<img(?![^>]*decoding=)/gi, '<img decoding="async"')
+        }} />
       </div>
 
       {site && site.promotion_cards && site.promotion_cards.length > 0 && (

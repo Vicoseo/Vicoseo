@@ -8,6 +8,7 @@ import Image from 'next/image';
 interface HeaderProps {
   site: SiteConfig;
   pages?: Page[];
+  loginUrl?: string;
 }
 
 const NAV_LABELS: Record<string, string> = {
@@ -28,7 +29,7 @@ function isColorDark(hex: string): boolean {
   return (r * 299 + g * 587 + b * 114) / 1000 < 128;
 }
 
-export default function Header({ site, pages = [] }: HeaderProps) {
+export default function Header({ site, pages = [], loginUrl }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerBg = site.header_bg_color || site.primary_color || '#1a1a2e';
   const isDark = isColorDark(headerBg);
@@ -89,6 +90,12 @@ export default function Header({ site, pages = [] }: HeaderProps) {
           ))}
           <Link href="/blog" className="header-nav-link" style={isDark ? { color: textColor } : undefined}>Blog</Link>
         </nav>
+
+        {loginUrl && (
+          <a href={loginUrl} className="header-cta" rel="noopener noreferrer nofollow" target="_blank">
+            Giriş Yap
+          </a>
+        )}
 
         {/* Mobile hamburger button */}
         <button

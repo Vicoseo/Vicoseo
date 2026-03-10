@@ -401,6 +401,31 @@ p {
   display: none;
 }
 
+/* ===== HEADER CTA BUTTON ===== */
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #0a0a1a;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.header-cta:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+  opacity: 1;
+  color: #0a0a1a;
+}
+
 /* ===== ACTION BAR ===== */
 @keyframes ctaPulse {
   0%, 100% {
@@ -1332,6 +1357,11 @@ p {
 
 /* ----- TABLET (max-width: 768px) ----- */
 @media (max-width: 768px) {
+  /* Hide LoginCtaBar on mobile — CTA is now in header */
+  .login-cta-desktop-only {
+    display: none;
+  }
+
   /* Header: hamburger menu */
   .header-nav-desktop {
     display: none;
