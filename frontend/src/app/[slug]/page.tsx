@@ -57,6 +57,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: description || undefined,
       alternates: {
         canonical: `${siteUrl}/${slug}`,
+        types: {
+          'application/xhtml+xml': `${siteUrl}/${slug}/amp`,
+        },
+      },
+      other: {
+        amphtml: `${siteUrl}/${slug}/amp`,
       },
       openGraph: {
         title,

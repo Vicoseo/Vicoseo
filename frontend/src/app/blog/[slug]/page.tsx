@@ -34,6 +34,12 @@ export async function generateMetadata({
       description,
       alternates: {
         canonical: `${siteUrl}/blog/${slug}`,
+        types: {
+          'application/xhtml+xml': `${siteUrl}/blog/${slug}/amp`,
+        },
+      },
+      other: {
+        amphtml: `${siteUrl}/blog/${slug}/amp`,
       },
       openGraph: {
         title,
