@@ -923,31 +923,32 @@ p {
 }
 
 .locatv-banner__video {
-  width: 320px;
-  min-width: 320px;
+  width: 50%;
+  min-width: 400px;
   height: auto;
   display: block;
   border-radius: 12px 0 0 12px;
+  object-fit: cover;
 }
 
 .locatv-banner__content {
-  padding: 24px 28px 24px 0;
+  padding: 28px 32px;
   flex: 1;
 }
 
 .locatv-banner__title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   color: #ffd700;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .locatv-banner__desc {
-  font-size: 15px;
+  font-size: 16px;
   color: #c8cdd5;
-  line-height: 1.6;
-  margin-bottom: 16px;
+  line-height: 1.7;
+  margin-bottom: 20px;
 }
 
 .locatv-banner__cta {
