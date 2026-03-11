@@ -269,7 +269,7 @@ export default async function RootLayout({
         )}
         {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
         <main style={{ flex: 1 }}>{children}</main>
-        {!sanitize && site?.domain?.includes('locabet') && (
+        {!sanitize && site?.domain?.includes('locabe') && (
           <section className="locatv-banner">
             <div className="locatv-banner__inner">
               <video
