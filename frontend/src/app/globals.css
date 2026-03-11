@@ -904,6 +904,91 @@ p {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* ===== LOCATV BANNER ===== */
+.locatv-banner {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+.locatv-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 30, 60, 0.95));
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.locatv-banner__video {
+  width: 320px;
+  min-width: 320px;
+  height: auto;
+  display: block;
+  border-radius: 12px 0 0 12px;
+}
+
+.locatv-banner__content {
+  padding: 24px 28px 24px 0;
+  flex: 1;
+}
+
+.locatv-banner__title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.locatv-banner__desc {
+  font-size: 15px;
+  color: #c8cdd5;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.locatv-banner__cta {
+  display: inline-block;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #0a0a1a;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.locatv-banner__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+  .locatv-banner__inner {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .locatv-banner__video {
+    width: 100%;
+    min-width: unset;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .locatv-banner__content {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .locatv-banner__title {
+    font-size: 20px;
+  }
+}
+
 /* ===== FEATURED / POPULAR POSTS (Homepage) ===== */
 .featured-posts-section {
   padding: 28px 24px;

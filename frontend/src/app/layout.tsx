@@ -269,6 +269,27 @@ export default async function RootLayout({
         )}
         {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
         <main style={{ flex: 1 }}>{children}</main>
+        {!sanitize && site?.domain?.includes('locabet') && (
+          <section className="locatv-banner">
+            <div className="locatv-banner__inner">
+              <video
+                className="locatv-banner__video"
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+              >
+                <source src={`${siteUrl}/storage/posts/locabet/locatv-500tl.webm`} type="video/webm" />
+              </video>
+              <div className="locatv-banner__content">
+                <h2 className="locatv-banner__title">Canlı TV İzle</h2>
+                <p className="locatv-banner__desc">Sadece 500 TL yatırım ile canlı maç ve etkinlikleri anında izlemeye başla! Locabet TV ile spor karşılaşmalarını HD kalitede, kesintisiz takip et.</p>
+                <a href={loginUrl} className="locatv-banner__cta" rel="nofollow">Hemen Yatır &amp; İzle</a>
+              </div>
+            </div>
+          </section>
+        )}
         {popularPosts.length > 0 && (
           <section className="featured-posts-section">
             <h2 className="featured-posts-title">Öne Çıkan Yazılar</h2>
