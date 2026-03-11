@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPage, getPost, getSiteConfig } from '@/lib/api';
+import { getPage, getPost, getSiteConfig, getPages, getPosts, getPopularPosts, getCategories } from '@/lib/api';
 import { buildAmpDocument } from '@/lib/amp';
 
 export const revalidate = 300;
@@ -33,7 +33,6 @@ export async function GET(
       try {
         const postRes = await getPost(host, slug);
         if (postRes.data) {
-          // Redirect to /blog/slug/amp
           return NextResponse.redirect(`${siteUrl}/blog/${slug}/amp`, 301);
         }
       } catch {
@@ -45,6 +44,19 @@ export async function GET(
       return new NextResponse('Not Found', { status: 404 });
     }
 
+    // Fetch extra data in parallel for header, footer, and post sections
+    const [pagesRes, postsRes, popularRes, catRes] = await Promise.all([
+      getPages(host, 1, 10).catch(() => ({ data: [] })),
+      getPosts(host, 1, 6).catch(() => ({ data: [] })),
+      getPopularPosts(host, 6).catch(() => ({ data: [] })),
+      getCategories(host).catch(() => ({ data: [] })),
+    ]);
+
+    const pages = 'data' in pagesRes ? pagesRes.data : [];
+    const recentPosts = 'data' in postsRes ? postsRes.data : [];
+    const popularPosts = Array.isArray(popularRes.data) ? popularRes.data : [];
+    const categories = Array.isArray(catRes.data) ? catRes.data : [];
+
     const html = buildAmpDocument({
       title,
       description,
@@ -55,6 +67,10 @@ export async function GET(
         { name: 'Ana Sayfa', url: siteUrl },
         { name: title, url: `${siteUrl}/${slug}` },
       ],
+      pages,
+      popularPosts,
+      recentPosts,
+      categories,
     });
 
     return new NextResponse(html, {
