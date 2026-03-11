@@ -8,12 +8,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSiteRequest;
 use App\Models\Site;
 use App\Services\TenantManager;
+use App\Traits\ClearsCaches;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class SiteController extends Controller
 {
+    use ClearsCaches;
+
     public function __construct(private TenantManager $tenantManager) {}
 
     /**
@@ -118,27 +121,13 @@ class SiteController extends Controller
 
         $site->update($validated);
 
-        // Clear Next.js fetch cache and restart frontend so changes reflect immediately
-        $this->clearFrontendCache();
+        // Clear Next.js fetch cache, restart frontend, and purge Cloudflare CDN
+        $this->clearAllCaches($site->domain);
 
         return response()->json([
             'data' => $site->fresh(),
             'message' => 'Site updated successfully.',
         ]);
-    }
-
-    /**
-     * Clear the Next.js fetch cache and restart the frontend process
-     * so that admin changes reflect on sites immediately.
-     */
-    private function clearFrontendCache(): void
-    {
-        $cachePath = '/var/www/multi-tenant-cms/frontend/.next/cache/fetch-cache';
-        if (is_dir($cachePath)) {
-            exec("rm -rf {$cachePath}");
-        }
-
-        exec('sudo /usr/bin/pm2 restart cms-frontend 2>&1');
     }
 
     /**

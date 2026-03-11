@@ -143,7 +143,7 @@ export default async function RootLayout({
 
   const primaryColor = site?.primary_color || '#007bff';
   const secondaryColor = site?.secondary_color || '#6c757d';
-  const loginUrl = site?.login_url || site?.entry_url || '/go/login';
+  const loginUrl = site?.login_url || site?.entry_url || '/';
   const backgroundUrl = site?.background_url || null;
 
   const siteUrl = site ? `https://${site.domain}` : '';

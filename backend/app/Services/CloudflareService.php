@@ -292,6 +292,37 @@ class CloudflareService
         }, $response['result'] ?? []);
     }
 
+    /**
+     * Purge all cached content for a zone (by zone ID).
+     */
+    public function purgeZoneCache(string $zoneId): bool
+    {
+        $response = $this->post("/zones/{$zoneId}/purge_cache", [
+            'purge_everything' => true,
+        ]);
+
+        $success = $response['success'] ?? false;
+
+        Log::info("Cloudflare cache purge for zone {$zoneId}: " . ($success ? 'OK' : 'FAILED'));
+
+        return $success;
+    }
+
+    /**
+     * Purge cache for a domain by looking up its zone first.
+     */
+    public function purgeCacheByDomain(string $domain): bool
+    {
+        $zone = $this->getZoneByName($domain);
+
+        if (!$zone) {
+            Log::warning("Cloudflare zone not found for domain: {$domain}");
+            return false;
+        }
+
+        return $this->purgeZoneCache($zone['zone_id']);
+    }
+
     private function get(string $endpoint, array $query = []): array
     {
         return $this->request('get', $endpoint, $query);

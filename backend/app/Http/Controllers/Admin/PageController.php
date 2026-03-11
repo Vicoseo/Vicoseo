@@ -9,11 +9,14 @@ use App\Http\Requests\StorePageRequest;
 use App\Models\Page;
 use App\Models\Site;
 use App\Services\TenantManager;
+use App\Traits\ClearsCaches;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
+    use ClearsCaches;
+
     public function __construct(private TenantManager $tenantManager) {}
 
     /**
@@ -34,9 +37,11 @@ class PageController extends Controller
      */
     public function store(StorePageRequest $request, int $siteId): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $page = Page::create($request->validated());
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json([
             'data' => $page,
@@ -63,7 +68,7 @@ class PageController extends Controller
      */
     public function update(Request $request, int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $page = Page::findOrFail($id);
 
@@ -80,6 +85,8 @@ class PageController extends Controller
 
         $page->update($validated);
 
+        $this->clearAllCaches($site->domain);
+
         return response()->json([
             'data' => $page->fresh(),
             'message' => 'Page updated successfully.',
@@ -91,10 +98,12 @@ class PageController extends Controller
      */
     public function destroy(int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $page = Page::findOrFail($id);
         $page->delete();
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json([
             'message' => 'Page deleted successfully.',
@@ -144,4 +153,5 @@ class PageController extends Controller
 
         return $site;
     }
+
 }

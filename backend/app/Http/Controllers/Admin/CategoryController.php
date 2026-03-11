@@ -8,11 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Site;
 use App\Services\TenantManager;
+use App\Traits\ClearsCaches;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    use ClearsCaches;
+
     public function __construct(private TenantManager $tenantManager) {}
 
     public function index(Request $request, int $siteId): JsonResponse
@@ -28,7 +31,7 @@ class CategoryController extends Controller
 
     public function store(Request $request, int $siteId): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $validated = $request->validate([
             'slug' => ['required', 'string', 'unique:tenant.categories,slug', 'max:255'],
@@ -42,6 +45,8 @@ class CategoryController extends Controller
         ]);
 
         $category = Category::create($validated);
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json(['data' => $category, 'message' => 'Category created.'], 201);
     }
@@ -57,7 +62,7 @@ class CategoryController extends Controller
 
     public function update(Request $request, int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $category = Category::findOrFail($id);
 
@@ -74,15 +79,19 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
+        $this->clearAllCaches($site->domain);
+
         return response()->json(['data' => $category->fresh(), 'message' => 'Category updated.']);
     }
 
     public function destroy(int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $category = Category::findOrFail($id);
         $category->delete();
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json(['message' => 'Category deleted.']);
     }
@@ -93,4 +102,5 @@ class CategoryController extends Controller
         $this->tenantManager->setTenant($site);
         return $site;
     }
+
 }

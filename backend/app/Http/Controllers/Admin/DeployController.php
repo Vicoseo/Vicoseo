@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Site;
+use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class DeployController extends Controller
 {
@@ -32,6 +35,17 @@ class DeployController extends Controller
         exec('sudo /usr/bin/pm2 restart cms-frontend 2>&1', $outputLines, $exitCode);
         $output = implode("\n", $outputLines);
 
+        // Purge Cloudflare CDN cache for all active sites
+        try {
+            $cf = app(CloudflareService::class);
+            $domains = Site::where('is_active', true)->pluck('domain');
+            foreach ($domains as $domain) {
+                $cf->purgeCacheByDomain($domain);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Cloudflare bulk cache purge failed: ' . $e->getMessage());
+        }
+
         if ($exitCode !== 0) {
             return response()->json([
                 'success' => false,
@@ -42,7 +56,7 @@ class DeployController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Güncellemeler yayınlandı. Site birkaç saniye içinde güncellenecek.',
+            'message' => 'Güncellemeler yayınlandı. Cloudflare cache temizlendi. Site birkaç saniye içinde güncellenecek.',
         ]);
     }
 }

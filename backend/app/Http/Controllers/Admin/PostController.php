@@ -9,11 +9,14 @@ use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use App\Models\Site;
 use App\Services\TenantManager;
+use App\Traits\ClearsCaches;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+    use ClearsCaches;
+
     public function __construct(private TenantManager $tenantManager) {}
 
     /**
@@ -34,9 +37,11 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request, int $siteId): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $post = Post::create($request->validated());
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json([
             'data' => $post,
@@ -63,7 +68,7 @@ class PostController extends Controller
      */
     public function update(Request $request, int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $post = Post::findOrFail($id);
 
@@ -82,6 +87,8 @@ class PostController extends Controller
 
         $post->update($validated);
 
+        $this->clearAllCaches($site->domain);
+
         return response()->json([
             'data' => $post->fresh(),
             'message' => 'Post updated successfully.',
@@ -93,10 +100,12 @@ class PostController extends Controller
      */
     public function destroy(int $siteId, int $id): JsonResponse
     {
-        $this->resolveSiteTenant($siteId);
+        $site = $this->resolveSiteTenant($siteId);
 
         $post = Post::findOrFail($id);
         $post->delete();
+
+        $this->clearAllCaches($site->domain);
 
         return response()->json([
             'message' => 'Post deleted successfully.',
@@ -146,4 +155,5 @@ class PostController extends Controller
 
         return $site;
     }
+
 }
