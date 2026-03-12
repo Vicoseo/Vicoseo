@@ -30,11 +30,7 @@ export default function PromotionSlider({ promotions, domain, loginUrl, startInd
     setCurrent((c) => (c - 1 + promotions.length) % promotions.length);
   }, [promotions.length]);
 
-  useEffect(() => {
-    if (promotions.length <= 1) return;
-    const timer = setInterval(next, 4000);
-    return () => clearInterval(timer);
-  }, [next, promotions.length]);
+  // Auto-rotate disabled — each page shows a different static image via startIndex
 
   if (!promotions || promotions.length === 0) return null;
 
