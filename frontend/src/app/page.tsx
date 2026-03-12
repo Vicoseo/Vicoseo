@@ -17,7 +17,17 @@ export async function generateMetadata(): Promise<Metadata> {
       getPages(domain, 1),
     ]);
 
-    const firstPage = pagesRes.data?.[0];
+    const firstSlug = pagesRes.data?.[0]?.slug;
+    let firstPage = pagesRes.data?.[0] || null;
+
+    // Fetch full page data to get meta_title, meta_description, meta_keywords
+    if (firstSlug) {
+      try {
+        const pageRes = await getPage(domain, firstSlug);
+        if (pageRes.data) firstPage = pageRes.data;
+      } catch { /* use summary */ }
+    }
+
     const siteUrl = `https://${siteRes.data.domain}`;
     const title = firstPage?.meta_title || siteRes.data.meta_title || siteRes.data.name;
     const description =
