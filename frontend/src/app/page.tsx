@@ -246,7 +246,8 @@ export default async function HomePage() {
       </div>
 
       {site && site.promotion_cards && site.promotion_cards.length > 0 && (
-        <div style={{ padding: '0 16px', margin: '12px auto', maxWidth: 1232 }}>
+        <div className="promo-cards-wrapper">
+          <h2 className="promo-cards-heading">Promosyonlar</h2>
           <PromotionCards
             cards={site.promotion_cards}
             domain={site.domain}
