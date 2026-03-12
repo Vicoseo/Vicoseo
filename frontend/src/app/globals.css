@@ -353,6 +353,51 @@ p {
   color: #f0f0f0;
 }
 
+/* ===== LANDING PAGE SECTIONS ===== */
+.page-content .lp-section {
+  margin-bottom: 48px;
+}
+
+.page-content .lp-section h2 {
+  margin-top: 20px;
+  margin-bottom: 16px;
+  font-size: clamp(1.25rem, 3.5vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.page-content .lp-section h3 {
+  margin-top: 20px;
+  margin-bottom: 8px;
+  font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+}
+
+.page-content .lp-banner img,
+.page-content .lp-visual img {
+  border-radius: 12px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.page-content .lp-banner {
+  margin: 0 0 8px;
+}
+
+.page-content .lp-visual {
+  margin: 0 auto 8px;
+  max-width: 600px;
+}
+
+.page-content .lp-visual img {
+  border-radius: 12px;
+}
+
+.page-content figure {
+  margin: 0;
+  padding: 0;
+}
+
 /* ===== PROMOTION SLIDER ===== */
 .promo-slider-arrow {
   position: absolute;

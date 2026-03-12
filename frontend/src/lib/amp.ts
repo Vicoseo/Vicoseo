@@ -452,6 +452,14 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-footer__config-links{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center}
 .amp-footer__copy{font-size:13px;color:#666;text-align:center}
 
+/* ===== LANDING PAGE SECTIONS ===== */
+.lp-section{margin-bottom:32px}
+.lp-section h2{margin:16px 0 12px;font-size:1.3em;font-weight:700}
+.lp-section h3{margin:16px 0 8px;font-size:1.1em}
+.lp-banner,.lp-visual{margin:0 0 8px}
+.lp-visual{max-width:600px;margin-left:auto;margin-right:auto}
+figure{margin:0;padding:0}
+
 /* ===== SLIDER BANNERS ===== */
 .amp-slider-section{max-width:800px;margin:0 auto 24px;padding:0}
 .amp-slider-item{display:block;text-decoration:none;border-radius:10px;overflow:hidden;margin-bottom:12px}
