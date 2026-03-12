@@ -452,6 +452,11 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-footer__config-links{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center}
 .amp-footer__copy{font-size:13px;color:#666;text-align:center}
 
+/* ===== SLIDER BANNERS ===== */
+.amp-slider-section{max-width:800px;margin:0 auto 24px;padding:0}
+.amp-slider-item{display:block;text-decoration:none;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.amp-slider-img{display:block;border-radius:10px}
+
 /* ===== PROMO CARDS GRID ===== */
 .amp-promo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:800px;margin:0 auto 24px;padding:0}
 .amp-promo-item{display:block;text-decoration:none;border-radius:10px;overflow:hidden;background:rgba(22,33,62,0.85);border:1px solid rgba(255,215,0,0.15)}
