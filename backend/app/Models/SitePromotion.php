@@ -16,6 +16,7 @@ class SitePromotion extends Model
         'link_url',
         'sort_order',
         'is_active',
+        'display_type',
     ];
 
     protected function casts(): array

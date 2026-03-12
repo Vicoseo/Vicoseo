@@ -452,6 +452,13 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-footer__config-links{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center}
 .amp-footer__copy{font-size:13px;color:#666;text-align:center}
 
+/* ===== PROMO CARDS GRID ===== */
+.amp-promo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:800px;margin:0 auto 24px;padding:0}
+.amp-promo-item{display:block;text-decoration:none;border-radius:10px;overflow:hidden;background:rgba(22,33,62,0.85);border:1px solid rgba(255,215,0,0.15)}
+.amp-promo-item:hover{border-color:rgba(255,215,0,0.4)}
+.amp-promo-img{display:block;border-radius:10px 10px 0 0}
+.amp-promo-caption{padding:10px 14px;font-size:14px;font-weight:600;color:#e0e0e0;text-align:center;margin:0}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
 .amp-header__nav{display:none}
@@ -460,6 +467,7 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-main h1{font-size:24px}
 .amp-main h2{font-size:20px}
 .amp-posts-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+.amp-promo-grid{grid-template-columns:repeat(2,1fr);gap:12px}
 .amp-featured,.amp-recent{padding:24px 16px}
 .amp-footer{padding:24px 16px}
 .amp-footer__pages{gap:8px}
@@ -470,6 +478,7 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-main h2{font-size:18px}
 .amp-main p{font-size:15px}
 .amp-posts-grid{grid-template-columns:1fr;gap:10px}
+.amp-promo-grid{grid-template-columns:1fr;gap:10px}
 .amp-featured,.amp-recent{padding:20px 14px}
 .amp-featured__title,.amp-recent__title{font-size:17px;margin-bottom:12px}
 .amp-footer{padding:20px 14px}
