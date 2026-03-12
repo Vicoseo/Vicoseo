@@ -1,4 +1,4 @@
-import { SiteConfig, Page, Post, Category, SocialLinks } from '@/types';
+import { SiteConfig, SiteEarning, Page, Post, Category, SocialLinks } from '@/types';
 
 /**
  * Convert regular HTML content to AMP-compatible HTML
@@ -90,6 +90,7 @@ interface BuildAmpOpts {
   popularPosts?: Post[];
   recentPosts?: Post[];
   categories?: Category[];
+  earnings?: SiteEarning[];
 }
 
 /**
@@ -98,7 +99,7 @@ interface BuildAmpOpts {
 export function buildAmpDocument(opts: BuildAmpOpts): string {
   const {
     title, description, canonicalUrl, content, site, breadcrumbs, ogImage,
-    pages, popularPosts, recentPosts, categories,
+    pages, popularPosts, recentPosts, categories, earnings,
   } = opts;
 
   const siteUrl = `https://${site.domain}`;
@@ -152,6 +153,11 @@ export function buildAmpDocument(opts: BuildAmpOpts): string {
       ).join('')}</span></nav>`
     : '';
 
+  // Build earnings section
+  const earningsHtml = earnings && earnings.length > 0
+    ? buildEarningsSection(earnings, siteUrl)
+    : '';
+
   // Build featured posts section
   const featuredHtml = popularPosts && popularPosts.length > 0
     ? buildPostsSection('Popüler Yazılar', popularPosts.slice(0, 6), siteUrl, 'featured')
@@ -201,11 +207,35 @@ ${breadcrumbsHtml}
 <main class="amp-main">
 ${ampContent}
 </main>
+${earningsHtml}
 ${featuredHtml}
 ${recentHtml}
 ${footerHtml}
 </body>
 </html>`;
+}
+
+function buildEarningsSection(earnings: SiteEarning[], siteUrl: string): string {
+  const cards = earnings.map(e => {
+    const imgSrc = e.image
+      ? (e.image.startsWith('http') ? e.image : `${siteUrl}${e.image}`)
+      : null;
+    const imgHtml = imgSrc
+      ? `<amp-img src="${imgSrc}" width="400" height="300" alt="${escapeHtml(e.title || 'Kazanç')}" layout="responsive"></amp-img>`
+      : '';
+    const amountMatch = e.title?.match(/([\d.]+)\s*TL/);
+    const amount = amountMatch ? amountMatch[1] + ' TL' : '';
+    const label = e.title?.replace(/\s*ile\s*[\d.]+\s*TL\s*Kazanç!?/i, '')
+      .replace(/['']da\s*[\d.]+\s*TL\s*Kazanç!?/i, '')
+      .replace(/['']de\s*[\d.]+\s*TL\s*Kazanç!?/i, '')
+      .replace(/['']te\s*[\d.]+\s*TL\s*Kazanç!?/i, '')
+      .replace(/\s*[\d.]+\s*TL!?$/i, '')
+      .trim() || 'Kazanç';
+
+    return `<div class="amp-earnings__card">${imgHtml}<div class="amp-earnings__amount">${amount}</div><div class="amp-earnings__label">${escapeHtml(label)}</div></div>`;
+  }).join('');
+
+  return `<section class="amp-earnings"><h2 class="amp-earnings__title">Yüksek Kazançlar</h2><div class="amp-earnings__grid">${cards}</div></section>`;
 }
 
 function buildHeader(
@@ -224,9 +254,8 @@ function buildHeader(
 
   const blogLink = `<a href="${siteUrl}/blog" class="amp-header__nav-link">Blog</a>`;
 
-  const ctaHtml = site.login_url || site.entry_url
-    ? `<a href="${siteUrl}/go/login" class="amp-header__cta">Giriş Yap</a>`
-    : '';
+  const loginHref = site.login_url || site.entry_url || siteUrl;
+  const ctaHtml = `<a href="${loginHref}" class="amp-header__cta" rel="nofollow noopener" target="_blank">Giriş Yap</a>`;
 
   return `<header class="amp-header">
 <div class="amp-header__inner">
@@ -466,11 +495,19 @@ figure{margin:0;padding:0}
 .amp-slider-img{display:block;border-radius:10px}
 
 /* ===== PROMO CARDS GRID ===== */
-.amp-promo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:800px;margin:0 auto 24px;padding:0}
-.amp-promo-item{display:block;text-decoration:none;border-radius:10px;overflow:hidden;background:rgba(22,33,62,0.85);border:1px solid rgba(255,215,0,0.15)}
+.amp-promo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:800px;margin:0 auto 24px;padding:0}
+.amp-promo-item{display:block;text-decoration:none;border-radius:8px;overflow:hidden;background:rgba(22,33,62,0.85);border:1px solid rgba(255,215,0,0.15)}
 .amp-promo-item:hover{border-color:rgba(255,215,0,0.4)}
-.amp-promo-img{display:block;border-radius:10px 10px 0 0}
-.amp-promo-caption{padding:10px 14px;font-size:14px;font-weight:600;color:#e0e0e0;text-align:center;margin:0}
+.amp-promo-img{display:block;border-radius:8px 8px 0 0}
+.amp-promo-caption{padding:6px 8px;font-size:11px;font-weight:600;color:#e0e0e0;text-align:center;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== EARNINGS SECTION ===== */
+.amp-earnings{max-width:800px;margin:0 auto 24px;padding:0 20px}
+.amp-earnings__title{font-size:16px;font-weight:600;margin-bottom:12px;opacity:0.85;color:#fff}
+.amp-earnings__grid{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.amp-earnings__card{flex:0 0 110px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);text-align:center}
+.amp-earnings__amount{font-size:13px;font-weight:700;color:#f59e0b;padding:4px 6px 0}
+.amp-earnings__label{font-size:10px;opacity:0.6;padding:0 6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
@@ -480,7 +517,7 @@ figure{margin:0;padding:0}
 .amp-main h1{font-size:24px}
 .amp-main h2{font-size:20px}
 .amp-posts-grid{grid-template-columns:repeat(2,1fr);gap:12px}
-.amp-promo-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+.amp-promo-grid{grid-template-columns:repeat(3,1fr);gap:8px}
 .amp-featured,.amp-recent{padding:24px 16px}
 .amp-footer{padding:24px 16px}
 .amp-footer__pages{gap:8px}
@@ -491,7 +528,7 @@ figure{margin:0;padding:0}
 .amp-main h2{font-size:18px}
 .amp-main p{font-size:15px}
 .amp-posts-grid{grid-template-columns:1fr;gap:10px}
-.amp-promo-grid{grid-template-columns:1fr;gap:10px}
+.amp-promo-grid{grid-template-columns:repeat(2,1fr);gap:8px}
 .amp-featured,.amp-recent{padding:20px 14px}
 .amp-featured__title,.amp-recent__title{font-size:17px;margin-bottom:12px}
 .amp-footer{padding:20px 14px}

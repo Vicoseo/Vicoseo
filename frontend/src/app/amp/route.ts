@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         const titleAttr = card.title ? `${card.title} 2026` : 'Promosyon 2026';
         const href = card.link_url || null;
 
-        const imgTag = `<amp-img src="${imgSrc}" width="1080" height="1080" alt="${escapeHtml(alt)}" title="${escapeHtml(titleAttr)}" layout="responsive" class="amp-promo-img"></amp-img>`;
+        const imgTag = `<amp-img src="${imgSrc}" width="270" height="270" alt="${escapeHtml(alt)}" title="${escapeHtml(titleAttr)}" layout="responsive" class="amp-promo-img"></amp-img>`;
         const caption = card.title ? `<p class="amp-promo-caption">${escapeHtml(card.title)}</p>` : '';
 
         if (href) {
@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
       popularPosts,
       recentPosts,
       categories,
+      earnings: site.earnings || [],
     });
 
     return new NextResponse(html, {
