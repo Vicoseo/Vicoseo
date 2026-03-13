@@ -177,6 +177,7 @@ class BulkContentJob implements ShouldQueue
                             $skipped++;
                             continue;
                         }
+                        $existingImage = $existing?->featured_image;
                         if ($existing && $this->overwrite) {
                             $existing->delete();
                         }
@@ -187,7 +188,9 @@ class BulkContentJob implements ShouldQueue
 
                         $featuredImage = null;
                         if (!$this->noImage) {
-                            $featuredImage = $imageService->generateFeaturedImage($topic['topic'], $brandName);
+                            $featuredImage = $existingImage ?: $imageService->generateFeaturedImage($topic['topic'], $brandName, null, $domain);
+                        } elseif ($existingImage) {
+                            $featuredImage = $existingImage;
                         }
 
                         Post::create([
@@ -226,7 +229,7 @@ class BulkContentJob implements ShouldQueue
                         $featuredImage = null;
                         if (!$this->noImage) {
                             $imagePrompt = $generated['featured_image_prompt'] ?? null;
-                            $featuredImage = $imageService->generateFeaturedImage($topicName, $brandName, $imagePrompt);
+                            $featuredImage = $imageService->generateFeaturedImage($topicName, $brandName, $imagePrompt, $domain);
                         }
 
                         Post::create([

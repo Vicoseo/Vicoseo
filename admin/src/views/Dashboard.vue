@@ -145,8 +145,17 @@
           <el-input-number v-model="bulkForm.daily_count" :min="1" :max="10" />
         </el-form-item>
         <el-form-item label="Görsel Üretimi">
-          <el-switch v-model="bulkForm.no_image" active-text="Üretme" inactive-text="Üret" />
-          <div style="font-size: 12px; color: #909399; margin-top: 4px">Kapalıyken yazılara DALL-E görsel üretilmez</div>
+          <el-tooltip placement="top" effect="dark">
+            <div slot="content" style="max-width: 300px; line-height: 1.6">
+              <b>Üret (Açık):</b> Her yazı için DALL-E 3 ile kapak görseli
+              otomatik üretilir. API maliyeti vardır.<br><br>
+              <b>Üretme (Kapalı):</b> Yazılar görselsiz oluşturulur.
+              Sonradan site detayından "Görsel Çek" ile eklenebilir.<br><br>
+              <b>İpucu:</b> Zaten görseli olan yazılar üzerine yazılırken
+              mevcut görsel korunur, DALL-E tekrar çağrılmaz.
+            </div>
+            <el-switch v-model="bulkForm.no_image" active-text="Üretme" inactive-text="Üret" />
+          </el-tooltip>
         </el-form-item>
       </el-form>
 

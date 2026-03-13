@@ -14,7 +14,7 @@ class ImageGenerationService
     /**
      * Generate a featured image for a blog post using DALL-E 3.
      */
-    public function generateFeaturedImage(string $topic, string $brandName, ?string $imagePrompt = null): ?string
+    public function generateFeaturedImage(string $topic, string $brandName, ?string $imagePrompt = null, ?string $domain = null): ?string
     {
         $apiKey = config('ai.openai.api_key');
         if (empty($apiKey)) {
@@ -44,7 +44,7 @@ class ImageGenerationService
                 return null;
             }
 
-            return $this->downloadAndConvert($imageUrl, $brandName);
+            return $this->downloadAndConvert($imageUrl, $brandName, $domain);
         } catch (\Throwable $e) {
             Log::error('ImageGenerationService: Failed to generate image.', [
                 'error' => $e->getMessage(),
@@ -71,7 +71,7 @@ class ImageGenerationService
     /**
      * Download image from URL and convert to WebP.
      */
-    private function downloadAndConvert(string $imageUrl, string $brandName): ?string
+    private function downloadAndConvert(string $imageUrl, string $brandName, ?string $domain = null): ?string
     {
         try {
             $imageData = Http::timeout(60)->get($imageUrl)->body();
@@ -82,8 +82,9 @@ class ImageGenerationService
             }
 
             $slug = Str::slug($brandName);
+            $domainSlug = $domain ? Str::slug($domain, '-') : 'shared';
             $filename = $slug . '-' . time() . '-' . Str::random(6) . '.webp';
-            $directory = 'images/posts';
+            $directory = 'images/posts/' . $domainSlug;
             $path = $directory . '/' . $filename;
 
             $disk = Storage::disk('public');
@@ -99,7 +100,7 @@ class ImageGenerationService
                 $path = $directory . '/' . $filename;
                 $disk->put($path, $imageData);
 
-                return '/storage/images/posts/' . $filename;
+                return '/storage/' . $path;
             }
 
             // Save as WebP
@@ -114,7 +115,7 @@ class ImageGenerationService
                 $disk->put($path, $webpData);
             }
 
-            return '/storage/images/posts/' . $filename;
+            return '/storage/' . $path;
         } catch (\Throwable $e) {
             Log::error('ImageGenerationService: Failed to download/convert image.', [
                 'error' => $e->getMessage(),

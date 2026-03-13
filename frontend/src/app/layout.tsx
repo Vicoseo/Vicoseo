@@ -8,6 +8,9 @@ import Footer from '@/components/Footer';
 import LoginCtaBar from '@/components/LoginCtaBar';
 import SponsorsBlock from '@/components/SponsorsBlock';
 import OfferCards from '@/components/OfferCards';
+import ParavanBlogHeader from '@/components/themes/ParavanBlogHeader';
+import ParavanBlogSidebar from '@/components/themes/ParavanBlogSidebar';
+import ParavanBlogFooter from '@/components/themes/ParavanBlogFooter';
 import { SiteConfig, TopOffer, Page, Post, Category } from '@/types';
 import './globals.css';
 
@@ -147,6 +150,7 @@ export default async function RootLayout({
   const backgroundUrl = site?.background_url || null;
   const themeTemplate = site?.theme_template || 'default';
   const themeClass = themeTemplate !== 'default' ? `theme-${themeTemplate}` : '';
+  const isParavanBlog = themeTemplate === 'paravan-blog';
 
   const siteUrl = site ? `https://${site.domain}` : '';
 
@@ -270,101 +274,114 @@ export default async function RootLayout({
             contactText={site?.sponsor_contact_text}
           />
         )}
-        {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
-        <main style={{ flex: 1 }}>{children}</main>
-        {!sanitize && site?.domain?.includes('locabe') && (
-          <section className="locatv-banner">
-            <div className="locatv-banner__inner">
-              <video
-                className="locatv-banner__video"
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-              >
-                <source src={`${siteUrl}/storage/posts/locabet/locatv-500tl.webm`} type="video/webm" />
-              </video>
-              <div className="locatv-banner__content">
-                <h2 className="locatv-banner__title">Canlı TV İzle</h2>
-                <p className="locatv-banner__desc">Sadece 500 TL yatırım ile canlı maç ve etkinlikleri anında izlemeye başla! Locabet TV ile spor karşılaşmalarını HD kalitede, kesintisiz takip et.</p>
-                <a href={loginUrl} className="locatv-banner__cta" rel="nofollow">Hemen Yatır &amp; İzle</a>
-              </div>
+        {isParavanBlog && site ? (
+          <>
+            <ParavanBlogHeader site={site} pages={navPages} posts={posts} loginUrl={loginUrl} />
+            <div className="pb-layout">
+              <main className="pb-main" style={{ flex: 1 }}>{children}</main>
+              <ParavanBlogSidebar site={site} posts={posts} categories={categories} loginUrl={loginUrl} />
             </div>
-          </section>
+            <ParavanBlogFooter site={site} pages={navPages} loginUrl={loginUrl} />
+          </>
+        ) : (
+          <>
+            {site && <Header site={site} pages={navPages} loginUrl={loginUrl} />}
+            <main style={{ flex: 1 }}>{children}</main>
+            {!sanitize && site?.domain?.includes('locabe') && (
+              <section className="locatv-banner">
+                <div className="locatv-banner__inner">
+                  <video
+                    className="locatv-banner__video"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src={`${siteUrl}/storage/posts/locabet/locatv-500tl.webm`} type="video/webm" />
+                  </video>
+                  <div className="locatv-banner__content">
+                    <h2 className="locatv-banner__title">Canlı TV İzle</h2>
+                    <p className="locatv-banner__desc">Sadece 500 TL yatırım ile canlı maç ve etkinlikleri anında izlemeye başla! Locabet TV ile spor karşılaşmalarını HD kalitede, kesintisiz takip et.</p>
+                    <a href={loginUrl} className="locatv-banner__cta" rel="nofollow">Hemen Yatır &amp; İzle</a>
+                  </div>
+                </div>
+              </section>
+            )}
+            {popularPosts.length > 0 && (
+              <section className="featured-posts-section">
+                <h2 className="featured-posts-title">Öne Çıkan Yazılar</h2>
+                <div className="featured-posts-grid">
+                  {popularPosts.map((post) => (
+                    <article key={post.id} className="featured-post-card">
+                      <Link href={`/blog/${post.slug}`} className="featured-post-link">
+                        {post.featured_image && (
+                          <img
+                            src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
+                            alt={post.title}
+                            className="featured-post-card__image"
+                            width={768}
+                            height={400}
+                            loading="lazy"
+                          />
+                        )}
+                        {(post.popularity_score ?? 0) > 0 && (
+                          <span className="featured-post-card__badge">Popüler</span>
+                        )}
+                        <h3 className="featured-post-card__title">{post.title}</h3>
+                        {post.excerpt && (
+                          <p className="featured-post-card__excerpt">{post.excerpt}</p>
+                        )}
+                        <time className="featured-post-card__date" dateTime={post.published_at}>
+                          {new Date(post.published_at).toLocaleDateString('tr-TR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+            {posts.length > 0 && (
+              <section className="recent-posts-section">
+                <h2 className="recent-posts-title">Son Yazılar</h2>
+                <div className="recent-posts-grid">
+                  {posts.map((post) => (
+                    <article key={post.id} className="recent-post-card">
+                      <Link href={`/blog/${post.slug}`} className="recent-post-link">
+                        {post.featured_image && (
+                          <img
+                            src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
+                            alt={post.title}
+                            className="recent-post-card__image"
+                            width={768}
+                            height={400}
+                            loading="lazy"
+                          />
+                        )}
+                        <h3 className="recent-post-card__title">{post.title}</h3>
+                        {post.excerpt && (
+                          <p className="recent-post-card__excerpt">{post.excerpt}</p>
+                        )}
+                        <time className="recent-post-card__date" dateTime={post.published_at}>
+                          {new Date(post.published_at).toLocaleDateString('tr-TR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+            {site && <Footer site={site} pages={navPages} posts={posts} categories={categories} />}
+          </>
         )}
-        {popularPosts.length > 0 && (
-          <section className="featured-posts-section">
-            <h2 className="featured-posts-title">Öne Çıkan Yazılar</h2>
-            <div className="featured-posts-grid">
-              {popularPosts.map((post) => (
-                <article key={post.id} className="featured-post-card">
-                  <Link href={`/blog/${post.slug}`} className="featured-post-link">
-                    {post.featured_image && (
-                      <img
-                        src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
-                        alt={post.title}
-                        className="featured-post-card__image"
-                        width={768}
-                        height={400}
-                        loading="lazy"
-                      />
-                    )}
-                    {(post.popularity_score ?? 0) > 0 && (
-                      <span className="featured-post-card__badge">Popüler</span>
-                    )}
-                    <h3 className="featured-post-card__title">{post.title}</h3>
-                    {post.excerpt && (
-                      <p className="featured-post-card__excerpt">{post.excerpt}</p>
-                    )}
-                    <time className="featured-post-card__date" dateTime={post.published_at}>
-                      {new Date(post.published_at).toLocaleDateString('tr-TR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  </Link>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-        {posts.length > 0 && (
-          <section className="recent-posts-section">
-            <h2 className="recent-posts-title">Son Yazılar</h2>
-            <div className="recent-posts-grid">
-              {posts.map((post) => (
-                <article key={post.id} className="recent-post-card">
-                  <Link href={`/blog/${post.slug}`} className="recent-post-link">
-                    {post.featured_image && (
-                      <img
-                        src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
-                        alt={post.title}
-                        className="recent-post-card__image"
-                        width={768}
-                        height={400}
-                        loading="lazy"
-                      />
-                    )}
-                    <h3 className="recent-post-card__title">{post.title}</h3>
-                    {post.excerpt && (
-                      <p className="recent-post-card__excerpt">{post.excerpt}</p>
-                    )}
-                    <time className="recent-post-card__date" dateTime={post.published_at}>
-                      {new Date(post.published_at).toLocaleDateString('tr-TR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  </Link>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-        {site && <Footer site={site} pages={navPages} posts={posts} categories={categories} />}
       </body>
     </html>
   );
