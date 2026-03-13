@@ -387,16 +387,29 @@
       :close-on-click-modal="false"
     >
       <p style="margin-top: 0; color: #606266">
-        Bir URL girin, sayfadaki görseller indirilecek ve opsiyonel olarak her görsel için AI ile SEO uyumlu içerik oluşturulacak.
+        Bir URL girin. Sayfada <strong>{{ scrapeKeyword || (site && site.name) }}</strong> ile ilgili görseller bulunup indirilecek.
+        WordPress sitelerde otomatik olarak REST API denenecek.
       </p>
       <el-form label-width="140px">
         <el-form-item label="Kaynak URL">
           <el-input
             v-model="scrapeUrl"
-            placeholder="https://ornek-site.com/sayfa"
+            placeholder="https://risebetadresi.com/"
           >
             <template slot="prepend"><i class="el-icon-link"></i></template>
           </el-input>
+        </el-form-item>
+        <el-form-item label="Anahtar Kelime">
+          <el-input
+            v-model="scrapeKeyword"
+            :placeholder="site ? site.name : 'Marka adı'"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">
+            Boş bırakılırsa site adı kullanılır. Sadece bu kelimeyle ilgili görseller indirilir.
+          </div>
+        </el-form-item>
+        <el-form-item label="Maks Görsel">
+          <el-input-number v-model="scrapeMaxImages" :min="1" :max="50" :step="5" />
         </el-form-item>
         <el-form-item label="İçerik Oluştur">
           <el-switch v-model="scrapeGenerateContent" />
@@ -511,6 +524,8 @@ export default {
       scraping: false,
       scrapeDialogVisible: false,
       scrapeUrl: '',
+      scrapeKeyword: '',
+      scrapeMaxImages: 10,
       scrapeGenerateContent: true,
       scrapeResults: null,
       // Analytics
@@ -934,10 +949,15 @@ export default {
       this.scrapeResults = null
 
       try {
-        const { data } = await scrapeImages(this.siteId, {
+        const payload = {
           url: this.scrapeUrl,
           generate_content: this.scrapeGenerateContent,
-        })
+          max_images: this.scrapeMaxImages,
+        }
+        if (this.scrapeKeyword) {
+          payload.keyword = this.scrapeKeyword
+        }
+        const { data } = await scrapeImages(this.siteId, payload)
 
         this.scrapeResults = data
 
