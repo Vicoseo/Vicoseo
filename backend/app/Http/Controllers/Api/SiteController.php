@@ -40,6 +40,7 @@ class SiteController extends Controller
                 'ga_measurement_id' => $site->ga_measurement_id,
                 'noindex_mode' => (bool) $site->noindex_mode,
                 'custom_css' => $site->custom_css,
+                'theme_template' => $site->theme_template ?? 'default',
                 'background_url' => $site->background_url,
                 'sponsor_page_visible' => (bool) $site->sponsor_page_visible,
                 'sponsor_contact_url' => $site->sponsor_contact_url,
