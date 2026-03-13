@@ -55,6 +55,14 @@
           </div>
         </el-card>
       </el-col>
+      <el-col :span="4" v-if="redirectedSiteCount > 0">
+        <el-card shadow="hover">
+          <div class="summary-stat">
+            <div class="summary-num" style="color: #e6a23c">{{ redirectedSiteCount }}</div>
+            <div class="summary-label">Yönlendirilen</div>
+          </div>
+        </el-card>
+      </el-col>
     </el-row>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
@@ -78,7 +86,7 @@
       <div
         v-for="row in filteredSites"
         :key="row.id"
-        class="site-card"
+        :class="['site-card', { redirected: !!row.fallback_domain }]"
         @click="$router.push(`/sites/${row.id}`)"
       >
         <!-- Header: Logo + Domain + Status -->
@@ -96,9 +104,13 @@
             <div>
               <div class="site-domain">{{ row.domain }}</div>
               <div class="site-name">{{ row.name }}</div>
+              <div v-if="row.fallback_domain" class="site-redirect">
+                <i class="el-icon-right"></i> {{ row.fallback_domain }}
+              </div>
             </div>
           </div>
-          <span :class="['status-dot', row.is_active ? 'active' : 'inactive']"></span>
+          <span v-if="!row.fallback_domain" :class="['status-dot', row.is_active ? 'active' : 'inactive']"></span>
+          <el-tag v-else size="mini" type="warning">301</el-tag>
         </div>
 
         <!-- Sparkline -->
@@ -179,11 +191,19 @@ export default {
   },
   computed: {
     filteredSites() {
-      if (!this.search) return this.sites
-      const q = this.search.toLowerCase()
-      return this.sites.filter(
-        (s) => s.domain.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-      )
+      let list = this.sites
+      if (this.search) {
+        const q = this.search.toLowerCase()
+        list = list.filter(
+          (s) => s.domain.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+        )
+      }
+      // Yönlendirmeli siteleri en sona at
+      return list.slice().sort((a, b) => {
+        const aR = a.fallback_domain ? 1 : 0
+        const bR = b.fallback_domain ? 1 : 0
+        return aR - bR
+      })
     },
     analyticsMap() {
       const map = {}
@@ -197,6 +217,9 @@ export default {
     },
     inactiveSiteCount() {
       return this.sites.filter((s) => !s.is_active).length
+    },
+    redirectedSiteCount() {
+      return this.sites.filter((s) => s.fallback_domain).length
     },
   },
   created() {
@@ -335,6 +358,24 @@ export default {
 .site-card:hover {
   border-color: #d0d7de;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.site-card.redirected {
+  border-color: #e6a23c;
+  opacity: 0.65;
+  background: #fffbf0;
+}
+.site-card.redirected:hover {
+  border-color: #e6a23c;
+  opacity: 0.85;
+}
+.site-card.redirected .site-domain {
+  text-decoration: line-through;
+  color: #909399;
+}
+.site-redirect {
+  font-size: 11px;
+  color: #e6a23c;
+  margin-top: 2px;
 }
 
 .site-card-header {
