@@ -20,6 +20,7 @@ class ContentSchedule extends Model
         'run_at',
         'interval_hours',
         'topics',
+        'items',
         'is_active',
         'last_run_at',
         'next_run_at',
@@ -29,6 +30,7 @@ class ContentSchedule extends Model
     {
         return [
             'topics' => 'array',
+            'items' => 'array',
             'is_active' => 'boolean',
             'last_run_at' => 'datetime',
             'next_run_at' => 'datetime',

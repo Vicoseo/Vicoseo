@@ -28,6 +28,9 @@ class ContentScheduleController extends Controller
             'run_at' => ['required', 'date_format:H:i'],
             'interval_hours' => ['nullable', 'integer', 'min:1', 'max:168'],
             'topics' => ['nullable', 'array'],
+            'items' => ['nullable', 'array'],
+            'items.*.topic' => ['required', 'string', 'max:255'],
+            'items.*.image_url' => ['nullable', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
@@ -50,6 +53,9 @@ class ContentScheduleController extends Controller
             'run_at' => ['sometimes', 'date_format:H:i'],
             'interval_hours' => ['nullable', 'integer', 'min:1', 'max:168'],
             'topics' => ['nullable', 'array'],
+            'items' => ['nullable', 'array'],
+            'items.*.topic' => ['required', 'string', 'max:255'],
+            'items.*.image_url' => ['nullable', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Jobs\Concerns\HandlesTenantContext;
+use App\Models\ContentSchedule;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Site;
@@ -166,51 +167,112 @@ class BulkContentJob implements ShouldQueue
 
             // ─── POSTS ───
             if (in_array($this->contentType, ['posts', 'all'])) {
-                $postTopics = $this->getClusterArticles($brandName, $domain);
-                $totalPosts = count($postTopics);
+                // Check for content plan items
+                $schedule = ContentSchedule::where('site_id', $this->siteId)
+                    ->where('is_active', true)
+                    ->whereNotNull('items')
+                    ->first();
 
-                foreach ($postTopics as $i => $topic) {
-                    try {
-                        $topicSlug = Str::slug($topic['suggested_slug']);
-                        $existing = Post::where('slug', $topicSlug)->first();
-                        if ($existing && !$this->overwrite) {
-                            $skipped++;
-                            continue;
+                $planItems = $schedule?->items ?? [];
+
+                if (!empty($planItems)) {
+                    // Plan items exist — use them as topics
+                    $totalPosts = count($planItems);
+
+                    foreach ($planItems as $i => $planItem) {
+                        try {
+                            $topicSlug = Str::slug($planItem['topic']);
+                            $existing = Post::where('slug', $topicSlug)->first();
+                            if ($existing && !$this->overwrite) {
+                                $skipped++;
+                                continue;
+                            }
+                            $existingImage = $existing?->featured_image;
+                            if ($existing && $this->overwrite) {
+                                $existing->delete();
+                            }
+
+                            $generated = $aiService->generateClusterArticle(
+                                $brandName, $domain, $planItem['topic'], '', $siteInfo, $clusterSlugs, $allExistingSlugs
+                            );
+
+                            // Plan item'da görsel varsa onu kullan, yoksa DALL-E
+                            $featuredImage = $planItem['image_url'] ?? null;
+                            if (!$featuredImage) {
+                                if (!$this->noImage) {
+                                    $featuredImage = $existingImage ?: $imageService->generateFeaturedImage($planItem['topic'], $brandName, null, $domain);
+                                } elseif ($existingImage) {
+                                    $featuredImage = $existingImage;
+                                }
+                            }
+
+                            Post::create([
+                                'slug' => $generated['slug'] ?? $topicSlug,
+                                'title' => $generated['title'],
+                                'excerpt' => $generated['excerpt'] ?? '',
+                                'content' => $generated['content'],
+                                'featured_image' => $featuredImage,
+                                'meta_title' => $generated['meta_title'] ?? $generated['title'],
+                                'meta_description' => $generated['meta_description'] ?? '',
+                                'is_published' => true,
+                                'published_at' => now()->subDays($i * 2 + 1),
+                            ]);
+                            $created++;
+                        } catch (\Throwable $e) {
+                            $errors[] = "Plan yazı '{$planItem['topic']}': {$e->getMessage()}";
                         }
-                        $existingImage = $existing?->featured_image;
-                        if ($existing && $this->overwrite) {
-                            $existing->delete();
-                        }
 
-                        $generated = $aiService->generateClusterArticle(
-                            $brandName, $domain, $topic['topic'], $topic['instructions'], $siteInfo, $clusterSlugs, $allExistingSlugs
-                        );
-
-                        $featuredImage = null;
-                        if (!$this->noImage) {
-                            $featuredImage = $existingImage ?: $imageService->generateFeaturedImage($topic['topic'], $brandName, null, $domain);
-                        } elseif ($existingImage) {
-                            $featuredImage = $existingImage;
-                        }
-
-                        Post::create([
-                            'slug' => $generated['slug'] ?? $topicSlug,
-                            'title' => $generated['title'],
-                            'excerpt' => $generated['excerpt'] ?? '',
-                            'content' => $generated['content'],
-                            'featured_image' => $featuredImage,
-                            'meta_title' => $generated['meta_title'] ?? $generated['title'],
-                            'meta_description' => $generated['meta_description'] ?? '',
-                            'is_published' => true,
-                            'published_at' => now()->subDays($i * 2 + 1),
-                        ]);
-                        $created++;
-                    } catch (\Throwable $e) {
-                        $errors[] = "Yazı '{$topic['topic']}': {$e->getMessage()}";
+                        $progress = 50 + (int) (($i + 1) / max($totalPosts, 1) * 30);
+                        $this->updateTaskStatus($this->botTaskId, 'processing', min($progress, 80));
                     }
+                } else {
+                    // No plan items — use cluster articles (default behavior)
+                    $postTopics = $this->getClusterArticles($brandName, $domain);
+                    $totalPosts = count($postTopics);
 
-                    $progress = 50 + (int) (($i + 1) / max($totalPosts, 1) * 30);
-                    $this->updateTaskStatus($this->botTaskId, 'processing', min($progress, 80));
+                    foreach ($postTopics as $i => $topic) {
+                        try {
+                            $topicSlug = Str::slug($topic['suggested_slug']);
+                            $existing = Post::where('slug', $topicSlug)->first();
+                            if ($existing && !$this->overwrite) {
+                                $skipped++;
+                                continue;
+                            }
+                            $existingImage = $existing?->featured_image;
+                            if ($existing && $this->overwrite) {
+                                $existing->delete();
+                            }
+
+                            $generated = $aiService->generateClusterArticle(
+                                $brandName, $domain, $topic['topic'], $topic['instructions'], $siteInfo, $clusterSlugs, $allExistingSlugs
+                            );
+
+                            $featuredImage = null;
+                            if (!$this->noImage) {
+                                $featuredImage = $existingImage ?: $imageService->generateFeaturedImage($topic['topic'], $brandName, null, $domain);
+                            } elseif ($existingImage) {
+                                $featuredImage = $existingImage;
+                            }
+
+                            Post::create([
+                                'slug' => $generated['slug'] ?? $topicSlug,
+                                'title' => $generated['title'],
+                                'excerpt' => $generated['excerpt'] ?? '',
+                                'content' => $generated['content'],
+                                'featured_image' => $featuredImage,
+                                'meta_title' => $generated['meta_title'] ?? $generated['title'],
+                                'meta_description' => $generated['meta_description'] ?? '',
+                                'is_published' => true,
+                                'published_at' => now()->subDays($i * 2 + 1),
+                            ]);
+                            $created++;
+                        } catch (\Throwable $e) {
+                            $errors[] = "Yazı '{$topic['topic']}': {$e->getMessage()}";
+                        }
+
+                        $progress = 50 + (int) (($i + 1) / max($totalPosts, 1) * 30);
+                        $this->updateTaskStatus($this->botTaskId, 'processing', min($progress, 80));
+                    }
                 }
             }
 
