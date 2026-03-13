@@ -120,6 +120,7 @@ Route::prefix('admin')->group(function () {
         // Per-site resources
         Route::prefix('sites/{siteId}')->group(function () {
             Route::post('ai-generate', [Admin\AiGenerateController::class, 'generate']);
+            Route::post('scrape-images', [Admin\ImageScrapeController::class, 'scrape']);
 
             Route::apiResource('pages', Admin\PageController::class);
             Route::get('pages/{id}/revisions', [Admin\PageController::class, 'revisions']);

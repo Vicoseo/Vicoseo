@@ -106,6 +106,7 @@ class SiteController extends Controller
             'earnings_video_url' => ['nullable', 'string', 'max:500'],
             'earnings_title' => ['nullable', 'string', 'max:255'],
             'earnings_content' => ['nullable', 'string', 'max:50000'],
+            'theme_template' => ['nullable', 'string', 'in:default,paravan-blog'],
         ]);
 
         // Clear tenant cache on any update

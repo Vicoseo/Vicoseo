@@ -48,6 +48,23 @@
           <el-input v-model="form.meta_description" type="textarea" :rows="3" placeholder="SEO Açıklama" />
         </el-form-item>
 
+        <el-divider content-position="left">Tema Ayarları</el-divider>
+
+        <el-form-item label="Site Teması">
+          <el-radio-group v-model="form.theme_template" size="medium">
+            <el-radio-button label="default">
+              <span style="font-weight: 600">Varsayılan Tema</span>
+            </el-radio-button>
+            <el-radio-button label="paravan-blog">
+              <span style="font-weight: 600">Paravan Blog</span>
+            </el-radio-button>
+          </el-radio-group>
+          <div style="color: #909399; font-size: 12px; margin-top: 8px">
+            <span v-if="form.theme_template === 'default'">Mevcut CMS teması — standart sayfa ve blog görünümü</span>
+            <span v-else-if="form.theme_template === 'paravan-blog'">Koyu, blog odaklı paravan site teması — hero bölümü, blog kartları, sidebar</span>
+          </div>
+        </el-form-item>
+
         <el-divider content-position="left">Site Ayarları</el-divider>
 
         <el-form-item label="Giriş URL" prop="entry_url">
@@ -212,6 +229,7 @@ export default {
         noindex_mode: false,
         content_prompt_template: '',
         custom_css: '',
+        theme_template: 'default',
         ga_measurement_id: '',
         social_links: {
           telegram: '',

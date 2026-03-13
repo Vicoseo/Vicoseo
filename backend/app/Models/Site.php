@@ -44,6 +44,7 @@ class Site extends Model
         'earnings_content',
         'content_identity',
         'hero_settings',
+        'theme_template',
     ];
 
     protected function casts(): array

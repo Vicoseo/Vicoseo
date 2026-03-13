@@ -39,3 +39,7 @@ export function provisionSite(siteId) {
 export function getProvisionStatus(siteId) {
   return client.get(`/admin/sites/${siteId}/provision-status`)
 }
+
+export function scrapeImages(siteId, data) {
+  return client.post(`/admin/sites/${siteId}/scrape-images`, data, { timeout: 600000 })
+}

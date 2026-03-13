@@ -39,6 +39,16 @@
           <span v-if="generating !== 'anthropic'">Claude ile Oluştur</span>
           <span v-else>Oluşturuluyor...</span>
         </el-button>
+        <el-button
+          size="small"
+          :loading="scraping"
+          :disabled="scraping"
+          style="background: #7c3aed; color: #fff; border-color: #7c3aed"
+          @click="scrapeDialogVisible = true"
+        >
+          <span v-if="!scraping"><i class="el-icon-picture-outline"></i> Görsel Çek</span>
+          <span v-else>Çekiliyor...</span>
+        </el-button>
         <el-button size="small" @click="$router.push(`/sites/${siteId}/edit`)">Site Düzenle</el-button>
       </div>
     </div>
@@ -368,12 +378,80 @@
         </el-button>
       </span>
     </el-dialog>
+
+    <!-- Image Scrape Dialog -->
+    <el-dialog
+      title="Görsel Çek & İçerik Oluştur"
+      :visible.sync="scrapeDialogVisible"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <p style="margin-top: 0; color: #606266">
+        Bir URL girin, sayfadaki görseller indirilecek ve opsiyonel olarak her görsel için AI ile SEO uyumlu içerik oluşturulacak.
+      </p>
+      <el-form label-width="140px">
+        <el-form-item label="Kaynak URL">
+          <el-input
+            v-model="scrapeUrl"
+            placeholder="https://ornek-site.com/sayfa"
+          >
+            <template slot="prepend"><i class="el-icon-link"></i></template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="İçerik Oluştur">
+          <el-switch v-model="scrapeGenerateContent" />
+          <span style="color: #909399; font-size: 12px; margin-left: 8px">
+            Her görsel için AI ile otomatik blog yazısı oluştur
+          </span>
+        </el-form-item>
+      </el-form>
+
+      <div v-if="scrapeResults" style="margin-top: 12px">
+        <el-alert
+          :title="scrapeResults.message || 'Tamamlandı'"
+          :type="scrapeResults.error ? 'error' : 'success'"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 12px"
+        />
+        <div v-if="scrapeResults.images && scrapeResults.images.length" style="max-height: 200px; overflow-y: auto">
+          <div v-for="(img, idx) in scrapeResults.images" :key="idx" style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #ebeef5">
+            <img :src="resolveUrl(img.path)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px" />
+            <span style="font-size: 13px; color: #606266; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ img.title || img.alt }}</span>
+          </div>
+        </div>
+        <div v-if="scrapeResults.posts && scrapeResults.posts.length" style="margin-top: 12px">
+          <strong style="font-size: 13px">Oluşturulan Yazılar:</strong>
+          <div v-for="(post, idx) in scrapeResults.posts" :key="'p'+idx" style="font-size: 12px; padding: 4px 0; color: #606266">
+            <span v-if="post.error" style="color: #f56c6c">{{ post.title }}: {{ post.error }}</span>
+            <span v-else style="color: #67c23a">{{ post.title }} ({{ post.slug }})</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!scrapeResults" style="background: #ecf5ff; border: 1px solid #d9ecff; border-radius: 4px; padding: 10px 12px; font-size: 13px; color: #409eff; margin-top: 8px">
+        <i class="el-icon-info"></i> İçerik oluşturma aktifse, bu işlem görsel sayısına bağlı olarak birkaç dakika sürebilir.
+      </div>
+
+      <span slot="footer">
+        <el-button @click="scrapeDialogVisible = false; scrapeResults = null">Kapat</el-button>
+        <el-button
+          type="primary"
+          :loading="scraping"
+          :disabled="!scrapeUrl || scraping"
+          style="background: #7c3aed; border-color: #7c3aed"
+          @click="runScrape"
+        >
+          Görselleri Çek
+        </el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler } from 'chart.js'
-import { getSite, aiGenerateContent, provisionSite, getProvisionStatus } from '../../api/sites'
+import { getSite, aiGenerateContent, provisionSite, getProvisionStatus, scrapeImages } from '../../api/sites'
 import { getEarnings, createEarning, updateEarning, deleteEarning } from '../../api/earnings'
 import { getPromotions, createPromotion, updatePromotion, deletePromotion } from '../../api/promotions'
 import { getSiteAnalytics } from '../../api/analytics'
@@ -429,6 +507,12 @@ export default {
         sort_order: 0,
         is_active: true,
       },
+      // Image scraping
+      scraping: false,
+      scrapeDialogVisible: false,
+      scrapeUrl: '',
+      scrapeGenerateContent: true,
+      scrapeResults: null,
       // Analytics
       analyticsPeriod: '7d',
       analyticsData: null,
@@ -841,6 +925,39 @@ export default {
         this.$message.error(msg)
       } finally {
         this.generating = null
+      }
+    },
+
+    async runScrape() {
+      if (!this.scrapeUrl) return
+      this.scraping = true
+      this.scrapeResults = null
+
+      try {
+        const { data } = await scrapeImages(this.siteId, {
+          url: this.scrapeUrl,
+          generate_content: this.scrapeGenerateContent,
+        })
+
+        this.scrapeResults = data
+
+        if (data.error) {
+          this.$message.error(data.error)
+        } else {
+          this.$message.success(data.message || 'Görseller indirildi')
+          // Refresh post list if content was generated
+          if (this.scrapeGenerateContent && this.$refs.postList) {
+            this.$nextTick(() => {
+              this.$refs.postList.fetchPosts()
+            })
+          }
+        }
+      } catch (err) {
+        const msg = err.response?.data?.error || 'Görsel çekme başarısız'
+        this.scrapeResults = { error: msg, message: msg }
+        this.$message.error(msg)
+      } finally {
+        this.scraping = false
       }
     },
   },

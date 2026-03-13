@@ -145,6 +145,8 @@ export default async function RootLayout({
   const secondaryColor = site?.secondary_color || '#6c757d';
   const loginUrl = site?.login_url || site?.entry_url || '/';
   const backgroundUrl = site?.background_url || null;
+  const themeTemplate = site?.theme_template || 'default';
+  const themeClass = themeTemplate !== 'default' ? `theme-${themeTemplate}` : '';
 
   const siteUrl = site ? `https://${site.domain}` : '';
 
@@ -238,6 +240,7 @@ export default async function RootLayout({
         )}
       </head>
       <body
+        className={themeClass || undefined}
         suppressHydrationWarning
         style={
           {

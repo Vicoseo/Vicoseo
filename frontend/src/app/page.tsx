@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { getCurrentDomain } from '@/lib/domain';
-import { getPages, getPage, getSiteConfig } from '@/lib/api';
+import { getPages, getPage, getSiteConfig, getPosts, getCategories } from '@/lib/api';
 import { SiteConfig } from '@/types';
 import EarningsSection from '@/components/EarningsSection';
 import PromotionSlider from '@/components/PromotionSlider';
 import PromotionCards from '@/components/PromotionCards';
 import ServiceCards from '@/components/ServiceCards';
+import ParavanBlogLayout from '@/components/themes/ParavanBlogLayout';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -127,6 +128,29 @@ export default async function HomePage() {
     }
   } catch {
     // API unavailable
+  }
+
+  // Paravan Blog theme: completely different layout
+  if (site?.theme_template === 'paravan-blog') {
+    let blogPosts: any[] = [];
+    let blogCategories: any[] = [];
+    try {
+      const [postsRes, catRes] = await Promise.all([
+        getPosts(domain, 1, 20),
+        getCategories(domain).catch(() => ({ data: [] })),
+      ]);
+      blogPosts = postsRes.data || [];
+      blogCategories = Array.isArray(catRes.data) ? catRes.data : [];
+    } catch { /* fallback empty */ }
+
+    return (
+      <ParavanBlogLayout
+        site={site}
+        posts={blogPosts}
+        categories={blogCategories}
+        page={firstPage}
+      />
+    );
   }
 
   if (!firstPage) {

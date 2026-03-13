@@ -50,6 +50,7 @@ export interface SiteConfig {
   robots_txt: string | null;
   noindex_mode: boolean;
   custom_css: string | null;
+  theme_template: string;
   background_url: string | null;
   social_links: SocialLinks | null;
   ga_measurement_id: string | null;
