@@ -369,7 +369,7 @@ class ImageScrapeController extends Controller
      */
     private function generatePostsForImages(Site $site, array $images): array
     {
-        $this->tenantManager->connectToTenant($site);
+        $this->tenantManager->setTenant($site);
         $brandName = $site->name;
         $domain = $site->domain;
 
