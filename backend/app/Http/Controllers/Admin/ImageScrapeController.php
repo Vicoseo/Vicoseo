@@ -59,14 +59,22 @@ class ImageScrapeController extends Controller
             // Download images to storage
             $domainSlug = Str::slug($site->domain, '-');
             $downloadedImages = [];
+            $downloadErrors = [];
 
             foreach ($images as $i => $img) {
                 try {
                     $imgResponse = Http::timeout(15)
-                        ->withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                        ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'])
                         ->get($img['src']);
 
                     if (!$imgResponse->successful()) {
+                        $downloadErrors[] = "HTTP {$imgResponse->status()}: {$img['src']}";
+                        continue;
+                    }
+
+                    $body = $imgResponse->body();
+                    if (strlen($body) < 100) {
+                        $downloadErrors[] = "Çok küçük dosya ({$body} bytes): {$img['src']}";
                         continue;
                     }
 
@@ -81,7 +89,7 @@ class ImageScrapeController extends Controller
                     $filename = "scraped-{$i}.{$ext}";
                     $path = "posts/{$domainSlug}/{$filename}";
 
-                    Storage::disk('public')->put($path, $imgResponse->body());
+                    Storage::disk('public')->put($path, $body);
 
                     $downloadedImages[] = [
                         'path' => "/storage/{$path}",
@@ -89,13 +97,24 @@ class ImageScrapeController extends Controller
                         'title' => $img['title'] ?? $img['alt'],
                         'original_src' => $img['src'],
                     ];
-                } catch (\Throwable) {
+                } catch (\Throwable $e) {
+                    $downloadErrors[] = "{$img['src']}: {$e->getMessage()}";
                     continue;
                 }
             }
 
             if (empty($downloadedImages)) {
-                return response()->json(['error' => 'Görseller indirilemedi.'], 422);
+                $errorDetail = !empty($downloadErrors)
+                    ? ' Hatalar: ' . implode('; ', array_slice($downloadErrors, 0, 5))
+                    : '';
+                return response()->json([
+                    'error' => "Görseller indirilemedi. {$images[0]['src']} gibi " . count($images) . " görsel denendi.{$errorDetail}",
+                    'debug' => [
+                        'images_found' => count($images),
+                        'errors' => $downloadErrors,
+                        'first_image_url' => $images[0]['src'] ?? null,
+                    ],
+                ], 422);
             }
 
             // Optionally generate AI content for each image
@@ -177,7 +196,18 @@ class ImageScrapeController extends Controller
                 'posts' => $generatedPosts,
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Scraping hatası: ' . $e->getMessage()], 500);
+            \Log::error('Image scrape error', [
+                'site_id' => $siteId,
+                'url' => $url ?? null,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return response()->json([
+                'error' => 'Scraping hatası: ' . $e->getMessage(),
+                'debug' => [
+                    'file' => basename($e->getFile()) . ':' . $e->getLine(),
+                ],
+            ], 500);
         }
     }
 
