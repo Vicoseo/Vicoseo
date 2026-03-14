@@ -7,6 +7,7 @@
     text-color="#bfcbd9"
     active-text-color="#409EFF"
     class="sidebar-menu"
+    @select="$emit('navigate')"
   >
     <div class="sidebar-logo" :class="{ 'is-collapsed': collapsed }">
       <span v-if="!collapsed">CMS Admin</span>

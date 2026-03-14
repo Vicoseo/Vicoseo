@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 8px">
       <h2 style="margin: 0">Panel</h2>
-      <div style="display: flex; align-items: center; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <el-radio-group v-model="period" size="small" @change="onPeriodChange">
           <el-radio-button label="7d">7 Gün</el-radio-button>
           <el-radio-button label="30d">30 Gün</el-radio-button>
@@ -122,7 +122,7 @@
     </el-card>
 
     <!-- Bulk Content Dialog -->
-    <el-dialog title="Toplu İçerik Üretimi" :visible.sync="showBulkDialog" width="500px" :close-on-click-modal="false">
+    <el-dialog title="Toplu İçerik Üretimi" :visible.sync="showBulkDialog" :width="dialogWidth" :close-on-click-modal="false">
       <el-form label-width="130px" v-if="!bulkBatchId">
         <el-form-item label="AI Sağlayıcı">
           <el-radio-group v-model="bulkForm.provider">
@@ -274,6 +274,9 @@ export default {
     bulkProgressStatus() {
       if (!this.bulkProgress.is_finished) return null
       return this.bulkProgress.failed > 0 ? 'exception' : 'success'
+    },
+    dialogWidth() {
+      return window.innerWidth <= 768 ? '94%' : '500px'
     },
     cooldownText() {
       const min = Math.floor(this.cooldownRemaining / 60)

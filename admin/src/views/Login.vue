@@ -123,5 +123,7 @@ export default {
 }
 .login-card {
   width: 400px;
+  max-width: 94vw;
+  box-sizing: border-box;
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
-      <div style="display: flex; align-items: center; gap: 12px">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 8px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <el-button icon="el-icon-back" @click="$router.push('/sites')">Siteler</el-button>
-        <h2 style="margin: 0" v-if="site">{{ site.name }} <small style="color: #909399">({{ site.domain }})</small></h2>
+        <h2 style="margin: 0; font-size: clamp(14px, 3vw, 20px)" v-if="site">{{ site.name }} <small style="color: #909399">({{ site.domain }})</small></h2>
       </div>
-      <div style="display: flex; gap: 8px; align-items: center">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
         <el-button
           size="small"
           type="warning"

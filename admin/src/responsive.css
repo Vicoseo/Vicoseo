@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════════
+   Admin Panel – Mobile Responsive Overrides
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Viewport meta (injected by index.html) ── */
+
+/* ── Mobile breakpoint: 768px ── */
+@media screen and (max-width: 768px) {
+
+  /* ─── Layout: Hide sidebar, full-width main ─── */
+  .el-aside {
+    position: fixed !important;
+    z-index: 2000;
+    height: 100vh;
+    left: -260px;
+    transition: left 0.3s ease;
+  }
+  .el-aside.mobile-open {
+    left: 0 !important;
+  }
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1999;
+  }
+
+  /* ─── Header ─── */
+  .el-header {
+    padding: 0 12px !important;
+    height: 50px !important;
+  }
+
+  /* ─── Main content ─── */
+  .el-main {
+    padding: 12px !important;
+  }
+
+  /* ─── Element UI Grid: Stack columns ─── */
+  .el-col-6,
+  .el-col-8,
+  .el-col-12,
+  .el-col-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-bottom: 8px;
+  }
+  /* 2-column on small tablets */
+  .el-row .el-col-6,
+  .el-row .el-col-8 {
+    width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+
+  /* ─── Tables: Horizontal scroll ─── */
+  .el-table {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+  .el-table__body-wrapper {
+    overflow-x: auto !important;
+  }
+
+  /* ─── Forms: Stack labels ─── */
+  .el-form-item__label {
+    width: auto !important;
+    text-align: left !important;
+    padding: 0 0 4px 0 !important;
+    float: none !important;
+  }
+  .el-form-item__content {
+    margin-left: 0 !important;
+  }
+
+  /* ─── Dialogs: Full width ─── */
+  .el-dialog {
+    width: 94% !important;
+    margin: 20px auto !important;
+  }
+  .el-dialog__body {
+    padding: 15px !important;
+  }
+
+  /* ─── Cards ─── */
+  .el-card__body {
+    padding: 12px !important;
+  }
+
+  /* ─── Stat cards ─── */
+  .stat-number {
+    font-size: 22px !important;
+  }
+  .stat-label {
+    font-size: 11px !important;
+  }
+
+  /* ─── Buttons: Touch-friendly ─── */
+  .el-button--small {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+  .el-button--mini {
+    padding: 6px 10px !important;
+  }
+
+  /* ─── Radio buttons: Wrap ─── */
+  .el-radio-group {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  /* ─── Pagination ─── */
+  .el-pagination {
+    text-align: center !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  /* ─── Date pickers ─── */
+  .el-date-editor--daterange.el-input__inner,
+  .el-date-editor--daterange {
+    width: 100% !important;
+  }
+
+  /* ─── Tabs ─── */
+  .el-tabs__nav-wrap {
+    overflow-x: auto !important;
+  }
+  .el-tabs__nav {
+    white-space: nowrap !important;
+  }
+
+  /* ─── Tag groups ─── */
+  .el-tag {
+    margin-bottom: 4px !important;
+  }
+
+  /* ─── Dropdowns ─── */
+  .el-dropdown-menu {
+    min-width: 120px !important;
+  }
+
+  /* ─── Filter forms inline → stack ─── */
+  .el-form--inline .el-form-item {
+    display: block !important;
+    margin-right: 0 !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+  }
+  .el-form--inline .el-form-item__content {
+    width: 100% !important;
+  }
+  .el-form--inline .el-input,
+  .el-form--inline .el-select {
+    width: 100% !important;
+  }
+
+  /* ─── Charts ─── */
+  canvas {
+    max-height: 250px !important;
+  }
+}
+
+/* ── Small phones: 480px ── */
+@media screen and (max-width: 480px) {
+  .el-row .el-col-6,
+  .el-row .el-col-8 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+
+  .el-dialog {
+    width: 98% !important;
+    margin: 10px auto !important;
+  }
+
+  .stat-number {
+    font-size: 18px !important;
+  }
+
+  .el-table th,
+  .el-table td {
+    padding: 6px 4px !important;
+    font-size: 12px !important;
+  }
+
+  .el-card__header {
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+  }
+}
