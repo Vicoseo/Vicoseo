@@ -40,6 +40,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         allow: '/',
       },
       {
+        userAgent: 'Yandex',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/go/'],
+        crawlDelay: 2,
+      },
+      {
         userAgent: 'Bingbot',
         allow: '/',
         disallow: ['/admin/', '/api/', '/go/'],
