@@ -75,7 +75,7 @@ export async function GET(
 ${featuredImgHtml}
 ${categoryBadge}
 <h1>${escapeHtml(post.title)}</h1>
-<p style="color:#888;font-size:14px;margin-bottom:24px">${formattedDate}</p>
+<p class="amp-post-date">${formattedDate}</p>
 ${ampContent}
 </article>`;
 

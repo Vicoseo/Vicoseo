@@ -195,7 +195,7 @@ export function buildAmpDocument(opts: BuildAmpOpts): string {
 <meta name="twitter:image" content="${image}">
 ${site.favicon_url ? `<link rel="icon" href="${site.favicon_url.startsWith('http') ? site.favicon_url : siteUrl + site.favicon_url}">` : ''}
 <script async src="https://cdn.ampproject.org/v0.js"></script>
-<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;animation:none}</style></noscript>
+<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
 ${schemaScripts.map(s => `<script type="application/ld+json">${s}</script>`).join('\n')}
 <style amp-custom>
 ${css}
@@ -431,6 +431,8 @@ h1,h2,h3,h4{line-height:1.3;margin-bottom:0.5em;word-break:break-word;color:#fff
 .amp-main figure{margin:16px 0}
 .amp-main figcaption{font-size:13px;color:#888;text-align:center;margin-top:8px}
 .amp-main article{padding:0}
+.amp-post-date{color:#888;font-size:14px;margin-bottom:24px}
+.amp-hero-img{border-radius:10px;margin-bottom:20px}
 
 /* Blockquote */
 .amp-main blockquote{border-left:4px solid ${primaryColor};padding:14px 18px;margin:20px 0;background:rgba(255,255,255,0.04);border-radius:0 6px 6px 0;color:#bbb;font-style:italic}
