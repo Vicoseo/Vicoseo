@@ -54,6 +54,7 @@ export interface SiteConfig {
   background_url: string | null;
   social_links: SocialLinks | null;
   ga_measurement_id: string | null;
+  yandex_verification: string | null;
   earnings: SiteEarning[];
   promotions: SitePromotion[];
   promotion_cards: SitePromotion[];

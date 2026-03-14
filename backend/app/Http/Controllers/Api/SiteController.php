@@ -61,6 +61,7 @@ class SiteController extends Controller
                 'show_sponsors' => $site->show_sponsors,
                 'social_links' => $site->social_links,
                 'ga_measurement_id' => $site->ga_measurement_id,
+                'yandex_verification' => $site->yandex_verification,
                 'noindex_mode' => (bool) $site->noindex_mode,
                 'custom_css' => $site->custom_css,
                 'theme_template' => $site->theme_template ?? 'default',

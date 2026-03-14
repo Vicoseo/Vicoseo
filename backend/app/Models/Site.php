@@ -26,6 +26,7 @@ class Site extends Model
         'meta_description',
         'social_links',
         'ga_measurement_id',
+        'yandex_verification',
         'entry_url',
         'login_url',
         'show_sponsors',

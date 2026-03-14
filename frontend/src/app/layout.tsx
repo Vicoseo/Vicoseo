@@ -224,6 +224,9 @@ export default async function RootLayout({
             />
           </>
         )}
+        {site?.yandex_verification && (
+          <meta name="yandex-verification" content={site.yandex_verification} />
+        )}
         {jsonLd && (
           <script
             type="application/ld+json"
