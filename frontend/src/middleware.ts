@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
   if (yandexMatch) {
     const code = yandexMatch[1];
     return new NextResponse(
-      `<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Doğrulama: ${code}</body></html>`,
+      `<html>\n    <head>\n        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n    </head>\n    <body>Verification: ${code}</body>\n</html>`,
       { status: 200, headers: { 'Content-Type': 'text/html; charset=UTF-8' } }
     );
   }
