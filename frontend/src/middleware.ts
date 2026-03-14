@@ -53,6 +53,16 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get('host')?.split(':')[0] || '';
 
+  // ─── Yandex Verification File ───
+  const yandexMatch = pathname.match(/^\/yandex_([a-f0-9]+)\.html$/);
+  if (yandexMatch) {
+    const code = yandexMatch[1];
+    return new NextResponse(
+      `<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: ${code}</body></html>`,
+      { status: 200, headers: { 'Content-Type': 'text/html; charset=UTF-8' } }
+    );
+  }
+
   // ─── Domain-level 301 Redirect ───
   const redirectTarget = await getDomainRedirect(host);
   if (redirectTarget && redirectTarget !== host) {
