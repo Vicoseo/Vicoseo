@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import { getCurrentDomain } from '@/lib/domain';
 import { getSiteConfig, getTopOffers, getPages, getPosts, getPopularPosts, getCategories } from '@/lib/api';
+import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -316,13 +317,14 @@ export default async function RootLayout({
                     <article key={post.id} className="featured-post-card">
                       <Link href={`/blog/${post.slug}`} className="featured-post-link">
                         {post.featured_image && (
-                          <img
+                          <Image
                             src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
                             alt={post.title}
                             className="featured-post-card__image"
                             width={768}
                             height={400}
                             loading="lazy"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           />
                         )}
                         {(post.popularity_score ?? 0) > 0 && (
@@ -353,13 +355,14 @@ export default async function RootLayout({
                     <article key={post.id} className="recent-post-card">
                       <Link href={`/blog/${post.slug}`} className="recent-post-link">
                         {post.featured_image && (
-                          <img
+                          <Image
                             src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
                             alt={post.title}
                             className="recent-post-card__image"
                             width={768}
                             height={400}
                             loading="lazy"
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
                           />
                         )}
                         <h3 className="recent-post-card__title">{post.title}</h3>
@@ -379,7 +382,7 @@ export default async function RootLayout({
                 </div>
               </section>
             )}
-            {site && <Footer site={site} pages={navPages} posts={posts} categories={categories} />}
+            {site && <Footer site={site} pages={navPages} posts={posts} popularPosts={popularPosts} categories={categories} />}
           </>
         )}
       </body>

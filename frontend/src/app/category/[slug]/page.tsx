@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getCurrentDomain } from '@/lib/domain';
 import { getCategory, getSiteConfig } from '@/lib/api';
@@ -130,11 +131,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 <article key={post.id} className="category-post-card">
                   <Link href={`/blog/${post.slug}`}>
                     {post.featured_image && (
-                      <img
+                      <Image
                         src={post.featured_image.startsWith('http') ? post.featured_image : `${siteUrl}${post.featured_image}`}
                         alt={post.title}
+                        width={768}
+                        height={400}
                         loading="lazy"
                         className="category-post-card__image"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     )}
                     <h3 className="category-post-card__title">{post.title}</h3>

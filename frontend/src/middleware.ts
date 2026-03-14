@@ -67,6 +67,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
+  // ─── ?page=1 canonical redirect ───
+  if (request.nextUrl.searchParams.get('page') === '1') {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete('page');
+    return NextResponse.redirect(url, 301);
+  }
+
   // ─── Old Slug → New Slug 301 Redirect ───
   const blogMatch = pathname.match(/^\/blog\/(.+)$/);
   if (blogMatch) {

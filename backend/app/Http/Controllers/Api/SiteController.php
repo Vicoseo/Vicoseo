@@ -11,6 +11,7 @@ use App\Models\SiteEarning;
 use App\Models\SitePromotion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SiteController extends Controller
 {
@@ -42,9 +43,10 @@ class SiteController extends Controller
     {
         /** @var Site $site */
         $site = $request->attributes->get('site');
+        $cacheKey = "api:site_config:{$site->id}";
 
-        return response()->json([
-            'data' => [
+        $data = Cache::remember($cacheKey, 600, function () use ($site) {
+            return [
                 'name' => $site->name,
                 'domain' => $site->domain,
                 'logo_url' => $site->logo_url,
@@ -83,7 +85,9 @@ class SiteController extends Controller
                     ->orderBy('sort_order')
                     ->get(['id', 'image', 'title', 'link_url']),
                 'footer_links' => FooterLink::active()->ordered()->get(['id', 'link_text', 'link_url']),
-            ],
-        ]);
+            ];
+        });
+
+        return response()->json(['data' => $data]);
     }
 }

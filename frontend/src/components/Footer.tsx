@@ -5,6 +5,7 @@ interface FooterProps {
   site: SiteConfig;
   pages?: Page[];
   posts?: Post[];
+  popularPosts?: Post[];
   categories?: Category[];
 }
 
@@ -28,7 +29,7 @@ const SOCIAL_LABELS: Record<keyof SocialLinks, string> = {
   support_email: 'E-posta',
 };
 
-export default function Footer({ site, pages = [], posts = [], categories = [] }: FooterProps) {
+export default function Footer({ site, pages = [], posts = [], popularPosts = [], categories = [] }: FooterProps) {
   const currentYear = new Date().getFullYear();
   const footerLinks = site.footer_links || [];
   const socialLinks = site.social_links || {};
@@ -87,6 +88,21 @@ export default function Footer({ site, pages = [], posts = [], categories = [] }
               </Link>
             ))}
             <Link href="/blog" className="site-footer__link">Blog</Link>
+          </nav>
+        )}
+
+        {popularPosts.length > 0 && (
+          <nav className="site-footer__posts" aria-label="Popüler yazılar">
+            <span className="site-footer__posts-title">Popüler Yazılar</span>
+            {popularPosts.slice(0, 6).map((post) => (
+              <Link
+                key={`pop-${post.id}`}
+                href={`/blog/${post.slug}`}
+                className="site-footer__link"
+              >
+                {post.title}
+              </Link>
+            ))}
           </nav>
         )}
 

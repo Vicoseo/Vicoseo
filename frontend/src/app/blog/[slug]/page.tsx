@@ -29,9 +29,18 @@ export async function generateMetadata({
     const title = post.meta_title || post.title;
     const description = post.meta_description || post.excerpt || undefined;
 
+    const categoryName = post.category?.name || '';
+    const keywords = [
+      ...post.title.split(/[\s\-–—|,]+/).filter((w: string) => w.length > 3),
+      categoryName,
+      siteRes.data.name,
+      '2026',
+    ].filter(Boolean);
+
     return {
       title,
       description,
+      keywords,
       alternates: {
         canonical: `${siteUrl}/blog/${slug}`,
       },
@@ -174,11 +183,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       logoUrl = siteRes.data.logo_url.startsWith('/') ? `${siteUrl}${siteRes.data.logo_url}` : siteRes.data.logo_url;
     }
 
-    // Get related posts (excluding current post, max 6)
+    // Get related posts (excluding current post, max 8)
     const allPosts = postsRes.data || [];
     relatedPosts = allPosts
       .filter((p) => p.slug !== slug)
-      .slice(0, 6)
+      .slice(0, 8)
       .map((p) => ({ slug: p.slug, title: p.title, excerpt: p.excerpt || undefined, published_at: p.published_at }));
   } catch {
     notFound();

@@ -83,6 +83,14 @@ export async function GET() {
     xml += '  </sitemap>\n';
   }
 
+  if (hasPosts) {
+    // AMP sitemap
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${baseUrl}/amp-sitemap.xml</loc>\n`;
+    xml += `    <lastmod>${postLastMod}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+  }
+
   if (hasCategories) {
     xml += '  <sitemap>\n';
     xml += `    <loc>${baseUrl}/category-sitemap.xml</loc>\n`;

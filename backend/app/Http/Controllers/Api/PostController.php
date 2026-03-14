@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Services\TenantManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
@@ -18,10 +19,17 @@ class PostController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $posts = Post::published()
-            ->latest()
-            ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'created_at', 'updated_at'])
-            ->paginate($request->integer('per_page', 15));
+        $site = app(TenantManager::class)->getCurrentSite();
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('per_page', 15);
+        $cacheKey = "api:posts:{$site?->id}:p{$page}:pp{$perPage}";
+
+        $posts = Cache::remember($cacheKey, 300, function () use ($perPage) {
+            return Post::published()
+                ->latest()
+                ->select(['id', 'slug', 'title', 'excerpt', 'featured_image', 'category_id', 'published_at', 'created_at', 'updated_at'])
+                ->paginate($perPage);
+        });
 
         return response()->json($posts);
     }
@@ -80,9 +88,14 @@ class PostController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $post = Post::published()
-            ->where('slug', $slug)
-            ->first();
+        $site = app(TenantManager::class)->getCurrentSite();
+        $cacheKey = "api:post:{$site?->id}:{$slug}";
+
+        $post = Cache::remember($cacheKey, 300, function () use ($slug) {
+            return Post::published()
+                ->where('slug', $slug)
+                ->first();
+        });
 
         if (!$post) {
             return response()->json([

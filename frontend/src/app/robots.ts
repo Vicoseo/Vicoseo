@@ -39,6 +39,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         userAgent: 'Googlebot',
         allow: '/',
       },
+      {
+        userAgent: 'Bingbot',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/go/'],
+        crawlDelay: 5,
+      },
     ],
     sitemap: `https://${domain}/sitemap.xml`,
   };
