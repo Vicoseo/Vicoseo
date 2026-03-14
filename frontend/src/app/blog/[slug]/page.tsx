@@ -34,12 +34,6 @@ export async function generateMetadata({
       description,
       alternates: {
         canonical: `${siteUrl}/blog/${slug}`,
-        types: {
-          'application/xhtml+xml': `${siteUrl}/blog/${slug}/amp`,
-        },
-      },
-      other: {
-        amphtml: `${siteUrl}/blog/${slug}/amp`,
       },
       openGraph: {
         title,
@@ -275,6 +269,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <article className="page-content">
+      <link rel="amphtml" href={`${siteUrl}/blog/${slug}/amp`} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}

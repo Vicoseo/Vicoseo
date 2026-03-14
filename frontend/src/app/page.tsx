@@ -42,9 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
       keywords: firstPage?.meta_keywords || undefined,
       alternates: {
         canonical: siteUrl,
-        types: { 'application/xhtml+xml': `${siteUrl}/amp` },
       },
-      other: { amphtml: `${siteUrl}/amp` },
       openGraph: {
         title,
         description,
@@ -231,6 +229,7 @@ export default async function HomePage() {
 
   return (
     <>
+      {siteUrl && <link rel="amphtml" href={`${siteUrl}/amp`} />}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}

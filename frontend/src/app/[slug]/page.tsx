@@ -57,12 +57,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: description || undefined,
       alternates: {
         canonical: `${siteUrl}/${slug}`,
-        types: {
-          'application/xhtml+xml': `${siteUrl}/${slug}/amp`,
-        },
-      },
-      other: {
-        amphtml: `${siteUrl}/${slug}/amp`,
       },
       openGraph: {
         title,
@@ -159,6 +153,7 @@ export default async function DynamicPage({ params }: PageProps) {
 
   return (
     <>
+      <link rel="amphtml" href={`${siteUrl}/${slug}/amp`} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
