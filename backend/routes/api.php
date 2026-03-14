@@ -14,6 +14,7 @@ Route::middleware('tenant')->prefix('v1')->group(function () {
 // Public API routes (for Next.js frontend) - tenant-scoped via middleware
 Route::middleware(['tenant', 'rate.limit:public'])->prefix('v1')->group(function () {
     Route::get('/site/config', [Api\SiteController::class, 'config']);
+    Route::get('/site/slug-redirects', [Api\SiteController::class, 'slugRedirects']);
     Route::get('/pages', [Api\PageController::class, 'index']);
     Route::get('/pages/{slug}', [Api\PageController::class, 'show']);
     Route::get('/posts', [Api\PostController::class, 'index']);

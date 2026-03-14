@@ -6,6 +6,31 @@ const redirectCache = new Map<string, { target: string | null; expires: number }
 const CACHE_TTL = 60_000;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
+// ─── Slug Redirect Cache (5min TTL) ───
+const slugRedirectCache = new Map<string, { map: Record<string, string> | null; expires: number }>();
+const SLUG_CACHE_TTL = 300_000;
+
+async function getSlugRedirects(domain: string): Promise<Record<string, string> | null> {
+  const cached = slugRedirectCache.get(domain);
+  if (cached && cached.expires > Date.now()) return cached.map;
+  try {
+    const res = await fetch(`${API_URL}/site/slug-redirects`, {
+      headers: { 'X-Tenant-Domain': domain, Accept: 'application/json' },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) {
+      slugRedirectCache.set(domain, { map: null, expires: Date.now() + SLUG_CACHE_TTL });
+      return null;
+    }
+    const { data } = await res.json();
+    slugRedirectCache.set(domain, { map: data || null, expires: Date.now() + SLUG_CACHE_TTL });
+    return data || null;
+  } catch {
+    slugRedirectCache.set(domain, { map: null, expires: Date.now() + SLUG_CACHE_TTL });
+    return null;
+  }
+}
+
 async function getDomainRedirect(domain: string): Promise<string | null> {
   const cached = redirectCache.get(domain);
   if (cached && cached.expires > Date.now()) return cached.target;
@@ -40,6 +65,18 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = pathname.slice(0, -1);
     return NextResponse.redirect(url, 308);
+  }
+
+  // ─── Old Slug → New Slug 301 Redirect ───
+  const blogMatch = pathname.match(/^\/blog\/(.+)$/);
+  if (blogMatch) {
+    const oldSlug = blogMatch[1];
+    const redirects = await getSlugRedirects(host);
+    if (redirects && redirects[oldSlug]) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/blog/${redirects[oldSlug]}`;
+      return NextResponse.redirect(url, 301);
+    }
   }
 
   const response = NextResponse.next();

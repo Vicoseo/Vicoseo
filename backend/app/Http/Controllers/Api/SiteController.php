@@ -15,6 +15,27 @@ use Illuminate\Http\Request;
 class SiteController extends Controller
 {
     /**
+     * Return old-slug → new-slug redirect map for the current domain.
+     */
+    public function slugRedirects(Request $request): JsonResponse
+    {
+        /** @var Site $site */
+        $site = $request->attributes->get('site');
+        $domain = $site->domain;
+
+        $jsonPath = storage_path('slug-redirects.json');
+        if (!file_exists($jsonPath)) {
+            return response()->json(['data' => null]);
+        }
+
+        $all = json_decode(file_get_contents($jsonPath), true);
+
+        return response()->json([
+            'data' => $all[$domain] ?? null,
+        ]);
+    }
+
+    /**
      * Return the current site's branding and configuration info.
      */
     public function config(Request $request): JsonResponse
