@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class AnalyticsController extends Controller
 {
-    private const CACHE_TTL = 7200;      // 2 hours
+    private const CACHE_TTL = 21600;     // 6 hours
     private const COOLDOWN_TTL = 300;    // 5 minutes
 
     public function __construct(
